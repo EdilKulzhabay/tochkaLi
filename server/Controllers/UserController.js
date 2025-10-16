@@ -299,6 +299,7 @@ export const register = async (req, res) => {
                 mail: mail?.toLowerCase(),
                 phone,
                 status: 'active',
+                password: hash,
             });
             
             user = await User.findById(telegramUser._id);
