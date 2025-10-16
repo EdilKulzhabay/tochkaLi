@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { MyInput } from "../components/MyInput";
 import { MyButton } from "../components/MyButton";
@@ -48,6 +48,12 @@ export const Register = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        console.log("telegramId: ", telegramId);
+        console.log("saleBotId: ", saleBotId);
+        console.log("telegramUserName: ", telegramUserName);
+    }, [telegramId, saleBotId, telegramUserName]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
