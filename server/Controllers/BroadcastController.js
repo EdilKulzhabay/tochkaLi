@@ -127,12 +127,15 @@ export const sendBroadcast = async (req, res) => {
             const batch = batches[i];
             console.log(`Отправка пакета ${i + 1}/${batches.length} (${batch.length} пользователей)...`);
 
+            console.log("batch: ", batch);
             try {
                 const response = await axios.post(`https://chatter.salebot.pro/api/${process.env.TELEGRAM_BOT_TOKEN}/broadcast`, {
                     clientsId: batch,
                     message,
                     shift: 0.5,
                 });
+
+                console.log("response: ", response.data);
 
                 if (response.data) {
                     totalSent += response.data.sent || 0;
