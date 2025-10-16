@@ -48,7 +48,13 @@ export const Login = () => {
                     onChange={(e) => setPassword(e.target.value)} 
                     placeholder="Введите ваш пароль"
                 />
-                <Link to={`/register/${telegramId}/${saleBotId}/${telegramUserName}`} className="text-blue-500 hover:underline my-4">
+                <Link 
+                    to={telegramId && saleBotId && telegramUserName 
+                        ? `/register/${telegramId}/${saleBotId}/${telegramUserName}` 
+                        : "/register"
+                    } 
+                    className="text-blue-500 hover:underline my-4"
+                >
                     Нет аккаунта? Зарегистрируйтесь
                 </Link>
                 <MyButton 

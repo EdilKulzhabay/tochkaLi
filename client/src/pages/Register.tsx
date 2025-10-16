@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 
 export const Register = () => {
     const { telegramId = "", saleBotId = "", telegramUserName = "" } = useParams();
+    
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
@@ -93,7 +94,13 @@ export const Register = () => {
                     placeholder="Повторите пароль"
                 />
                 
-                <Link to="/login" className="text-blue-500 hover:underline mb-4">
+                <Link 
+                    to={telegramId && saleBotId && telegramUserName 
+                        ? `/login/${telegramId}/${saleBotId}/${telegramUserName}` 
+                        : "/login"
+                    } 
+                    className="text-blue-500 hover:underline mb-4"
+                >
                     Уже есть аккаунт? Войдите
                 </Link>
                 
