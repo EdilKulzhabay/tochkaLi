@@ -130,7 +130,7 @@ export const sendBroadcast = async (req, res) => {
             console.log("batch: ", batch);
             try {
                 const response = await axios.post(`https://chatter.salebot.pro/api/${process.env.TELEGRAM_BOT_TOKEN}/broadcast`, {
-                    clientsId: batch,
+                    clients: batch,
                     message,
                     shift: 0.5,
                 });
