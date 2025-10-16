@@ -269,6 +269,8 @@ export const createUser = async (req, res) => {
 export const register = async (req, res) => {
     try {
         const { fullName, mail, phone, password, telegramId } = req.body;
+
+        console.log("register req.body: ", req.body);
         
         if (!fullName || !mail || !phone || !password) {
             return res.status(400).json({
