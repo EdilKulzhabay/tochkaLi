@@ -5,7 +5,7 @@ import { MyButton } from '../../components/MyButton';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api';
 import { toast } from 'react-toastify';
-import { User, Mail, Phone, Lock } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
 
 export const ProfileAdmin = () => {
     const { user } = useAuth();
