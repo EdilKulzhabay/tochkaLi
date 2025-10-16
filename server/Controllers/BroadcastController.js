@@ -132,26 +132,19 @@ export const sendBroadcast = async (req, res) => {
                 const response = await axios.post(`https://chatter.salebot.pro/api/${process.env.TELEGRAM_BOT_TOKEN}/broadcast`, {
                     clients: batch,
                     message,
-                    shift: 0.5,
+                    shift: 0.3,
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
                 });
 
                 console.log("response: ", response.data);
-
-                if (response.data) {
-                    totalSent += response.data.sent || 0;
-                    totalFailed += response.data.failed || 0;
-                    if (response.data.failedUsers) {
-                        allFailedUsers = allFailedUsers.concat(response.data.failedUsers);
-                    }
-                }
-
-                console.log(`Пакет ${i + 1} отправлен. Успешно: ${response.data.sent}, Ошибок: ${response.data.failed}`);
             } catch (error) {
                 console.error(`Ошибка отправки пакета ${i + 1}:`, error.response?.data || error.message);
                 totalFailed += batch.length;
             }
 
-            // Задержка перед следующим пакетом (кроме последнего)
             if (i < batches.length - 1) {
                 console.log(`Ожидание ${DELAY_MS / 1000} секунд перед следующим пакетом...`);
                 await delay(DELAY_MS);
