@@ -133,6 +133,7 @@ export const sendBroadcast = async (req, res) => {
                     clients: batch,
                     message,
                     shift: 0.3,
+                    parse_mode: 'HTML', // Включаем HTML форматирование
                 }, {
                     headers: {
                         "Content-Type": "application/json",
