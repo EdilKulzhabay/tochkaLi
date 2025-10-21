@@ -7,3 +7,4 @@ export * as VideoLessonController from "./VideoLessonController.js";
 export * as ScheduleController from "./ScheduleController.js";
 export * as TransitController from "./TransitController.js";
 export * as BroadcastController from "./BroadcastController.js";
+export * as RobokassaController from "./RobokassaController.js";

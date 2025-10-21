@@ -61,6 +61,23 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
+    // Поля для отслеживания оплаты через Robokassa
+    hasPaid: {
+        type: Boolean,
+        default: false,
+    },
+    paymentDate: {
+        type: Date,
+        default: null,
+    },
+    paymentAmount: {
+        type: Number,
+        default: 0,
+    },
+    invoiceId: {
+        type: String,
+        default: null,
+    },
 }, {
     timestamps: true
 });

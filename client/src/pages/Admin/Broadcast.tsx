@@ -79,16 +79,16 @@ export const BroadcastAdmin = () => {
                 total: response.data.total
             });
 
-            if (response.data.sent > 0) {
-                toast.success(`Рассылка завершена! Отправлено: ${response.data.sent}, Не удалось: ${response.data.failed}`);
-            } else {
-                toast.warning('Не удалось отправить сообщения');
-            }
+            // if (response.data.sent > 0) {
+            //     toast.success(`Рассылка завершена! Отправлено: ${response.data.sent}, Не удалось: ${response.data.failed}`);
+            // } else {
+            //     toast.warning('Не удалось отправить сообщения');
+            // }
 
-            // Очищаем сообщение после успешной отправки
-            if (response.data.failed === 0) {
-                setMessage('');
-            }
+            // // Очищаем сообщение после успешной отправки
+            // if (response.data.failed === 0) {
+            //     setMessage('');
+            // }
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Ошибка отправки рассылки');
         } finally {
@@ -152,7 +152,7 @@ export const BroadcastAdmin = () => {
                             Фильтр по статусу пользователей
                         </label>
                         <div className="grid grid-cols-4 gap-3">
-                            {['all', 'guest', 'registered'].map((statusOption) => (
+                            {['all', 'guest', 'active'].map((statusOption) => (
                                 <button
                                     key={statusOption}
                                     onClick={() => setStatus(statusOption)}
@@ -198,19 +198,19 @@ export const BroadcastAdmin = () => {
 
                     {/* Кнопки действий */}
                     <div className="flex gap-3 pt-4 border-t">
-                        <button
+                        {/* <button
                             onClick={handleSendTest}
                             disabled={loading || !message.trim()}
                             className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             <TestTube size={20} />
                             Отправить тест себе
-                        </button>
+                        </button> */}
                         
                         <button
                             onClick={handleSendBroadcast}
                             disabled={loading || !message.trim() || userCount === 0}
-                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-1"
+                            className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-1"
                         >
                             <Send size={20} />
                             {loading ? 'Отправка...' : `Отправить рассылку (${userCount})`}
@@ -224,8 +224,8 @@ export const BroadcastAdmin = () => {
                     <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
                         {/* <li>Убедитесь, что в переменных окружения сервера указан <code className="bg-yellow-100 px-1">TELEGRAM_BOT_TOKEN</code></li> */}
                         <li>Рассылка отправляется только пользователям, у которых есть привязанный Telegram аккаунт</li>
-                        <li>Перед массовой рассылкой рекомендуется отправить тестовое сообщение себе</li>
-                        <li>Скорость отправки ограничена (20 сообщений в секунду) для соблюдения лимитов Telegram API</li>
+                        {/* <li>Перед массовой рассылкой рекомендуется отправить тестовое сообщение себе</li> */}
+                        {/* <li>Скорость отправки ограничена (20 сообщений в секунду) для соблюдения лимитов Telegram API</li> */}
                     </ul>
                 </div>
             </div>

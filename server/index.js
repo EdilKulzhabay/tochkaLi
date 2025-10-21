@@ -13,7 +13,8 @@ import {
     VideoLessonController,
     ScheduleController,
     TransitController,
-    BroadcastController
+    BroadcastController,
+    RobokassaController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
@@ -122,6 +123,11 @@ app.delete("/api/transit/:id", authMiddleware, TransitController.remove);
 app.get("/api/broadcast/users", authMiddleware, BroadcastController.getFilteredUsers);
 app.post("/api/broadcast/send", authMiddleware, BroadcastController.sendBroadcast);
 app.post("/api/broadcast/test", authMiddleware, BroadcastController.sendTestMessage);
+
+// ==================== Robokassa маршруты ====================
+// ResultURL - обработка результата оплаты (вызывается Robokassa)
+app.post("/api/robres", RobokassaController.handleResult);
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);

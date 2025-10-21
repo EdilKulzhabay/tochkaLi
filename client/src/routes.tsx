@@ -15,6 +15,8 @@ import { TransitAdmin } from "./pages/Admin/Transit";
 import { UsersAdmin } from "./pages/Admin/Users";
 import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
+import { RobokassaSuccess } from "./pages/Robokassa/Success";
+import { RobokassaFail } from "./pages/Robokassa/Fail";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -77,5 +79,13 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/broadcast",
         element: <RootLayout><ProtectedRoute requiredRole="admin"><BroadcastAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/robokassa_callback/success",
+        element: <RootLayout><RobokassaSuccess /></RootLayout>,
+    },
+    {
+        path: "/robokassa_callback/fail",
+        element: <RootLayout><RobokassaFail /></RootLayout>,
     },
 ])
