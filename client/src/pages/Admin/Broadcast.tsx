@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import api from '../../api';
 import { toast } from 'react-toastify';
-import { Send, TestTube, Users, MessageSquare } from 'lucide-react';
+import { Send, Users, MessageSquare } from 'lucide-react';
 
 interface BroadcastStats {
     sent: number;
@@ -32,22 +32,22 @@ export const BroadcastAdmin = () => {
         }
     };
 
-    const handleSendTest = async () => {
-        if (!message.trim()) {
-            toast.warning('Введите сообщение');
-            return;
-        }
+    // const handleSendTest = async () => {
+    //     if (!message.trim()) {
+    //         toast.warning('Введите сообщение');
+    //         return;
+    //     }
 
-        setLoading(true);
-        try {
-            await api.post('/api/broadcast/test', { message });
-            toast.success('Тестовое сообщение отправлено вам в Telegram');
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка отправки тестового сообщения');
-        } finally {
-            setLoading(false);
-        }
-    };
+    //     setLoading(true);
+    //     try {
+    //         await api.post('/api/broadcast/test', { message });
+    //         toast.success('Тестовое сообщение отправлено вам в Telegram');
+    //     } catch (error: any) {
+    //         toast.error(error.response?.data?.message || 'Ошибка отправки тестового сообщения');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const handleSendBroadcast = async () => {
         if (!message.trim()) {
