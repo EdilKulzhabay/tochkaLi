@@ -184,16 +184,16 @@ export const BroadcastAdmin = () => {
                         <textarea
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Введите текст сообщения. Поддерживается HTML форматирование (<b>, <i>, <u>, <a>)"
+                            placeholder="Введите текст сообщения. "
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[200px] resize-y"
                             disabled={loading}
                         />
-                        <p className="text-xs text-gray-500 mt-2">
+                        {/* <p className="text-xs text-gray-500 mt-2">
                             Поддерживается HTML: <code className="bg-gray-100 px-1">&lt;b&gt;</code> жирный, 
                             <code className="bg-gray-100 px-1 ml-1">&lt;i&gt;</code> курсив,
                             <code className="bg-gray-100 px-1 ml-1">&lt;u&gt;</code> подчеркнутый,
                             <code className="bg-gray-100 px-1 ml-1">&lt;a href=""&gt;</code> ссылка
-                        </p>
+                        </p> */}
                     </div>
 
                     {/* Кнопки действий */}
