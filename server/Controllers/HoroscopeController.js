@@ -3,9 +3,9 @@ import Horoscope from "../Models/Horoscope.js";
 // Создать новый гороскоп
 export const create = async (req, res) => {
     try {
-        const { zodiacSign, period, title, date, content, accessType } = req.body;
+        const { title, subtitle, mainContent, dates, lines, accessType } = req.body;
 
-        if (!zodiacSign || !period || !title || !date || !content) {
+        if (!title || !subtitle || !mainContent || !dates || !lines || lines.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "Все обязательные поля должны быть заполнены",
@@ -13,11 +13,11 @@ export const create = async (req, res) => {
         }
 
         const horoscope = new Horoscope({
-            zodiacSign,
-            period,
             title,
-            date,
-            content,
+            subtitle,
+            mainContent,
+            dates,
+            lines,
             accessType: accessType || 'free',
         });
 
@@ -41,14 +41,13 @@ export const create = async (req, res) => {
 // Получить все гороскопы
 export const getAll = async (req, res) => {
     try {
-        const { zodiacSign, period, isActive } = req.query;
+        const { accessType, isActive } = req.query;
         
         const filter = {};
-        if (zodiacSign) filter.zodiacSign = zodiacSign;
-        if (period) filter.period = period;
+        if (accessType) filter.accessType = accessType;
         if (isActive !== undefined) filter.isActive = isActive === 'true';
 
-        const horoscopes = await Horoscope.find(filter).sort({ date: -1 });
+        const horoscopes = await Horoscope.find(filter).sort({ createdAt: -1 });
 
         res.json({
             success: true,
@@ -154,4 +153,3 @@ export const remove = async (req, res) => {
         });
     }
 };
-

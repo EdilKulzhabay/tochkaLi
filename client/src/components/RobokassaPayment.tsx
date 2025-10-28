@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { MyButton } from './MyButton';
+import { Modal } from './Modal';
 import CryptoJS from 'crypto-js';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface RobokassaPaymentProps {
   amount: number;
@@ -15,9 +17,18 @@ export const RobokassaPayment = ({
   className 
 }: RobokassaPaymentProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handlePayment = () => {
+    // Проверяем авторизацию
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -78,13 +89,52 @@ export const RobokassaPayment = ({
     }
   };
 
+  const handleLoginRedirect = () => {
+    // Сохраняем текущий путь для возврата после авторизации
+    localStorage.setItem('redirectAfterLogin', location.pathname);
+    navigate('/login');
+  };
+
+  const handleRegisterRedirect = () => {
+    // Сохраняем текущий путь для возврата после регистрации
+    localStorage.setItem('redirectAfterLogin', location.pathname);
+    navigate('/register');
+  };
+
   return (
-    <MyButton
-      text={isLoading ? 'Переход к оплате...' : 'Оплатить курс'}
-      onClick={handlePayment}
-      disabled={isLoading}
-      className={className}
-    />
+    <>
+      <MyButton
+        text={isLoading ? 'Переход к оплате...' : 'Оплатить курс'}
+        onClick={handlePayment}
+        disabled={isLoading}
+        className={className}
+      />
+
+      <Modal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Требуется авторизация"
+        maxWidth="500px"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-700 text-center">
+            Для оплаты курса необходимо авторизоваться или зарегистрироваться в системе.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+            <MyButton
+              text="Войти"
+              onClick={handleLoginRedirect}
+              className="flex-1"
+            />
+            <MyButton
+              text="Зарегистрироваться"
+              onClick={handleRegisterRedirect}
+              className="flex-1"
+            />
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 };
 

@@ -14,10 +14,16 @@ import {
     ScheduleController,
     TransitController,
     BroadcastController,
-    RobokassaController
+    RobokassaController,
+    UploadController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 mongoose
     .connect(process.env.MONGOURL)
@@ -36,6 +42,9 @@ app.use(
         origin: "*",
     })
 );
+
+// Статическая раздача файлов из папки uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Публичные маршруты
 app.post("/api/user/create", UserController.createUser);
@@ -127,6 +136,10 @@ app.post("/api/broadcast/test", authMiddleware, BroadcastController.sendTestMess
 // ==================== Robokassa маршруты ====================
 // ResultURL - обработка результата оплаты (вызывается Robokassa)
 app.post("/api/robres", RobokassaController.handleResult);
+
+// ==================== Upload маршруты ====================
+app.post("/api/upload/image", authMiddleware, UploadController.upload.single('image'), UploadController.uploadImage);
+app.post("/api/upload/delete", authMiddleware, UploadController.deleteImage);
 
 
 app.listen(process.env.PORT, () => {

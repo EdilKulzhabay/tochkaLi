@@ -42,6 +42,23 @@ const UserSchema = new mongoose.Schema({
                 enum: ['subscription', 'one-time', 'free'],
                 required: true,
             },
+            paymentDate: {
+                type: Date,
+                default: null,
+            },
+            paymentAmount: {
+                type: Number,
+                default: 0,
+            },
+            invoiceId: {
+                type: String,
+                default: null,
+            },
+            paymentStatus: {
+                type: String,
+                enum: ['pending', 'paid', 'failed'],
+                default: 'pending',
+            },
         },
     ],
     bonus: {
@@ -50,7 +67,7 @@ const UserSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['guest', 'registered', 'active'],
+        enum: ['guest', 'registered', 'active', 'client'],
         default: 'guest',
     },
     currentToken: {

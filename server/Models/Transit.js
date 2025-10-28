@@ -7,47 +7,40 @@ const TransitSchema = new mongoose.Schema(
       required: [true, 'Название обязательно'],
       trim: true,
     },
-    category: {
+    subtitle: {
       type: String,
-      required: [true, 'Категория обязательна'],
-      trim: true,
-      index: true,
-    },
-    description: {
-      type: String,
-      required: [true, 'Описание обязательно'],
-    },
-    planet: {
-      type: String,
-      required: [true, 'Планета обязательна'],
-      trim: true,
-      index: true,
-    },
-    aspect: {
-      type: String,
-      required: [true, 'Аспект обязателен'],
+      required: [true, 'Подзаголовок обязателен'],
       trim: true,
     },
-    intensity: {
+    mainContent: {
       type: String,
-      enum: ['low', 'medium', 'high'],
-      default: 'medium',
-      required: true,
+      required: [true, 'Основной контент обязателен'],
     },
-    startDate: {
-      type: Date,
-      required: [true, 'Дата начала обязательна'],
-      index: true,
+    dates: {
+      type: String,
+      required: [true, 'Даты обязательны'],
+      trim: true,
+      // Формат: "ГГГГ-ММ-ДД - ГГГГ-ММ-ДД"
     },
-    endDate: {
-      type: Date,
-      required: [true, 'Дата окончания обязательна'],
-      index: true,
-    },
-    affectedZodiacs: {
-      type: [String],
-      default: [],
-    },
+    lines: [
+      {
+        date: {
+          type: String,
+          required: true,
+          trim: true,
+          // Формат: "ГГГГ-ММ-ДД"
+        },
+        title: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        content: {
+          type: String,
+          required: true,
+        },
+      }
+    ],
     accessType: {
       type: String,
       enum: ['free', 'paid', 'subscription'],
@@ -64,18 +57,9 @@ const TransitSchema = new mongoose.Schema(
   }
 );
 
-// Индексы для поиска активных транзитов
-TransitSchema.index({ startDate: 1, endDate: 1 });
-TransitSchema.index({ planet: 1, startDate: -1 });
+// Индексы для быстрого поиска
+TransitSchema.index({ dates: 1 });
 TransitSchema.index({ isActive: 1 });
-
-// Валидация дат
-TransitSchema.pre('save', function (next) {
-  if (this.endDate < this.startDate) {
-    next(new Error('Дата окончания должна быть после даты начала'));
-  }
-  next();
-});
 
 export default mongoose.model('Transit', TransitSchema);
 

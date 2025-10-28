@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { MyInput } from "../components/MyInput";
 import { MyButton } from "../components/MyButton";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-toastify";
 
 export const Register = () => {
-    const { telegramId = "", saleBotId = "", telegramUserName = "" } = useParams();
+    const [telegramId, setTelegramId] = useState("");
+    const [saleBotId, setSaleBotId] = useState("");
+    const [telegramUserName, setTelegramUserName] = useState("");
+    const [phone, setPhone] = useState("");
+    
+    useEffect(() => {
+        setTelegramId(localStorage.getItem("telegramId") || "");
+        setSaleBotId(localStorage.getItem("saleBotId") || "");
+        setTelegramUserName(localStorage.getItem("telegramUserName") || "");
+        setPhone(localStorage.getItem("phone") || "");
+    }, []);
     
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -50,10 +59,11 @@ export const Register = () => {
     };
 
     useEffect(() => {
-        console.log("telegramId: ", telegramId);
-        console.log("saleBotId: ", saleBotId);
-        console.log("telegramUserName: ", telegramUserName);
-    }, [telegramId, saleBotId, telegramUserName]);
+        console.log("telegramId: ", localStorage.getItem("telegramId"));
+        console.log("saleBotId: ", localStorage.getItem("saleBotId"));
+        console.log("telegramUserName: ", localStorage.getItem("telegramUserName"));
+        console.log("phone: ", localStorage.getItem("phone"));
+    }, [telegramId, saleBotId, telegramUserName, phone]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

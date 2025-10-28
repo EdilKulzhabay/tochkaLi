@@ -2,35 +2,45 @@ import mongoose from 'mongoose';
 
 const HoroscopeSchema = new mongoose.Schema(
   {
-    zodiacSign: {
-      type: String,
-      required: [true, 'Знак зодиака обязателен'],
-      enum: [
-        'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-        'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
-      ],
-      index: true,
-    },
-    period: {
-      type: String,
-      required: [true, 'Период обязателен'],
-      trim: true,
-      index: true,
-    },
     title: {
       type: String,
-      required: [true, 'Заголовок обязателен'],
+      required: [true, 'Название обязательно'],
       trim: true,
     },
-    date: {
-      type: Date,
-      required: [true, 'Дата обязательна'],
-      index: true,
-    },
-    content: {
+    subtitle: {
       type: String,
-      required: [true, 'Содержание обязательно'],
+      required: [true, 'Подзаголовок обязателен'],
+      trim: true,
     },
+    mainContent: {
+      type: String,
+      required: [true, 'Основной контент обязателен'],
+    },
+    dates: {
+      type: String,
+      required: [true, 'Даты обязательны'],
+      trim: true,
+      // Формат: "ГГГГ-ММ-ДД - ГГГГ-ММ-ДД"
+    },
+    lines: [
+      {
+        date: {
+          type: String,
+          required: true,
+          trim: true,
+          // Формат: "ГГГГ-ММ-ДД"
+        },
+        title: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        content: {
+          type: String,
+          required: true,
+        },
+      }
+    ],
     accessType: {
       type: String,
       enum: ['free', 'paid', 'subscription'],
@@ -47,10 +57,8 @@ const HoroscopeSchema = new mongoose.Schema(
   }
 );
 
-// Индексы для быстрого поиска гороскопов
-HoroscopeSchema.index({ zodiacSign: 1, date: -1 });
-HoroscopeSchema.index({ period: 1, date: -1 });
+// Индексы для быстрого поиска
+HoroscopeSchema.index({ dates: 1 });
 HoroscopeSchema.index({ isActive: 1 });
 
 export default mongoose.model('Horoscope', HoroscopeSchema);
-

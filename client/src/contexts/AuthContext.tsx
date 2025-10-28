@@ -92,11 +92,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem("refreshToken", response.data.refreshToken);
             setUser(response.data.userData);
             
-            // Редирект в зависимости от роли
-            if (response.data.userData.role === "admin") {
-                navigate("/admin");
+            // Проверяем сохраненный путь для редиректа
+            const redirectPath = localStorage.getItem("redirectAfterLogin");
+            if (redirectPath) {
+                localStorage.removeItem("redirectAfterLogin");
+                navigate(redirectPath);
             } else {
-                navigate("/");
+                // Редирект в зависимости от роли
+                if (response.data.userData.role === "admin") {
+                    navigate("/admin");
+                } else {
+                    navigate("/");
+                }
             }
         } else {
             throw new Error(response.data.message || "Ошибка авторизации");
@@ -119,11 +126,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem("refreshToken", response.data.refreshToken);
             setUser(response.data.userData);
             
-            // Редирект в зависимости от роли
-            if (response.data.userData.role === "admin") {
-                navigate("/admin");
+            // Проверяем сохраненный путь для редиректа
+            const redirectPath = localStorage.getItem("redirectAfterLogin");
+            if (redirectPath) {
+                localStorage.removeItem("redirectAfterLogin");
+                navigate(redirectPath);
             } else {
-                navigate("/");
+                // Редирект в зависимости от роли
+                if (response.data.userData.role === "admin") {
+                    navigate("/admin");
+                } else {
+                    navigate("/");
+                }
             }
         } else {
             throw new Error(response.data.message || "Ошибка регистрации");

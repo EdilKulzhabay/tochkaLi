@@ -28,6 +28,8 @@ const contentCards = [
 ];
 
 export const Main = () => {
+
+    console.log("Main");
     return (
         <AdminLayout>
             <div className="space-y-6">

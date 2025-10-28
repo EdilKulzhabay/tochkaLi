@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import api from '../../api';
 import { toast } from 'react-toastify';
-import { Send, Users, MessageSquare } from 'lucide-react';
+import { Send, Users, MessageSquare, Search, X } from 'lucide-react';
+import { RichTextEditor } from '../../components/RichTextEditor';
 
 interface BroadcastStats {
     sent: number;
@@ -10,21 +11,32 @@ interface BroadcastStats {
     total: number;
 }
 
+interface User {
+    _id: string;
+    fullName: string;
+    userName?: string;
+    telegramUserName?: string;
+    phone?: string;
+    status: string;
+}
+
 export const BroadcastAdmin = () => {
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState('all');
+    const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
+    const [searchLoading, setSearchLoading] = useState(false);
     const [userCount, setUserCount] = useState(0);
+    const [foundUsers, setFoundUsers] = useState<User[]>([]);
+    const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
     const [lastStats, setLastStats] = useState<BroadcastStats | null>(null);
-
-    useEffect(() => {
-        fetchUserCount();
-    }, [status]);
 
     const fetchUserCount = async () => {
         try {
             const response = await api.get('/api/broadcast/users', {
-                params: { status: status }
+                params: { 
+                    status: status
+                }
             });
             setUserCount(response.data.count);
         } catch (error: any) {
@@ -32,22 +44,62 @@ export const BroadcastAdmin = () => {
         }
     };
 
-    // const handleSendTest = async () => {
-    //     if (!message.trim()) {
-    //         toast.warning('Введите сообщение');
-    //         return;
-    //     }
+    useEffect(() => {
+        fetchUserCount();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [status]);
 
-    //     setLoading(true);
-    //     try {
-    //         await api.post('/api/broadcast/test', { message });
-    //         toast.success('Тестовое сообщение отправлено вам в Telegram');
-    //     } catch (error: any) {
-    //         toast.error(error.response?.data?.message || 'Ошибка отправки тестового сообщения');
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
+    const handleSearch = async () => {
+        if (!search.trim()) {
+            toast.warning('Введите текст для поиска');
+            return;
+        }
+
+        setSearchLoading(true);
+        try {
+            const response = await api.get('/api/broadcast/users', {
+                params: { 
+                    status: status,
+                    search: search 
+                }
+            });
+            setFoundUsers(response.data.data || []);
+            setSelectedUsers(new Set());
+            if (response.data.data.length === 0) {
+                toast.info('Пользователи не найдены');
+            } else {
+                toast.success(`Найдено пользователей: ${response.data.data.length}`);
+            }
+        } catch (error: any) {
+            toast.error('Ошибка поиска пользователей');
+        } finally {
+            setSearchLoading(false);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setSearch('');
+        setFoundUsers([]);
+        setSelectedUsers(new Set());
+    };
+
+    const toggleUserSelection = (userId: string) => {
+        const newSelected = new Set(selectedUsers);
+        if (newSelected.has(userId)) {
+            newSelected.delete(userId);
+        } else {
+            newSelected.add(userId);
+        }
+        setSelectedUsers(newSelected);
+    };
+
+    const toggleAllUsers = () => {
+        if (selectedUsers.size === foundUsers.length) {
+            setSelectedUsers(new Set());
+        } else {
+            setSelectedUsers(new Set(foundUsers.map(u => u._id)));
+        }
+    };
 
     const handleSendBroadcast = async () => {
         if (!message.trim()) {
@@ -55,14 +107,47 @@ export const BroadcastAdmin = () => {
             return;
         }
 
+        // Если есть выбранные пользователи из поиска
+        if (selectedUsers.size > 0) {
+            const confirmText = `Вы уверены, что хотите отправить сообщение ${selectedUsers.size} выбранным пользователям?`;
+            if (!confirm(confirmText)) return;
+
+            setLoading(true);
+            try {
+                const response = await api.post('/api/broadcast/send', { 
+                    message,
+                    userIds: Array.from(selectedUsers)
+                });
+                
+                setLastStats({
+                    sent: response.data.sent,
+                    failed: response.data.failed,
+                    total: response.data.total
+                });
+
+                toast.success('Рассылка завершена!');
+                setFoundUsers([]);
+                setSelectedUsers(new Set());
+                setSearch('');
+            } catch (error: any) {
+                toast.error(error.response?.data?.message || 'Ошибка отправки рассылки');
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
+        // Иначе отправляем всем по фильтру статуса
         if (userCount === 0) {
             toast.warning('Нет пользователей для рассылки');
             return;
         }
 
-        const confirmText = status === 'all' 
-            ? `Вы уверены, что хотите отправить сообщение всем ${userCount} пользователям?`
-            : `Вы уверены, что хотите отправить сообщение ${userCount} пользователям со статусом "${getStatusLabel(status)}"?`;
+        let confirmText = `Вы уверены, что хотите отправить сообщение ${userCount} пользователям?`;
+        
+        if (status !== 'all') {
+            confirmText = `Вы уверены, что хотите отправить сообщение ${userCount} пользователям со статусом "${getStatusLabel(status)}"?`;
+        }
 
         if (!confirm(confirmText)) return;
 
@@ -79,16 +164,7 @@ export const BroadcastAdmin = () => {
                 total: response.data.total
             });
 
-            // if (response.data.sent > 0) {
-            //     toast.success(`Рассылка завершена! Отправлено: ${response.data.sent}, Не удалось: ${response.data.failed}`);
-            // } else {
-            //     toast.warning('Не удалось отправить сообщения');
-            // }
-
-            // // Очищаем сообщение после успешной отправки
-            // if (response.data.failed === 0) {
-            //     setMessage('');
-            // }
+            toast.success('Рассылка завершена!');
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Ошибка отправки рассылки');
         } finally {
@@ -101,6 +177,7 @@ export const BroadcastAdmin = () => {
             case 'guest': return 'Гость';
             case 'registered': return 'Зарегистрирован';
             case 'active': return 'Активен';
+            case 'client': return 'Клиент';
             default: return 'Все';
         }
     };
@@ -110,6 +187,7 @@ export const BroadcastAdmin = () => {
             case 'guest': return 'bg-gray-100 text-gray-700';
             case 'registered': return 'bg-blue-100 text-blue-700';
             case 'active': return 'bg-green-100 text-green-700';
+            case 'client': return 'bg-purple-100 text-purple-700';
             default: return 'bg-purple-100 text-purple-700';
         }
     };
@@ -152,7 +230,7 @@ export const BroadcastAdmin = () => {
                             Фильтр по статусу пользователей
                         </label>
                         <div className="grid grid-cols-4 gap-3">
-                            {['all', 'guest', 'active'].map((statusOption) => (
+                            {['all', 'guest', 'active', 'client'].map((statusOption) => (
                                 <button
                                     key={statusOption}
                                     onClick={() => setStatus(statusOption)}
@@ -170,10 +248,99 @@ export const BroadcastAdmin = () => {
                                 </button>
                             ))}
                         </div>
-                        <p className="text-sm text-gray-500 mt-2">
-                            Количество получателей: <span className="font-semibold text-blue-600">{userCount}</span>
-                        </p>
                     </div>
+
+                    {/* Поиск по пользователям */}
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                            <Search size={18} />
+                            Поиск конкретных пользователей
+                        </label>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                    placeholder="Поиск по имени, username, телефону..."
+                                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                            </div>
+                            <button
+                                onClick={handleSearch}
+                                disabled={searchLoading || !search.trim()}
+                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                            >
+                                <Search size={18} />
+                                {searchLoading ? 'Поиск...' : 'Найти'}
+                            </button>
+                            {(search || foundUsers.length > 0) && (
+                                <button
+                                    onClick={handleClearSearch}
+                                    className="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                >
+                                    <X size={18} />
+                                </button>
+                            )}
+                        </div>
+                        {foundUsers.length === 0 && !search && (
+                            <p className="text-sm text-gray-500 mt-2">
+                                Количество получателей по фильтру: <span className="font-semibold text-blue-600">{userCount}</span>
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Список найденных пользователей */}
+                    {foundUsers.length > 0 && (
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedUsers.size === foundUsers.length}
+                                        onChange={toggleAllUsers}
+                                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <span className="font-medium text-gray-700">
+                                        Найдено пользователей: {foundUsers.length}
+                                    </span>
+                                </div>
+                                <span className="text-sm text-gray-600">
+                                    Выбрано: <span className="font-semibold text-blue-600">{selectedUsers.size}</span>
+                                </span>
+                            </div>
+                            <div className="max-h-96 overflow-y-auto">
+                                {foundUsers.map((user) => (
+                                    <div
+                                        key={user._id}
+                                        className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 flex items-center gap-3 cursor-pointer"
+                                        onClick={() => toggleUserSelection(user._id)}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedUsers.has(user._id)}
+                                            onChange={() => toggleUserSelection(user._id)}
+                                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900">{user.fullName || 'Без имени'}</div>
+                                            <div className="text-sm text-gray-500 flex gap-3">
+                                                {user.telegramUserName && <span>@{user.telegramUserName}</span>}
+                                                {user.userName && <span>{user.userName}</span>}
+                                                {user.phone && <span>{user.phone}</span>}
+                                            </div>
+                                        </div>
+                                        <div className={`text-xs px-2 py-1 rounded ${getStatusColor(user.status)}`}>
+                                            {getStatusLabel(user.status)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Текст сообщения */}
                     <div>
@@ -181,39 +348,26 @@ export const BroadcastAdmin = () => {
                             <MessageSquare size={18} />
                             Сообщение для рассылки
                         </label>
-                        <textarea
+                        <RichTextEditor
                             value={message}
-                            onChange={(e) => setMessage(e.target.value)}
+                            onChange={(value) => setMessage(value)}
                             placeholder="Введите текст сообщения. "
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[200px] resize-y"
-                            disabled={loading}
+                            height="350px"
                         />
-                        {/* <p className="text-xs text-gray-500 mt-2">
-                            Поддерживается HTML: <code className="bg-gray-100 px-1">&lt;b&gt;</code> жирный, 
-                            <code className="bg-gray-100 px-1 ml-1">&lt;i&gt;</code> курсив,
-                            <code className="bg-gray-100 px-1 ml-1">&lt;u&gt;</code> подчеркнутый,
-                            <code className="bg-gray-100 px-1 ml-1">&lt;a href=""&gt;</code> ссылка
-                        </p> */}
                     </div>
 
                     {/* Кнопки действий */}
                     <div className="flex gap-3 pt-4 border-t">
-                        {/* <button
-                            onClick={handleSendTest}
-                            disabled={loading || !message.trim()}
-                            className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <TestTube size={20} />
-                            Отправить тест себе
-                        </button> */}
-                        
                         <button
                             onClick={handleSendBroadcast}
-                            disabled={loading || !message.trim() || userCount === 0}
+                            disabled={loading || !message.trim() || (selectedUsers.size === 0 && userCount === 0)}
                             className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-1"
                         >
                             <Send size={20} />
-                            {loading ? 'Отправка...' : `Отправить рассылку (${userCount})`}
+                            {loading ? 'Отправка...' : selectedUsers.size > 0 
+                                ? `Отправить выбранным (${selectedUsers.size})`
+                                : `Отправить рассылку (${userCount})`
+                            }
                         </button>
                     </div>
                 </div>

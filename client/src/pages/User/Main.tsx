@@ -1,6 +1,21 @@
+import { useParams } from 'react-router-dom';
 import { RobokassaPayment } from '../../components/RobokassaPayment';
+import { useEffect } from 'react';
 
 export const Main = () => {
+    const { telegramId = "", saleBotId = "", telegramUserName = "", phone = "" } = useParams();
+
+    useEffect(() => {
+        console.log("telegramId: ", telegramId);
+        console.log("saleBotId: ", saleBotId);
+        console.log("telegramUserName: ", telegramUserName);
+        console.log("phone: ", phone);
+        localStorage.setItem("telegramId", telegramId);
+        localStorage.setItem("saleBotId", saleBotId);
+        localStorage.setItem("telegramUserName", telegramUserName);
+        localStorage.setItem("phone", phone);
+    }, [telegramId, saleBotId, telegramUserName, phone]);
+    
     return (
         <div className="container mx-auto p-6">
             <div className="max-w-2xl mx-auto">

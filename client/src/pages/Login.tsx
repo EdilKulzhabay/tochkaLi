@@ -1,12 +1,23 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { MyInput } from "../components/MyInput";
 import { toast } from "react-toastify";
 import { MyButton } from "../components/MyButton";
 import { useAuth } from "../contexts/AuthContext";
 
 export const Login = () => {
-    const { telegramId = "", saleBotId = "", telegramUserName = "" } = useParams();
+    const [telegramId, setTelegramId] = useState("");
+    const [saleBotId, setSaleBotId] = useState("");
+    const [telegramUserName, setTelegramUserName] = useState("");
+
+    useEffect(() => {
+        console.log("telegramId: ", localStorage.getItem("telegramId"));
+        console.log("saleBotId: ", localStorage.getItem("saleBotId"));
+        console.log("telegramUserName: ", localStorage.getItem("telegramUserName"));
+        setTelegramId(localStorage.getItem("telegramId") || "");
+        setSaleBotId(localStorage.getItem("saleBotId") || "");
+        setTelegramUserName(localStorage.getItem("telegramUserName") || "");
+    }, []);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

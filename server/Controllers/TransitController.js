@@ -3,9 +3,9 @@ import Transit from "../Models/Transit.js";
 // Создать новый транзит
 export const create = async (req, res) => {
     try {
-        const { title, category, description, planet, aspect, intensity, startDate, endDate, affectedZodiacs, accessType } = req.body;
+        const { title, subtitle, mainContent, dates, lines, accessType } = req.body;
 
-        if (!title || !category || !description || !planet || !aspect || !startDate || !endDate) {
+        if (!title || !subtitle || !mainContent || !dates || !lines || lines.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "Все обязательные поля должны быть заполнены",
@@ -14,14 +14,10 @@ export const create = async (req, res) => {
 
         const transit = new Transit({
             title,
-            category,
-            description,
-            planet,
-            aspect,
-            intensity: intensity || 'medium',
-            startDate,
-            endDate,
-            affectedZodiacs: affectedZodiacs || [],
+            subtitle,
+            mainContent,
+            dates,
+            lines,
             accessType: accessType || 'free',
         });
 
@@ -45,23 +41,13 @@ export const create = async (req, res) => {
 // Получить все транзиты
 export const getAll = async (req, res) => {
     try {
-        const { planet, category, intensity, accessType, isActive, active } = req.query;
+        const { accessType, isActive } = req.query;
         
         const filter = {};
-        if (planet) filter.planet = planet;
-        if (category) filter.category = category;
-        if (intensity) filter.intensity = intensity;
         if (accessType) filter.accessType = accessType;
         if (isActive !== undefined) filter.isActive = isActive === 'true';
-        
-        // Фильтр для активных транзитов (текущая дата между startDate и endDate)
-        if (active === 'true') {
-            const now = new Date();
-            filter.startDate = { $lte: now };
-            filter.endDate = { $gte: now };
-        }
 
-        const transits = await Transit.find(filter).sort({ startDate: -1 });
+        const transits = await Transit.find(filter).sort({ createdAt: -1 });
 
         res.json({
             success: true,
@@ -167,4 +153,3 @@ export const remove = async (req, res) => {
         });
     }
 };
-

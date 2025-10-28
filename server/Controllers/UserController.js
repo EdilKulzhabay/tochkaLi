@@ -238,7 +238,7 @@ export const codeConfirm = async (req, res) => {
 
 export const createUser = async (req, res) => {
     try {
-        const { telegramId, telegramUserName, saleBotId } = req.body;
+        const { telegramId, telegramUserName, saleBotId, phone } = req.body;
         const candidate = await User.findOne({ telegramId });
 
         console.log("createUser req.body: ", req.body);
@@ -254,6 +254,8 @@ export const createUser = async (req, res) => {
             telegramId,
             telegramUserName,
             saleBotId,
+            phone,
+            status: 'guest',
         });
 
         const user = await doc.save();
@@ -374,6 +376,8 @@ export const login = async (req, res) => {
 
         const candidate = await User.findOne({ mail: email?.toLowerCase() });
 
+        console.log("login candidate: ", candidate);
+
         if (!candidate) {
             console.log("login candidate is not found");
             return res.status(404).json({
@@ -382,7 +386,7 @@ export const login = async (req, res) => {
             });
         }
 
-        const isValidPass = await bcrypt.compare(
+        const isValidPass = bcrypt.compare(
             password,
             candidate.password
         );

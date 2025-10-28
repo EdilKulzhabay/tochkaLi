@@ -19,10 +19,10 @@ const sendTelegramMessage = async (chatId, message) => {
     }
 };
 
-// Получить пользователей с фильтрацией по статусу
+// Получить пользователей с фильтрацией по статусу и поиску
 export const getFilteredUsers = async (req, res) => {
     try {
-        const { status } = req.query;
+        const { status, search } = req.query;
 
         let filter = {};
         
@@ -31,11 +31,22 @@ export const getFilteredUsers = async (req, res) => {
             filter.status = status;
         }
 
-        // Получаем только пользователей с telegramId
-        filter.telegramId = { $exists: true, $ne: null, $ne: '' };
+        // Получаем только пользователей с saleBotId (для рассылки)
+        filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
+
+        // Поиск по нескольким полям
+        if (search && search.trim()) {
+            const searchRegex = new RegExp(search.trim(), 'i');
+            filter.$or = [
+                { telegramUserName: searchRegex },
+                { userName: searchRegex },
+                { fullName: searchRegex },
+                { phone: searchRegex },
+            ];
+        }
 
         const users = await User.find(filter)
-            .select('telegramId telegramUserName fullName status createdAt')
+            .select('saleBotId telegramId telegramUserName userName fullName phone status createdAt')
             .sort({ createdAt: -1 });
 
         res.json({
@@ -71,7 +82,7 @@ const chunkArray = (array, size) => {
 // Отправить рассылку
 export const sendBroadcast = async (req, res) => {
     try {
-        const { message, status } = req.body;
+        const { message, status, search, userIds } = req.body;
 
         if (!message) {
             return res.status(400).json({
@@ -88,16 +99,37 @@ export const sendBroadcast = async (req, res) => {
         }
 
         let filter = {};
-        
-        // Фильтр по статусу (если указан)
-        if (status && status !== 'all') {
-            filter.status = status;
+        let users;
+
+        // Если переданы конкретные ID пользователей (выборочная отправка)
+        if (userIds && Array.isArray(userIds) && userIds.length > 0) {
+            filter._id = { $in: userIds };
+            filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
+            users = await User.find(filter).select('saleBotId telegramUserName userName fullName phone status');
+        } else {
+            // Иначе используем фильтры по статусу и поиску
+            
+            // Фильтр по статусу (если указан)
+            if (status && status !== 'all') {
+                filter.status = status;
+            }
+
+            // Получаем только пользователей с saleBotId
+            filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
+
+            // Поиск по нескольким полям
+            if (search && search.trim()) {
+                const searchRegex = new RegExp(search.trim(), 'i');
+                filter.$or = [
+                    { telegramUserName: searchRegex },
+                    { userName: searchRegex },
+                    { fullName: searchRegex },
+                    { phone: searchRegex },
+                ];
+            }
+
+            users = await User.find(filter).select('saleBotId telegramUserName userName fullName phone status');
         }
-
-        // Получаем только пользователей с saleBotId
-        filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
-
-        const users = await User.find(filter).select('saleBotId telegramUserName fullName status');
 
         if (users.length === 0) {
             return res.json({

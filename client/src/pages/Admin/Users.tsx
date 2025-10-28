@@ -89,7 +89,7 @@ export const UsersAdmin = () => {
     };
 
     const columns = [
-        { key: 'fullName', label: 'Имя' },
+        { key: 'telegramUserName', label: 'Имя' },
         { key: 'mail', label: 'Email' },
         { key: 'phone', label: 'Телефон' },
         { 
