@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export const PracticeAdmin = () => {
     const navigate = useNavigate();
     const [practices, setPractices] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchPractices();

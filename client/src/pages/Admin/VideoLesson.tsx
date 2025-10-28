@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export const VideoLessonAdmin = () => {
     const navigate = useNavigate();
     const [videoLessons, setVideoLessons] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchVideoLessons();

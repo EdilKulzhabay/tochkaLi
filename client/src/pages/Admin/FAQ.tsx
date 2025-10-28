@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export const FAQAdmin = () => {
     const navigate = useNavigate();
     const [faqs, setFaqs] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchFAQs();

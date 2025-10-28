@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export const ScheduleAdmin = () => {
     const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchSchedules();

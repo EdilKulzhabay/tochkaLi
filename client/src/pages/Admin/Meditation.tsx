@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export const MeditationAdmin = () => {
     const navigate = useNavigate();
     const [meditations, setMeditations] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchMeditations();
