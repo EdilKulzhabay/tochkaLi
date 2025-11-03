@@ -44,15 +44,13 @@ export const TransitAdmin = () => {
     };
 
     const columns = [
-        { key: 'title', label: 'Название' },
-        { key: 'subtitle', label: 'Подзаголовок' },
         { key: 'dates', label: 'Даты' },
-        { key: 'accessType', label: 'Доступ' },
         { 
-            key: 'isActive', 
-            label: 'Статус',
-            render: (value: boolean) => value ? 'Активен' : 'Неактивен'
+            key: 'datesContent', 
+            label: 'Количество дней',
+            render: (value: any[]) => value ? `${value.length} дней` : '0 дней'
         },
+        { key: 'accessType', label: 'Доступ' },
     ];
 
     return (

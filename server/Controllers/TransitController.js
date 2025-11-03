@@ -3,9 +3,9 @@ import Transit from "../Models/Transit.js";
 // Создать новый транзит
 export const create = async (req, res) => {
     try {
-        const { title, subtitle, mainContent, dates, lines, accessType } = req.body;
+        const { dates, datesContent, accessType } = req.body;
 
-        if (!title || !subtitle || !mainContent || !dates || !lines || lines.length === 0) {
+        if (!dates || !datesContent || datesContent.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "Все обязательные поля должны быть заполнены",
@@ -13,11 +13,8 @@ export const create = async (req, res) => {
         }
 
         const transit = new Transit({
-            title,
-            subtitle,
-            mainContent,
             dates,
-            lines,
+            datesContent,
             accessType: accessType || 'free',
         });
 
@@ -41,11 +38,10 @@ export const create = async (req, res) => {
 // Получить все транзиты
 export const getAll = async (req, res) => {
     try {
-        const { accessType, isActive } = req.query;
+        const { accessType } = req.query;
         
         const filter = {};
         if (accessType) filter.accessType = accessType;
-        if (isActive !== undefined) filter.isActive = isActive === 'true';
 
         const transits = await Transit.find(filter).sort({ createdAt: -1 });
 

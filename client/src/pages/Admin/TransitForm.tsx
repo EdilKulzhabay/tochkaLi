@@ -4,25 +4,28 @@ import { RichTextEditor } from '../../components/RichTextEditor';
 import { MyInput } from '../../components/MyInput';
 import { MyButton } from '../../components/MyButton';
 import { DateRangePicker } from '../../components/DateRangePicker';
-import { ArrowLeft } from 'lucide-react';
+import { ImageUpload } from '../../components/ImageUpload';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
 
 interface Line {
-    date: string;
     title: string;
     content: string;
 }
 
-interface FormData {
+interface DateContent {
     title: string;
     subtitle: string;
-    mainContent: string;
-    dates: string;
+    image: string;
     lines: Line[];
+}
+
+interface FormData {
+    dates: string;
+    datesContent: DateContent[];
     accessType: string;
-    isActive: boolean;
 }
 
 export const TransitForm = () => {
@@ -30,13 +33,9 @@ export const TransitForm = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<FormData>({
-        title: '',
-        subtitle: '',
-        mainContent: '',
         dates: '',
-        lines: [],
+        datesContent: [],
         accessType: 'free',
-        isActive: true,
     });
 
     useEffect(() => {
@@ -50,13 +49,9 @@ export const TransitForm = () => {
             const response = await api.get(`/api/transit/${id}`);
             const data = response.data.data;
             setFormData({
-                title: data.title || '',
-                subtitle: data.subtitle || '',
-                mainContent: data.mainContent || '',
                 dates: data.dates || '',
-                lines: data.lines || [],
+                datesContent: data.datesContent || [],
                 accessType: data.accessType || 'free',
-                isActive: data.isActive !== undefined ? data.isActive : true,
             });
         } catch (error: any) {
             toast.error('Ошибка загрузки транзита');
@@ -90,24 +85,51 @@ export const TransitForm = () => {
         // Если формат корректный, генерируем блоки для каждой даты
         const datesList = generateDatesFromRange(newDates);
         if (datesList.length > 0) {
-            const newLines = datesList.map(date => {
-                // Пытаемся найти существующую линию для этой даты
-                const existingLine = formData.lines.find(line => line.date === date);
-                return existingLine || {
-                    date,
-                    title: '',
-                    content: ''
-                };
-            });
-            setFormData(prev => ({ ...prev, lines: newLines }));
+            const newDatesContent = datesList.map(() => ({
+                title: '',
+                subtitle: '',
+                image: '',
+                lines: [],
+            }));
+            setFormData(prev => ({ ...prev, datesContent: newDatesContent }));
         }
     };
 
-    const handleLineChange = (index: number, field: 'title' | 'content', value: string) => {
+    const handleDateContentChange = (index: number, field: 'title' | 'subtitle' | 'image', value: string) => {
         setFormData(prev => {
-            const newLines = [...prev.lines];
-            newLines[index] = { ...newLines[index], [field]: value };
-            return { ...prev, lines: newLines };
+            const newDatesContent = [...prev.datesContent];
+            newDatesContent[index] = { ...newDatesContent[index], [field]: value };
+            return { ...prev, datesContent: newDatesContent };
+        });
+    };
+
+    const handleLineChange = (dateIndex: number, lineIndex: number, field: 'title' | 'content', value: string) => {
+        setFormData(prev => {
+            const newDatesContent = [...prev.datesContent];
+            newDatesContent[dateIndex].lines[lineIndex] = {
+                ...newDatesContent[dateIndex].lines[lineIndex],
+                [field]: value
+            };
+            return { ...prev, datesContent: newDatesContent };
+        });
+    };
+
+    const addLine = (dateIndex: number) => {
+        setFormData(prev => {
+            const newDatesContent = [...prev.datesContent];
+            newDatesContent[dateIndex].lines.push({
+                title: '',
+                content: ''
+            });
+            return { ...prev, datesContent: newDatesContent };
+        });
+    };
+
+    const removeLine = (dateIndex: number, lineIndex: number) => {
+        setFormData(prev => {
+            const newDatesContent = [...prev.datesContent];
+            newDatesContent[dateIndex].lines.splice(lineIndex, 1);
+            return { ...prev, datesContent: newDatesContent };
         });
     };
 
@@ -133,7 +155,7 @@ export const TransitForm = () => {
 
     return (
         <AdminLayout>
-            <div className="max-w-5xl mx-auto space-y-6">
+            <div className="max-w-6xl mx-auto space-y-6">
                 {/* Заголовок с кнопкой назад */}
                 <div className="flex items-center gap-4">
                     <button
@@ -149,39 +171,6 @@ export const TransitForm = () => {
 
                 {/* Форма */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Основная информация */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                        <h2 className="text-xl font-semibold text-gray-900">Основная информация</h2>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                            <MyInput
-                                label="Название"
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                placeholder="Введите название"
-                            />
-
-                            <MyInput
-                                label="Подзаголовок"
-                                type="text"
-                                value={formData.subtitle}
-                                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                                placeholder="Введите подзаголовок"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Основной контент</label>
-                            <RichTextEditor
-                                value={formData.mainContent}
-                                onChange={(value) => setFormData({ ...formData, mainContent: value })}
-                                placeholder="Введите основной контент"
-                                height="250px"
-                            />
-                        </div>
-                    </div>
-
                     {/* Настройки */}
                     <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
                         <h2 className="text-xl font-semibold text-gray-900">Настройки</h2>
@@ -207,55 +196,111 @@ export const TransitForm = () => {
                                 </select>
                             </div>
                         </div>
-
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                id="isActive"
-                                checked={formData.isActive}
-                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="w-4 h-4 text-blue-600 rounded"
-                            />
-                            <label htmlFor="isActive" className="text-sm font-medium">
-                                Активен
-                            </label>
-                        </div>
                     </div>
 
-                    {/* Блоки для каждой даты */}
-                    {formData.lines.length > 0 && (
-                        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                    {/* Контент для каждой даты */}
+                    {formData.datesContent.length > 0 && (
+                        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
                             <h2 className="text-xl font-semibold text-gray-900">
-                                Данные по датам ({formData.lines.length})
+                                Контент по датам ({formData.datesContent.length})
                             </h2>
                             
-                            <div className="space-y-6">
-                                {formData.lines.map((line, index) => (
-                                    <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="font-medium text-gray-700 text-lg">
-                                                📅 {line.date}
+                            <div className="space-y-8">
+                                {formData.datesContent.map((dateContent, dateIndex) => (
+                                    <div key={dateIndex} className="p-6 border-2 border-blue-200 rounded-lg bg-blue-50">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className="font-bold text-gray-900 text-xl">
+                                                День {dateIndex + 1}
                                             </span>
-                                            <span className="text-sm text-gray-500">
-                                                День {index + 1}
+                                            <span className="text-sm text-gray-600">
+                                                {(() => {
+                                                    const datesList = generateDatesFromRange(formData.dates);
+                                                    return datesList[dateIndex];
+                                                })()}
                                             </span>
                                         </div>
-                                        <div className="space-y-3">
+
+                                        <div className="space-y-4">
                                             <MyInput
                                                 label="Заголовок"
                                                 type="text"
-                                                value={line.title}
-                                                onChange={(e) => handleLineChange(index, 'title', e.target.value)}
-                                                placeholder="Введите заголовок для этой даты"
+                                                value={dateContent.title}
+                                                onChange={(e) => handleDateContentChange(dateIndex, 'title', e.target.value)}
+                                                placeholder="Введите заголовок"
                                             />
-                                            <div>
-                                                <label className="block text-sm font-medium mb-2">Контент</label>
-                                                <RichTextEditor
-                                                    value={line.content}
-                                                    onChange={(value) => handleLineChange(index, 'content', value)}
-                                                    placeholder="Введите контент для этой даты"
-                                                    height="200px"
-                                                />
+
+                                            <MyInput
+                                                label="Подзаголовок"
+                                                type="text"
+                                                value={dateContent.subtitle}
+                                                onChange={(e) => handleDateContentChange(dateIndex, 'subtitle', e.target.value)}
+                                                placeholder="Введите подзаголовок"
+                                            />
+
+                                            <ImageUpload
+                                                value={dateContent.image}
+                                                onChange={(url) => handleDateContentChange(dateIndex, 'image', url)}
+                                                label="Изображение"
+                                            />
+
+                                            {/* Lines */}
+                                            <div className="mt-4">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <label className="block text-sm font-medium">Элементы контента</label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => addLine(dateIndex)}
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        <Plus size={16} />
+                                                        Добавить элемент
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    {dateContent.lines.map((line, lineIndex) => (
+                                                        <div key={lineIndex} className="p-4 border border-gray-300 rounded-lg bg-white">
+                                                            <div className="flex items-center justify-between mb-3">
+                                                                <span className="text-sm font-medium text-gray-700">
+                                                                    Элемент {lineIndex + 1}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeLine(dateIndex, lineIndex)}
+                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="space-y-3">
+                                                                <MyInput
+                                                                    label="Заголовок элемента"
+                                                                    type="text"
+                                                                    value={line.title}
+                                                                    onChange={(e) => handleLineChange(dateIndex, lineIndex, 'title', e.target.value)}
+                                                                    placeholder="Введите заголовок"
+                                                                />
+
+                                                                <div>
+                                                                    <label className="block text-sm font-medium mb-2">Содержание</label>
+                                                                    <RichTextEditor
+                                                                        value={line.content}
+                                                                        onChange={(value) => handleLineChange(dateIndex, lineIndex, 'content', value)}
+                                                                        placeholder="Введите содержание"
+                                                                        height="200px"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+
+                                                    {dateContent.lines.length === 0 && (
+                                                        <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                                                            Нет элементов контента. Нажмите "Добавить элемент" чтобы начать.
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -284,4 +329,3 @@ export const TransitForm = () => {
         </AdminLayout>
     );
 };
-

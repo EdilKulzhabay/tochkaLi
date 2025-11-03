@@ -51,11 +51,6 @@ export const ScheduleAdmin = () => {
             render: (value: string) => new Date(value).toLocaleString('ru-RU')
         },
         { key: 'location', label: 'Место' },
-        { 
-            key: 'isActive', 
-            label: 'Статус',
-            render: (value: boolean) => value ? 'Активно' : 'Неактивно'
-        },
     ];
 
     return (

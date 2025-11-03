@@ -24,7 +24,6 @@ export const MeditationForm = () => {
         imageUrl: '',
         videoUrl: '',
         accessType: 'free',
-        isActive: true,
     });
 
     useEffect(() => {

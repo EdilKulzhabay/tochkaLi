@@ -41,10 +41,6 @@ const PracticeSchema = new mongoose.Schema(
       default: 'free',
       required: true,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: true,
@@ -52,7 +48,6 @@ const PracticeSchema = new mongoose.Schema(
 );
 
 PracticeSchema.index({ category: 1, accessType: 1 });
-PracticeSchema.index({ isActive: 1 });
 
 export default mongoose.model('Practice', PracticeSchema);
 

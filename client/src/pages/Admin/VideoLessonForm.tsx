@@ -25,7 +25,6 @@ export const VideoLessonForm = () => {
         videoUrl: '',
         duration: '',
         accessType: 'free',
-        isActive: true,
     });
 
     useEffect(() => {

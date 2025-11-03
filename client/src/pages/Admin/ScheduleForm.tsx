@@ -20,7 +20,6 @@ export const ScheduleForm = () => {
         location: '',
         eventLink: '',
         description: '',
-        isActive: true,
     });
 
     useEffect(() => {
@@ -45,7 +44,6 @@ export const ScheduleForm = () => {
                 location: schedule.location,
                 eventLink: schedule.eventLink || '',
                 description: schedule.description,
-                isActive: schedule.isActive,
             });
         } catch (error: any) {
             toast.error('Ошибка загрузки события');

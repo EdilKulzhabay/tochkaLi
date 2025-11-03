@@ -19,6 +19,14 @@ import { ScheduleAdmin } from "./pages/Admin/Schedule";
 import { ScheduleForm } from "./pages/Admin/ScheduleForm";
 import { TransitAdmin } from "./pages/Admin/Transit";
 import { TransitForm } from "./pages/Admin/TransitForm";
+import { DynamicContentAdmin } from "./pages/Admin/DynamicContent";
+import { DynamicContentForm } from "./pages/Admin/DynamicContentForm";
+import { WelcomeAdmin } from "./pages/Admin/Welcome";
+import { WelcomeForm } from "./pages/Admin/WelcomeForm";
+import { AboutClubAdmin } from "./pages/Admin/AboutClub";
+import { AboutClubForm } from "./pages/Admin/AboutClubForm";
+import { SchumannAdmin } from "./pages/Admin/Schumann";
+import { SchumannForm } from "./pages/Admin/SchumannForm";
 import { UsersAdmin } from "./pages/Admin/Users";
 import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
@@ -130,6 +138,54 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/transit/edit/:id",
         element: <RootLayout><ProtectedRoute requiredRole="admin"><TransitForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/dynamic-content",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><DynamicContentAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/dynamic-content/create",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><DynamicContentForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/dynamic-content/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><DynamicContentForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/welcome",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><WelcomeAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/welcome/create",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><WelcomeForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/welcome/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><WelcomeForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/about-club",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><AboutClubAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/about-club/create",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><AboutClubForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/about-club/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><AboutClubForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/schumann",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><SchumannAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/schumann/create",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><SchumannForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/schumann/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole="admin"><SchumannForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/users",

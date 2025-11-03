@@ -44,12 +44,11 @@ export const create = async (req, res) => {
 // Получить все видео уроки
 export const getAll = async (req, res) => {
     try {
-        const { category, accessType, isActive } = req.query;
+        const { category, accessType } = req.query;
         
         const filter = {};
         if (category) filter.category = category;
         if (accessType) filter.accessType = accessType;
-        if (isActive !== undefined) filter.isActive = isActive === 'true';
 
         const videoLessons = await VideoLesson.find(filter).sort({ createdAt: -1 });
 

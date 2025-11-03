@@ -25,10 +25,6 @@ const ScheduleSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Описание обязательно'],
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: true,
@@ -36,7 +32,7 @@ const ScheduleSchema = new mongoose.Schema(
 );
 
 // Индекс для поиска предстоящих событий
-ScheduleSchema.index({ eventDate: 1, isActive: 1 });
+ScheduleSchema.index({ eventDate: 1 });
 
 export default mongoose.model('Schedule', ScheduleSchema);
 

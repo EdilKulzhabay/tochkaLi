@@ -47,11 +47,6 @@ export const PracticeAdmin = () => {
         { key: 'title', label: 'Название' },
         { key: 'category', label: 'Категория' },
         { key: 'accessType', label: 'Доступ' },
-        { 
-            key: 'isActive', 
-            label: 'Статус',
-            render: (value: boolean) => value ? 'Активна' : 'Неактивна'
-        },
     ];
 
     return (

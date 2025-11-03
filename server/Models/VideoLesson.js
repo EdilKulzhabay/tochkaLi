@@ -45,10 +45,6 @@ const VideoLessonSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: true,
@@ -56,7 +52,6 @@ const VideoLessonSchema = new mongoose.Schema(
 );
 
 VideoLessonSchema.index({ category: 1, accessType: 1 });
-VideoLessonSchema.index({ isActive: 1 });
 
 export default mongoose.model('VideoLesson', VideoLessonSchema);
 

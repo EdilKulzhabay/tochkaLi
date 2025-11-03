@@ -7,8 +7,12 @@ import {
     Video, 
     Calendar, 
     Sparkles,
+    FileText,
     Users,
-    User
+    User,
+    Home,
+    Info,
+    Radio
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -25,11 +29,14 @@ const contentCards = [
     { title: 'Видео уроки', icon: Video, path: '/admin/video-lesson', color: 'bg-red-500', description: 'Обучающие видео' },
     { title: 'Расписание', icon: Calendar, path: '/admin/schedule', color: 'bg-indigo-500', description: 'События и вебинары' },
     { title: 'Транзиты', icon: Sparkles, path: '/admin/transit', color: 'bg-pink-500', description: 'Планетарные транзиты' },
+    { title: 'Динамический контент', icon: FileText, path: '/admin/dynamic-content', color: 'bg-teal-500', description: 'Управление динамическим контентом' },
+    { title: 'Контент главной', icon: Home, path: '/admin/welcome', color: 'bg-amber-500', description: 'Контент на главной странице' },
+    { title: 'О клубе', icon: Info, path: '/admin/about-club', color: 'bg-cyan-600', description: 'Контент на странице "О клубе Tochka.li"' },
+    { title: 'Частота Шумана', icon: Radio, path: '/admin/schumann', color: 'bg-violet-500', description: 'Управление записями о частоте Шумана' },
 ];
 
 export const Main = () => {
 
-    console.log("Main");
     return (
         <AdminLayout>
             <div className="space-y-6">

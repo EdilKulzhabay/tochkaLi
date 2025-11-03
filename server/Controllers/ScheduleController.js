@@ -40,10 +40,9 @@ export const create = async (req, res) => {
 // Получить все события
 export const getAll = async (req, res) => {
     try {
-        const { isActive, upcoming } = req.query;
+        const { upcoming } = req.query;
         
         const filter = {};
-        if (isActive !== undefined) filter.isActive = isActive === 'true';
         
         // Фильтр для предстоящих событий
         if (upcoming === 'true') {

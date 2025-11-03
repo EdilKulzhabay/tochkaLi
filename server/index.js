@@ -13,6 +13,10 @@ import {
     VideoLessonController,
     ScheduleController,
     TransitController,
+    DynamicContentController,
+    WelcomeController,
+    AboutClubController,
+    SchumannController,
     BroadcastController,
     RobokassaController,
     UploadController
@@ -127,6 +131,34 @@ app.get("/api/transit", TransitController.getAll);
 app.get("/api/transit/:id", TransitController.getById);
 app.put("/api/transit/:id", authMiddleware, TransitController.update);
 app.delete("/api/transit/:id", authMiddleware, TransitController.remove);
+
+// ==================== DynamicContent маршруты ====================
+app.post("/api/dynamic-content", authMiddleware, DynamicContentController.create);
+app.get("/api/dynamic-content", DynamicContentController.getAll);
+app.get("/api/dynamic-content/:id", DynamicContentController.getById);
+app.put("/api/dynamic-content/:id", authMiddleware, DynamicContentController.update);
+app.delete("/api/dynamic-content/:id", authMiddleware, DynamicContentController.remove);
+
+// ==================== Welcome маршруты ====================
+app.post("/api/welcome", authMiddleware, WelcomeController.create);
+app.get("/api/welcome", WelcomeController.getAll);
+app.get("/api/welcome/:id", WelcomeController.getById);
+app.put("/api/welcome/:id", authMiddleware, WelcomeController.update);
+app.delete("/api/welcome/:id", authMiddleware, WelcomeController.remove);
+
+// ==================== AboutClub маршруты ====================
+app.post("/api/about-club", authMiddleware, AboutClubController.create);
+app.get("/api/about-club", AboutClubController.getAll);
+app.get("/api/about-club/:id", AboutClubController.getById);
+app.put("/api/about-club/:id", authMiddleware, AboutClubController.update);
+app.delete("/api/about-club/:id", authMiddleware, AboutClubController.remove);
+
+// ==================== Schumann маршруты ====================
+app.post("/api/schumann", authMiddleware, SchumannController.create);
+app.get("/api/schumann", SchumannController.getAll);
+app.get("/api/schumann/:id", SchumannController.getById);
+app.put("/api/schumann/:id", authMiddleware, SchumannController.update);
+app.delete("/api/schumann/:id", authMiddleware, SchumannController.remove);
 
 // ==================== Broadcast маршруты ====================
 app.get("/api/broadcast/users", authMiddleware, BroadcastController.getFilteredUsers);

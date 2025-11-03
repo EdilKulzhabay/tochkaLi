@@ -24,7 +24,6 @@ export const PracticeForm = () => {
         imageUrl: '',
         videoUrl: '',
         accessType: 'free',
-        isActive: true,
     });
 
     useEffect(() => {

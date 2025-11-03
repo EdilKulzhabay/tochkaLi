@@ -41,10 +41,6 @@ const MeditationSchema = new mongoose.Schema(
       default: 'free',
       required: true,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: true,
@@ -53,6 +49,5 @@ const MeditationSchema = new mongoose.Schema(
 
 // Индексы для быстрого поиска
 MeditationSchema.index({ category: 1, accessType: 1 });
-MeditationSchema.index({ isActive: 1 });
 
 export default mongoose.model('Meditation', MeditationSchema);
