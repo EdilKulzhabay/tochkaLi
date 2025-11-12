@@ -15,9 +15,13 @@ const HoroscopeSchema = new mongoose.Schema(
           required: true,
           trim: true,
         },
+        date: {
+          type: String,
+          required: true
+        },
         subtitle: {
           type: String,
-          required: true,
+          // required: true,
           trim: true,
         },
         image: {
@@ -50,8 +54,5 @@ const HoroscopeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Индексы для быстрого поиска
-HoroscopeSchema.index({ dates: 1 });
 
 export default mongoose.model('Horoscope', HoroscopeSchema);

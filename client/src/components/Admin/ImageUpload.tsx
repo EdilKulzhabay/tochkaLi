@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
-import api from '../api';
+import api from '../../api';
 
 interface ImageUploadProps {
     value: string;

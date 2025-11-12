@@ -5,12 +5,12 @@ export const create = async (req, res) => {
     try {
         const { title, subtitle, category, shortDescription, fullDescription, imageUrl, videoUrl, accessType, duration } = req.body;
 
-        if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
-            return res.status(400).json({
-                success: false,
-                message: "Все обязательные поля должны быть заполнены",
-            });
-        }
+        // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Все обязательные поля должны быть заполнены",
+        //     });
+        // }
 
         const videoLesson = new VideoLesson({
             title,

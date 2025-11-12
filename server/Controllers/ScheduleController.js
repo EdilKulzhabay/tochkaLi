@@ -5,12 +5,12 @@ export const create = async (req, res) => {
     try {
         const { eventTitle, eventDate, location, eventLink, description } = req.body;
 
-        if (!eventTitle || !eventDate || !location || !description) {
-            return res.status(400).json({
-                success: false,
-                message: "Все обязательные поля должны быть заполнены",
-            });
-        }
+        // if (!eventTitle || !eventDate || !location || !description) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Все обязательные поля должны быть заполнены",
+        //     });
+        // }
 
         const schedule = new Schedule({
             eventTitle,
@@ -37,16 +37,78 @@ export const create = async (req, res) => {
     }
 };
 
+// Функция для парсинга даты из формата DD.MM.YYYY
+const parseDate = (dateString) => {
+    if (!dateString) return null;
+    
+    // Формат DD.MM.YYYY
+    const parts = dateString.split('.');
+    if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // месяцы в JS начинаются с 0
+        const year = parseInt(parts[2], 10);
+        
+        const date = new Date(year, month, day);
+        
+        // Проверка валидности даты
+        if (isNaN(date.getTime())) {
+            return null;
+        }
+        
+        return date;
+    }
+    
+    // Попытка стандартного парсинга
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        return null;
+    }
+    
+    return date;
+};
+
 // Получить все события
 export const getAll = async (req, res) => {
     try {
-        const { upcoming } = req.query;
+        const { startDate, endDate, upcoming } = req.query;
         
         const filter = {};
         
         // Фильтр для предстоящих событий
         if (upcoming === 'true') {
             filter.eventDate = { $gte: new Date() };
+        }
+        
+        // Фильтр по диапазону дат
+        if (startDate && endDate) {
+            const parsedStartDate = parseDate(startDate);
+            const parsedEndDate = parseDate(endDate);
+            
+            if (parsedStartDate && parsedEndDate) {
+                // Устанавливаем время начала дня для startDate
+                const start = new Date(parsedStartDate);
+                start.setHours(0, 0, 0, 0);
+                
+                // Устанавливаем время конца дня для endDate
+                const end = new Date(parsedEndDate);
+                end.setHours(23, 59, 59, 999);
+                
+                filter.eventDate = { 
+                    $gte: start, 
+                    $lte: end 
+                };
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: "Неверный формат даты. Используйте формат DD.MM.YYYY",
+                });
+            }
+        } else if (startDate || endDate) {
+            // Если передана только одна дата
+            return res.status(400).json({
+                success: false,
+                message: "Необходимо указать обе даты: startDate и endDate",
+            });
         }
 
         const schedules = await Schedule.find(filter).sort({ eventDate: 1 });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MyButton } from './MyButton';
+import { MyButton } from './Admin/MyButton';
 import { Modal } from './Modal';
 import CryptoJS from 'crypto-js';
 import { useAuth } from '../contexts/AuthContext';
@@ -115,9 +115,10 @@ export const RobokassaPayment = ({
         onClose={() => setShowAuthModal(false)}
         title="Требуется авторизация"
         maxWidth="500px"
+        darkMode={true}
       >
         <div className="space-y-4">
-          <p className="text-gray-700 text-center">
+          <p className="text-gray-300 text-center">
             Для оплаты курса необходимо авторизоваться или зарегистрироваться в системе.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">

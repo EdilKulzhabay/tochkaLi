@@ -72,7 +72,6 @@ export const DateRangePicker = ({ label, value, onChange, placeholder }: DateRan
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    min={today}
                                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
@@ -82,7 +81,7 @@ export const DateRangePicker = ({ label, value, onChange, placeholder }: DateRan
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    min={startDate || today}
+                                min={startDate || undefined}
                                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>

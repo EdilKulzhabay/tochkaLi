@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { AdminLayout } from '../../components/AdminLayout';
-import { RichTextEditor } from '../../components/RichTextEditor';
-import { MyInput } from '../../components/MyInput';
-import { MyButton } from '../../components/MyButton';
-import { DateRangePicker } from '../../components/DateRangePicker';
-import { ImageUpload } from '../../components/ImageUpload';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
+import { RichTextEditor } from '../../components/Admin/RichTextEditor';
+import { MyInput } from '../../components/Admin/MyInput';
+import { MyButton } from '../../components/Admin/MyButton';
+import { DateRangePicker } from '../../components/Admin/DateRangePicker';
+import { ImageUpload } from '../../components/Admin/ImageUpload';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
@@ -18,6 +18,7 @@ interface Line {
 interface DateContent {
     title: string;
     subtitle: string;
+    date: string;
     image: string;
     lines: Line[];
 }
@@ -85,9 +86,10 @@ export const HoroscopeForm = () => {
         // Если формат корректный, генерируем блоки для каждой даты
         const datesList = generateDatesFromRange(newDates);
         if (datesList.length > 0) {
-            const newDatesContent = datesList.map(() => ({
+            const newDatesContent = datesList.map((_, index) => ({
                 title: '',
                 subtitle: '',
+                date: datesList[index],
                 image: '',
                 lines: [],
             }));

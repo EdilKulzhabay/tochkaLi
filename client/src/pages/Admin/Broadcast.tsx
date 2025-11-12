@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { AdminLayout } from '../../components/AdminLayout';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { Send, Users, MessageSquare, Search, X } from 'lucide-react';
-import { RichTextEditor } from '../../components/RichTextEditor';
+import { RichTextEditor } from '../../components/Admin/RichTextEditor';
 
 interface BroadcastStats {
     sent: number;

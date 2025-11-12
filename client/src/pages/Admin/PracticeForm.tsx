@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AdminLayout } from '../../components/AdminLayout';
-import { RichTextEditor } from '../../components/RichTextEditor';
-import { MyInput } from '../../components/MyInput';
-import { MyButton } from '../../components/MyButton';
-import { ImageUpload } from '../../components/ImageUpload';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
+import { RichTextEditor } from '../../components/Admin/RichTextEditor';
+import { MyInput } from '../../components/Admin/MyInput';
+import { MyButton } from '../../components/Admin/MyButton';
+import { ImageUpload } from '../../components/Admin/ImageUpload';
 import { ArrowLeft } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';

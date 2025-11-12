@@ -41,7 +41,7 @@ export const getAll = async (req, res) => {
 
         res.json({
             success: true,
-            data: faqs,
+            list: faqs,
             count: faqs.length,
         });
     } catch (error) {

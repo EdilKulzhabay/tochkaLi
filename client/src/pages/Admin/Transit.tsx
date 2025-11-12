@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { AdminLayout } from '../../components/AdminLayout';
-import { AdminTable } from '../../components/AdminTable';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
+import { AdminTable } from '../../components/Admin/AdminTable';
 import { Plus } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';

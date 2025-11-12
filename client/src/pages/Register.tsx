@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MyInput } from "../components/MyInput";
-import { MyButton } from "../components/MyButton";
+import { MyInput } from "../components/Admin/MyInput";
+import { MyButton } from "../components/Admin/MyButton";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-toastify";
 

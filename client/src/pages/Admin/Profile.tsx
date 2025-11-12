@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { AdminLayout } from '../../components/AdminLayout';
-import { MyInput } from '../../components/MyInput';
-import { MyButton } from '../../components/MyButton';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
+import { MyInput } from '../../components/Admin/MyInput';
+import { MyButton } from '../../components/Admin/MyButton';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api';
 import { toast } from 'react-toastify';

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { AdminLayout } from '../../components/AdminLayout';
-import { AdminTable } from '../../components/AdminTable';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
+import { AdminTable } from '../../components/Admin/AdminTable';
 import { Modal } from '../../components/Modal';
-import { MyInput } from '../../components/MyInput';
-import { MyButton } from '../../components/MyButton';
+import { MyInput } from '../../components/Admin/MyInput';
+import { MyButton } from '../../components/Admin/MyButton';
 import api from '../../api';
 import { toast } from 'react-toastify';
 

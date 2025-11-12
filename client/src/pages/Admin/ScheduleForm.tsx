@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AdminLayout } from '../../components/AdminLayout';
-import { RichTextEditor } from '../../components/RichTextEditor';
-import { MyInput } from '../../components/MyInput';
-import { MyButton } from '../../components/MyButton';
+import { AdminLayout } from '../../components/Admin/AdminLayout';
+import { RichTextEditor } from '../../components/Admin/RichTextEditor';
+import { MyInput } from '../../components/Admin/MyInput';
+import { MyButton } from '../../components/Admin/MyButton';
 import { ArrowLeft } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
@@ -95,7 +95,6 @@ export const ScheduleForm = () => {
                             value={formData.eventTitle}
                             onChange={(e) => setFormData({ ...formData, eventTitle: e.target.value })}
                             placeholder="Введите название"
-                            required
                         />
 
                         <div className="grid grid-cols-2 gap-4">
@@ -104,7 +103,6 @@ export const ScheduleForm = () => {
                                 type="datetime-local"
                                 value={formData.eventDate}
                                 onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                                required
                             />
 
                             <MyInput
@@ -113,7 +111,6 @@ export const ScheduleForm = () => {
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                 placeholder="Zoom, Адрес и т.д."
-                                required
                             />
                         </div>
 

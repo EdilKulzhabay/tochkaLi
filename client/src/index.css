@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* Скрытие скроллбара для горизонтального скролла */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}

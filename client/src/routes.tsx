@@ -1,9 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Login } from "./pages/Login";
+import { Welcome } from "./pages/User/Welcome";
 import { Main } from "./pages/User/Main";
 import { Main as AdminMain } from "./pages/Admin/Main";
 import { Register } from "./pages/Register";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { FAQAdmin } from "./pages/Admin/FAQ";
 import { FAQForm } from "./pages/Admin/FAQForm";
@@ -32,6 +33,19 @@ import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
 import { RobokassaSuccess } from "./pages/Robokassa/Success";
 import { RobokassaFail } from "./pages/Robokassa/Fail";
+import { About } from "./pages/User/About";
+import { ClientFAQ } from "./pages/User/ClientFAQ";
+import { ClientHoroscope } from "./pages/User/ClientHoroscope";
+import { ClientTransit } from "./pages/User/ClientTransit";
+import { ClientSchumann } from "./pages/User/ClientSchumann";
+import { ClientContactUs } from "./pages/User/ClientContactUs";
+import { ClientMeditationsList } from "./pages/User/ClientMeditationsList";
+import { ClientMeditation } from "./pages/User/ClientMeditation";
+import { ClientPracticesList } from "./pages/User/ClientPracticesList";
+import { ClientPractice } from "./pages/User/ClientPractice";
+import { ClientVideoLessonsList } from "./pages/User/ClientVideoLessonsList";
+import { ClientVideoLesson } from "./pages/User/ClientVideoLesson";
+import { ClientSchedule } from "./pages/User/ClientSchedule";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -41,7 +55,63 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
 export const routes = createBrowserRouter([
     {
         path: "/:telegramId?/:saleBotId?/:telegramUserName?/:phone?",
+        element: <RootLayout><ProtectedRoute><Welcome /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/main",
         element: <RootLayout><ProtectedRoute><Main /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/about",
+        element: <RootLayout><ProtectedRoute><About /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/faq",
+        element: <RootLayout><ProtectedRoute><ClientFAQ /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/horoscope",
+        element: <RootLayout><ProtectedRoute><ClientHoroscope /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/transit",
+        element: <RootLayout><ProtectedRoute><ClientTransit /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/schumann",
+        element: <RootLayout><ProtectedRoute><ClientSchumann /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/contactus",
+        element: <RootLayout><ProtectedRoute><ClientContactUs /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/meditations",
+        element: <RootLayout><ProtectedRoute><ClientMeditationsList /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/meditation/:id",
+        element: <RootLayout><ProtectedRoute><ClientMeditation /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/practices",
+        element: <RootLayout><ProtectedRoute><ClientPracticesList /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/practice/:id",
+        element: <RootLayout><ProtectedRoute><ClientPractice /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/video-lessons",
+        element: <RootLayout><ProtectedRoute><ClientVideoLessonsList /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/video-lesson/:id",
+        element: <RootLayout><ProtectedRoute><ClientVideoLesson /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/schedule",
+        element: <RootLayout><ProtectedRoute><ClientSchedule /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/login",

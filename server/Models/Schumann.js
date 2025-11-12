@@ -18,7 +18,4 @@ const SchumannSchema = new mongoose.Schema(
   }
 );
 
-// Индекс для быстрого поиска
-SchumannSchema.index({ date: 1 });
-
 export default mongoose.model('Schumann', SchumannSchema);

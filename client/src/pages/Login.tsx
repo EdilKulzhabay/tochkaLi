@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MyInput } from "../components/MyInput";
+import { MyInput } from "../components/Admin/MyInput";
 import { toast } from "react-toastify";
-import { MyButton } from "../components/MyButton";
+import { MyButton } from "../components/Admin/MyButton";
 import { useAuth } from "../contexts/AuthContext";
 
 export const Login = () => {

@@ -18,8 +18,5 @@ const DynamicContentSchema = new mongoose.Schema(
   }
 );
 
-// Индексы для быстрого поиска
-DynamicContentSchema.index({ name: 1 });
-
 export default mongoose.model('DynamicContent', DynamicContentSchema);
 
