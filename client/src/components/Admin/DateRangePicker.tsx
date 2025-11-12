@@ -43,8 +43,6 @@ export const DateRangePicker = ({ label, value, onChange, placeholder }: DateRan
     };
 
 
-    const today = new Date().toISOString().split('T')[0];
-
     return (
         <div className="relative">
             <label className="block text-sm font-medium mb-2">{label}</label>

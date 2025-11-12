@@ -9,7 +9,6 @@ import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptio
 export const ClientVideoLessonsList = () => {
     const [videoLessons, setVideoLessons] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
-    const [selectedVideoLesson, setSelectedVideoLesson] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -41,14 +40,12 @@ export const ClientVideoLessonsList = () => {
         setVideoLessons(response.data.data);
     }
 
-    const handleLockedVideoLessonClick = (videoLesson: any) => {
-        setSelectedVideoLesson(videoLesson);
+    const handleLockedVideoLessonClick = () => {
         setIsModalOpen(true);
     }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setSelectedVideoLesson(null);
     }
 
     return (
@@ -73,7 +70,7 @@ export const ClientVideoLessonsList = () => {
                                             link={`/client/video-lesson/${videoLesson._id}`} 
                                             progress={0} 
                                             accessType={videoLesson.accessType}
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined}
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick() : undefined}
                                         />
                                     </div>
                                 </div>
@@ -94,7 +91,7 @@ export const ClientVideoLessonsList = () => {
                                     link={`/client/video-lesson/${videoLesson._id}`} 
                                     accessType={videoLesson.accessType} 
                                     progress={0} 
-                                    onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined} 
+                                    onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick() : undefined} 
                                 />
                             ))
                         ) : (

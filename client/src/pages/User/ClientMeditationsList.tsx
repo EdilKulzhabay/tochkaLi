@@ -9,7 +9,6 @@ import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptio
 export const ClientMeditationsList = () => {
     const [meditations, setMeditations] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
-    const [selectedMeditation, setSelectedMeditation] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -41,14 +40,12 @@ export const ClientMeditationsList = () => {
         setMeditations(response.data.data);
     }
 
-    const handleLockedMeditationClick = (meditation: any) => {
-        setSelectedMeditation(meditation);
+    const handleLockedMeditationClick = () => {
         setIsModalOpen(true);
     }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setSelectedMeditation(null);
     }
 
     return (
@@ -73,7 +70,7 @@ export const ClientMeditationsList = () => {
                                             link={`/client/meditation/${meditation._id}`} 
                                             progress={0} 
                                             accessType={meditation.accessType}
-                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined}
+                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick() : undefined}
                                         />
                                     </div>
                                 </div>
@@ -94,7 +91,7 @@ export const ClientMeditationsList = () => {
                                     link={`/client/meditation/${meditation._id}`} 
                                     accessType={meditation.accessType} 
                                     progress={0} 
-                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined} 
+                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick() : undefined} 
                                 />
                             ))
                         ) : (

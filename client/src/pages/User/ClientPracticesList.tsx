@@ -9,7 +9,6 @@ import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptio
 export const ClientPracticesList = () => {
     const [practices, setPractices] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
-    const [selectedPractice, setSelectedPractice] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -41,14 +40,12 @@ export const ClientPracticesList = () => {
         setPractices(response.data.data);
     }
 
-    const handleLockedPracticeClick = (practice: any) => {
-        setSelectedPractice(practice);
+    const handleLockedPracticeClick = () => {
         setIsModalOpen(true);
     }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setSelectedPractice(null);
     }
 
     return (
@@ -73,7 +70,7 @@ export const ClientPracticesList = () => {
                                             link={`/client/practice/${practice._id}`} 
                                             progress={0} 
                                             accessType={practice.accessType}
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined}
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick() : undefined}
                                         />
                                     </div>
                                 </div>
@@ -94,7 +91,7 @@ export const ClientPracticesList = () => {
                                     link={`/client/practice/${practice._id}`} 
                                     accessType={practice.accessType} 
                                     progress={0} 
-                                    onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined} 
+                                    onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick() : undefined} 
                                 />
                             ))
                         ) : (

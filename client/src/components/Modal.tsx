@@ -13,7 +13,6 @@ interface ModalProps {
 export const Modal = ({ isOpen, onClose, title, children, maxWidth = '800px', darkMode = false }: ModalProps) => {
     if (!isOpen) return null;
 
-    const bgColor = darkMode ? '#2a2a2a' : '#ffffff';
     const textColor = darkMode ? 'text-white' : 'text-gray-900';
     const borderColor = darkMode ? 'border-gray-600' : 'border-gray-200';
     const bgClass = darkMode ? 'bg-gray-800' : 'bg-white';
