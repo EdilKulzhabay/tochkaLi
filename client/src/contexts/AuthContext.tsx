@@ -70,13 +70,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setUser(response.data.user);
                 // Сохраняем актуальные данные в localStorage
                 localStorage.setItem("user", JSON.stringify(response.data.user));
+            } else {
+                // Если запрос успешен, но success = false
+                setUser(null);
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("user");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.log("Ошибка проверки авторизации:", error);
-            localStorage.removeItem("token");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("user");
-            setUser(null);
+            // Очищаем данные только если это действительно ошибка авторизации
+            if (error.response?.status === 403 || error.response?.status === 401) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("user");
+                setUser(null);
+            }
+            // Если это другая ошибка (сеть, таймаут), оставляем данные из localStorage
         } finally {
             setLoading(false);
         }
@@ -93,9 +103,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await api.get("/api/user/check-session");
             return response.data.success;
         } catch (error: any) {
+            // Если сессия истекла, очищаем данные, но не делаем редирект здесь
+            // Редирект будет обработан в компонентах через ProtectedRoute
             if (error.response?.data?.sessionExpired) {
-                logout();
-                navigate("/login");
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("user");
+                setUser(null);
             }
             return false;
         }

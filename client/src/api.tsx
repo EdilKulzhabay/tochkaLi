@@ -9,16 +9,29 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    config.headers.Authorization = window.localStorage.getItem("token");
+    const token = window.localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
 });
 
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 403) {
-            localStorage.removeItem("token");
-            window.location.href = "/login"; // Перенаправление на страницу логина
+        // Не делаем автоматический редирект при проверке сессии или авторизации
+        // Это обрабатывается в AuthContext
+        const isAuthCheck = error.config?.url?.includes('/user/me') || 
+                           error.config?.url?.includes('/user/check-session');
+        
+        if (error.response && error.response.status === 403 && !isAuthCheck) {
+            // Проверяем, не является ли это ошибкой сессии (sessionExpired)
+            if (error.response.data?.sessionExpired) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("user");
+                // Редирект обрабатывается в AuthContext
+            }
         }
         return Promise.reject(error);
     }
