@@ -4,9 +4,9 @@ import logo from "../../assets/logo.png"
 import users from "../../assets/users.png"
 import faq from "../../assets/faq.png"
 import user from "../../assets/user.png"
-import LC1 from "../../assets/LC1.png"
-import LC2 from "../../assets/LC2.png"
-import LC3 from "../../assets/LC3.png"
+import mainVideo from "../../assets/mainVideo.png"
+import mainPractice from "../../assets/mainPractice.png"
+import mainMeditation from "../../assets/mainMeditation.png"
 
 
 const SmallCard = ({ title, link}: { title: string, link: string }) => {
@@ -26,12 +26,12 @@ const SmallCard = ({ title, link}: { title: string, link: string }) => {
 const LargeCard = ({ title, link, image, content }: { title: string, link: string, image: string, content: string }) => {
     return (
         <Link to={link} className="flex items-center bg-[#333333] rounded-lg p-4 gap-x-4">
-            <div className="basis-2/3">
+            <div className="">
                 <p className="text-lg font-medium">{title}</p>
                 <p className="text-sm mt-1">{content}</p>    
             </div>
-            <div className="basis-1/3">
-                <img src={image} alt={title} className="w-full object-cover" />
+            <div className="w-[98px] h-[98px] flex items-center justify-center rounded-full bg-white/10 shrink-0">
+                <img src={image} alt={title} className="w-[50px] h-[50px] object-cover" />
             </div>
         </Link>
     )
@@ -47,20 +47,20 @@ export const Main = () => {
                         <img src={logo} alt="logo" className="w-6 h-6" />
                     </div>
                     <div className="flex items-center gap-6">
-                        <Link to="/">
+                        <Link to="/about">
                             <img src={users} alt="users" className="w-6 h-6" />
                         </Link>
                         <Link to="/client/faq">
                             <img src={faq} alt="faq" className="w-6 h-6" />
                         </Link>
-                        <Link to="/user">
+                        <Link to="/client/profile">
                             <img src={user} alt="user" className="w-6 h-6" />
                         </Link>
                     </div>
                 </div>
                 <h1 className="mt-3 text-2xl font-bold">Добро пожаловать!</h1>
                 <div className="grid grid-cols-2 gap-4 mt-3">
-                    <SmallCard title="Дневник" link="/my-clubs" />
+                    <SmallCard title="Дневник" link="/client/diary" />
                     <SmallCard title="Расписание" link="/client/schedule" />
                     <SmallCard title="Описание транзитов" link="/client/transit" />
                     <SmallCard title="Антисоциумный гороскоп" link="/client/horoscope" />
@@ -69,19 +69,19 @@ export const Main = () => {
                     <LargeCard 
                         title="Видео" 
                         link="/client/video-lessons" 
-                        image={LC1} 
+                        image={mainVideo} 
                         content="Самые популярные видео проекта .li, которые содержать эксклюзивный контент и знакомят с нами" 
                     />
                     <LargeCard 
                         title="Практики" 
                         link="/client/practices" 
-                        image={LC2} 
+                        image={mainPractice} 
                         content="Самые действенные и простые инструменты управления подсознанием на каждый день" 
                     />
                     <LargeCard 
                         title="Медитации" 
                         link="/client/meditations" 
-                        image={LC3} 
+                        image={mainMeditation} 
                         content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск процессов" 
                     />
                 </div>

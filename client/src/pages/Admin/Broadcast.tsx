@@ -230,7 +230,7 @@ export const BroadcastAdmin = () => {
                             Фильтр по статусу пользователей
                         </label>
                         <div className="grid grid-cols-4 gap-3">
-                            {['all', 'guest', 'active', 'client'].map((statusOption) => (
+                            {['all', 'guest', 'registered', 'client'].map((statusOption) => (
                                 <button
                                     key={statusOption}
                                     onClick={() => setStatus(statusOption)}

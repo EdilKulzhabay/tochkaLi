@@ -5,6 +5,7 @@ interface DateRangeCalendarProps {
     onDateRangeSelect?: (startDate: Date | null, endDate: Date | null) => void;
     selectedStartDate?: Date | null;
     selectedEndDate?: Date | null;
+    eventDates?: Date[]; // Массив дат с событиями для отображения красных точек
 }
 
 const MONTHS = [
@@ -17,7 +18,8 @@ const DAYS_OF_WEEK = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 export const DateRangeCalendar = ({ 
     onDateRangeSelect, 
     selectedStartDate, 
-    selectedEndDate 
+    selectedEndDate,
+    eventDates = []
 }: DateRangeCalendarProps) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [startDate, setStartDate] = useState<Date | null>(selectedStartDate || null);
@@ -139,6 +141,25 @@ export const DateRangeCalendar = ({
         );
     };
 
+    // Проверка, есть ли событие в указанную дату
+    const hasEvent = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false): boolean => {
+        let checkDate: Date;
+        if (isPrevMonth) {
+            checkDate = new Date(year, month - 1, day);
+        } else if (isNextMonth) {
+            checkDate = new Date(year, month + 1, day);
+        } else {
+            checkDate = new Date(year, month, day);
+        }
+        checkDate.setHours(0, 0, 0, 0);
+
+        return eventDates.some(eventDate => {
+            const event = new Date(eventDate);
+            event.setHours(0, 0, 0, 0);
+            return event.getTime() === checkDate.getTime();
+        });
+    };
+
     const handleMouseEnter = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false) => {
         if (!startDate || endDate) return;
 
@@ -205,6 +226,7 @@ export const DateRangeCalendar = ({
                 {prevMonthDays.map((day) => {
                     const inRange = isDateInRange(day, true);
                     const selected = isDateSelected(day, true);
+                    const event = hasEvent(day, true);
                     return (
                         <button
                             key={`prev-${day}`}
@@ -212,13 +234,16 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day, true)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded text-sm transition-colors
+                                aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-red-500 text-white font-semibold' : 'text-white/40'}
                                 hover:bg-white/10
                             `}
                         >
-                            {day}
+                            <span>{day}</span>
+                            {event && (
+                                <span className="absolute bottom-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                            )}
                         </button>
                     );
                 })}
@@ -228,6 +253,7 @@ export const DateRangeCalendar = ({
                     const inRange = isDateInRange(day);
                     const selected = isDateSelected(day);
                     const today = isToday(day);
+                    const event = hasEvent(day);
                     return (
                         <button
                             key={day}
@@ -235,14 +261,17 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded text-sm transition-colors relative
+                                aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-red-500 text-white font-semibold' : ''}
                                 ${today && !selected ? 'border-2 border-red-500' : ''}
                                 ${!selected && !today ? 'hover:bg-white/10' : ''}
                             `}
                         >
-                            {day}
+                            <span>{day}</span>
+                            {event && (
+                                <span className="absolute bottom-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                            )}
                         </button>
                     );
                 })}
@@ -251,6 +280,7 @@ export const DateRangeCalendar = ({
                 {nextMonthDays.map((day) => {
                     const inRange = isDateInRange(day, false, true);
                     const selected = isDateSelected(day, false, true);
+                    const event = hasEvent(day, false, true);
                     return (
                         <button
                             key={`next-${day}`}
@@ -258,13 +288,16 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day, false, true)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded text-sm transition-colors
+                                aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-red-500 text-white font-semibold' : 'text-white/40'}
                                 hover:bg-white/10
                             `}
                         >
-                            {day}
+                            <span>{day}</span>
+                            {event && (
+                                <span className="absolute bottom-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                            )}
                         </button>
                     );
                 })}

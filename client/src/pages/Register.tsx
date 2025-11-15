@@ -49,7 +49,7 @@ export const Register = () => {
 
         try {
             setLoading(true);
-            await register(fullName, email, phone, password, telegramId, saleBotId, telegramUserName);
+            await register(fullName, email, phone, password, telegramId);
             toast.success("Регистрация успешна!");
         } catch (error: any) {
             toast.error(error.response?.data?.message || error.message || "Ошибка регистрации");

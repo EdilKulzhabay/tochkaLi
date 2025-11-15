@@ -5,29 +5,26 @@ import api from "../../api";
 import { formatDateRangeReadable } from "../../components/User/dateUtils";
 import { MobileAccordionList } from "../../components/User/MobileAccordionList";
 import { RedButton } from "../../components/User/RedButton";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface TransitLine {
     title: string;
     content: string;
 }
 
-interface TransitContent {
+interface TransitEntity {
+    startDate: string | Date;
+    endDate: string | Date;
     title: string;
     subtitle?: string;
-    date: string;
+    image?: string;
     lines: TransitLine[];
-}
-
-interface TransitEntity {
-    dates: string;
-    datesContent: TransitContent[];
     accessType: string;
 }
 
 export const ClientTransit = () => {
-    const [transits, setTransits] = useState<TransitEntity[]>([]);
-    const [currentTransit, setCurrentTransit] = useState<TransitContent | null>(null);
+    const [transit, setTransit] = useState<TransitEntity | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchTransit();
@@ -35,27 +32,16 @@ export const ClientTransit = () => {
 
     const fetchTransit = async () => {
         try {
-            const response = await api.get("/api/transit");
-            const data: TransitEntity[] = response.data?.data || [];
-            setTransits(data);
-
-            const today = new Date().toISOString().split("T")[0];
-            const firstTransit = data[0];
-
-            if (firstTransit?.datesContent?.length) {
-                const todayTransit = firstTransit.datesContent.find((item) => item.date === today);
-                setCurrentTransit(todayTransit || null);
-            } else {
-                setCurrentTransit(null);
+            const response = await api.get("/api/transit/current");
+            const data: TransitEntity = response.data?.data;
+            if (data) {
+                setTransit(data);
             }
         } catch (error) {
             console.error("Failed to fetch transit", error);
-            setTransits([]);
-            setCurrentTransit(null);
+            setTransit(null);
         }
     };
-
-    const activeTransit = transits[0];
 
     return (
         <UserLayout>
@@ -67,16 +53,27 @@ export const ClientTransit = () => {
                             Следите за транзитами, чтобы понимать, какие энергии активны прямо сейчас. Это поможет выстраивать
                             планы и действия в гармонии с текущей обстановкой.
                         </p>
-                        {currentTransit && (
+                        {transit && (
                             <div className="mt-4">
                                 <p className="text-xl font-semibold">
-                                    {activeTransit ? formatDateRangeReadable(activeTransit.dates) : ""}
+                                    {formatDateRangeReadable(transit.startDate, transit.endDate)}
                                 </p>
-                                <h2 className="text-2xl mt-3">{currentTransit.title}</h2>
-                                <h3 className="text-xl mt-2">{currentTransit.subtitle}</h3>
+                                <h2 className="text-2xl mt-3">{transit.title}</h2>
+                                {transit.subtitle && (
+                                    <h3 className="text-xl mt-2">{transit.subtitle}</h3>
+                                )}
+                                {transit.image && (
+                                    <div className="mt-4">
+                                        <img 
+                                            src={`${import.meta.env.VITE_API_URL}${transit.image}`} 
+                                            alt={transit.title} 
+                                            className="w-full h-auto rounded-lg object-cover" 
+                                        />
+                                    </div>
+                                )}
                                 <div className="mt-4">
-                                    {currentTransit.lines?.length ? (
-                                        <MobileAccordionList items={currentTransit.lines} />
+                                    {transit.lines?.length ? (
+                                        <MobileAccordionList items={transit.lines} />
                                     ) : (
                                         <p className="mt-4 text-gray-500">Нет контента для выбранной даты.</p>
                                     )}
@@ -85,7 +82,7 @@ export const ClientTransit = () => {
                         )}
                     </div>
 
-                    {!currentTransit && (
+                    {!transit && (
                         <div className="px-4 mt-8">
                             <h2 className="text-2xl font-bold">Нет данных</h2>
                             <p className="text-gray-600">Нет записей транзитов для текущего дня</p>
@@ -102,7 +99,7 @@ export const ClientTransit = () => {
                     </Link>
                     <RedButton
                         text="Посмотреть все транзиты"
-                        onClick={() => {}}
+                        onClick={() => navigate('/client/transits')}
                         className="w-full mt-3"
                     />
                 </div>
@@ -110,4 +107,3 @@ export const ClientTransit = () => {
         </UserLayout>
     );
 };
-

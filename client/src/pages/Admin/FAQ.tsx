@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 
 export const FAQAdmin = () => {
     const navigate = useNavigate();
-    const [faqs, setFaqs] = useState([]);
+    const [faqs, setFaqs] = useState<any[]>([]);
 
     useEffect(() => {
         fetchFAQs();
@@ -17,9 +17,21 @@ export const FAQAdmin = () => {
     const fetchFAQs = async () => {
         try {
             const response = await api.get('/api/faq');
-            setFaqs(response.data.data);
+            // FAQController возвращает { success: true, list: faqs, count: faqs.length }
+            if (response.data && Array.isArray(response.data.list)) {
+                setFaqs(response.data.list);
+            } else if (response.data && Array.isArray(response.data.data)) {
+                setFaqs(response.data.data);
+            } else if (Array.isArray(response.data)) {
+                setFaqs(response.data);
+            } else {
+                setFaqs([]);
+                console.error('Неожиданный формат данных:', response.data);
+            }
         } catch (error: any) {
+            console.error('Ошибка загрузки FAQ:', error);
             toast.error('Ошибка загрузки FAQ');
+            setFaqs([]);
         }
     };
 

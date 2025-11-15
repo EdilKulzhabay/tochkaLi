@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { formatDateRangeReadable } from '../../components/User/dateUtils';
 
 export const HoroscopeAdmin = () => {
     const navigate = useNavigate();
@@ -44,11 +45,16 @@ export const HoroscopeAdmin = () => {
     };
 
     const columns = [
-        { key: 'dates', label: 'Даты' },
         { 
-            key: 'datesContent', 
-            label: 'Количество дней',
-            render: (value: any[]) => value ? `${value.length} дней` : '0 дней'
+            key: 'startDate', 
+            label: 'Даты',
+            render: (_value: string, row: any) => formatDateRangeReadable(row.startDate, row.endDate)
+        },
+        { key: 'title', label: 'Заголовок' },
+        { 
+            key: 'lines', 
+            label: 'Элементов',
+            render: (value: any[]) => value ? `${value.length}` : '0'
         },
         { key: 'accessType', label: 'Доступ' },
     ];

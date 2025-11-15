@@ -17,6 +17,7 @@ export const UsersAdmin = () => {
         fullName: '',
         mail: '',
         phone: '',
+        password: '',
         role: 'user',
         status: 'active',
     });
@@ -41,8 +42,20 @@ export const UsersAdmin = () => {
                 fullName: item.fullName || '',
                 mail: item.mail || '',
                 phone: item.phone || '',
+                password: '',
                 role: item.role || 'user',
                 status: item.status || 'active',
+            });
+        } else {
+            // Создание нового пользователя
+            setEditingItem(null);
+            setFormData({
+                fullName: '',
+                mail: '',
+                phone: '',
+                password: '',
+                role: 'user',
+                status: 'active',
             });
         }
         setIsModalOpen(true);
@@ -55,6 +68,7 @@ export const UsersAdmin = () => {
             fullName: '',
             mail: '',
             phone: '',
+            password: '',
             role: 'user',
             status: 'active',
         });
@@ -65,8 +79,32 @@ export const UsersAdmin = () => {
         setLoading(true);
 
         try {
-            await api.put(`/api/user/${editingItem._id}`, formData);
-            toast.success('Пользователь обновлен');
+            if (editingItem) {
+                // Обновление существующего пользователя
+                const updateData: any = {
+                    fullName: formData.fullName,
+                    mail: formData.mail,
+                    phone: formData.phone,
+                    role: formData.role,
+                    status: formData.status,
+                };
+                // Если пароль указан, добавляем его
+                if (formData.password && formData.password.trim() !== '') {
+                    updateData.password = formData.password;
+                }
+                await api.put(`/api/user/${editingItem._id}`, updateData);
+                toast.success('Пользователь обновлен');
+            } else {
+                // Создание нового пользователя
+                const response = await api.post('/api/user/create-by-admin', formData);
+                if (response.data.generatedPassword) {
+                    toast.success(`Пользователь создан. Пароль: ${response.data.generatedPassword}`, {
+                        autoClose: 10000,
+                    });
+                } else {
+                    toast.success('Пользователь создан');
+                }
+            }
             fetchUsers();
             handleCloseModal();
         } catch (error: any) {
@@ -95,13 +133,27 @@ export const UsersAdmin = () => {
         { 
             key: 'role', 
             label: 'Роль',
-            render: (value: string) => (
-                <span className={`px-2 py-1 rounded text-xs ${
-                    value === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'
-                }`}>
-                    {value === 'admin' ? 'Админ' : 'Пользователь'}
-                </span>
-            )
+            render: (value: string) => {
+                const roleLabels: { [key: string]: string } = {
+                    'user': 'Пользователь',
+                    'admin': 'Администратор',
+                    'content_manager': 'Контент-менеджер',
+                    'client_manager': 'Менеджер по клиентам',
+                    'manager': 'Менеджер'
+                };
+                const roleColors: { [key: string]: string } = {
+                    'user': 'bg-gray-100 text-gray-700',
+                    'admin': 'bg-purple-100 text-purple-700',
+                    'content_manager': 'bg-blue-100 text-blue-700',
+                    'client_manager': 'bg-green-100 text-green-700',
+                    'manager': 'bg-yellow-100 text-yellow-700'
+                };
+                return (
+                    <span className={`px-2 py-1 rounded text-xs ${roleColors[value] || 'bg-gray-100 text-gray-700'}`}>
+                        {roleLabels[value] || value}
+                    </span>
+                );
+            }
         },
         { 
             key: 'status', 
@@ -129,6 +181,12 @@ export const UsersAdmin = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Пользователи</h1>
                         <p className="text-gray-600 mt-1">Всего пользователей: {users.length}</p>
                     </div>
+                    <div className='max-w-max'>
+                        <MyButton
+                            text="Создать пользователя"
+                            onClick={() => handleOpenModal()}
+                        />
+                    </div>
                 </div>
 
                 <AdminTable
@@ -142,7 +200,7 @@ export const UsersAdmin = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
-                title="Редактировать пользователя"
+                title={editingItem ? "Редактировать пользователя" : "Создать пользователя"}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <MyInput
@@ -169,6 +227,26 @@ export const UsersAdmin = () => {
                         placeholder="+7 (___) ___-__-__"
                     />
 
+                    {!editingItem && (
+                        <MyInput
+                            label="Пароль"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Оставьте пустым для автоматической генерации"
+                        />
+                    )}
+
+                    {editingItem && (
+                        <MyInput
+                            label="Новый пароль (оставьте пустым, чтобы не менять)"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Введите новый пароль"
+                        />
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium mb-2">Роль</label>
                         <select
@@ -178,6 +256,9 @@ export const UsersAdmin = () => {
                         >
                             <option value="user">Пользователь</option>
                             <option value="admin">Администратор</option>
+                            <option value="content_manager">Контент-менеджер</option>
+                            <option value="client_manager">Менеджер по клиентам</option>
+                            <option value="manager">Менеджер</option>
                         </select>
                     </div>
 
@@ -203,7 +284,7 @@ export const UsersAdmin = () => {
                             Отмена
                         </button>
                         <MyButton
-                            text={loading ? 'Сохранение...' : 'Сохранить'}
+                            text={loading ? (editingItem ? 'Сохранение...' : 'Создание...') : (editingItem ? 'Сохранить' : 'Создать')}
                             onClick={() => {}}
                             disabled={loading}
                         />

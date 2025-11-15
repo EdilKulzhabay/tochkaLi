@@ -1,15 +1,15 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
+type Role = "user" | "admin" | "content_manager" | "client_manager" | "manager";
+
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: "user" | "admin";
+    requiredRole?: Role | Role[];
 }
 
 export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     const { user, loading } = useAuth();
-
-    console.log("ProtectedRoute user: ", user);
 
     if (loading) {
         return (
@@ -19,21 +19,13 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         );
     }
 
-    // if (!user) {
-    //     return <Navigate to="/login" replace />;
-    // }
-
-    // if (user && user?.role && user.role === "admin") {
-    //     return <Navigate to="/admin" replace />;
-    // }
-
-    // if (user && user?.role && user.role === "user") {
-    //     return <Navigate to="/" replace />;
-    // }
-
-    if (requiredRole && user?.role && user.role !== requiredRole) {
-        // Если требуется определенная роль и у пользователя её нет - редирект
-        return <Navigate to="/" replace />;
+    if (requiredRole) {
+        const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+        
+        if (!user?.role || !allowedRoles.includes(user.role as Role)) {
+            // Если требуется определенная роль и у пользователя её нет - редирект
+            return <Navigate to="/" replace />;
+        }
     }
 
     return <>{children}</>;

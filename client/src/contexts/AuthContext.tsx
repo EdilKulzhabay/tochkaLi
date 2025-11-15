@@ -6,19 +6,22 @@ import { useNavigate } from "react-router-dom";
 interface User {
     _id: string;
     fullName: string;
+    telegramUserName: string;
     phone: string;
     mail: string;
     role: string;
     status: string;
+    hasPaid?: boolean;
 }
 
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: (email: string, password: string, telegramId: string, saleBotId: string, telegramUserName: string) => Promise<void>;
-    register: (fullName: string, email: string, phone: string, password: string, telegramId: string, saleBotId: string, telegramUserName: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
+    register: (fullName: string, email: string, phone: string, password: string, telegramId?: string) => Promise<void>;
     logout: () => void;
     checkSession: () => Promise<boolean>;
+    updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,6 +48,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
         const token = localStorage.getItem("token");
         
+        // Сначала пытаемся загрузить user из localStorage
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+            try {
+                const userFromStorage = JSON.parse(userStr);
+                setUser(userFromStorage);
+            } catch (e) {
+                console.error("Ошибка парсинга user из localStorage:", e);
+            }
+        }
+        
         if (!token) {
             setLoading(false);
             return;
@@ -54,11 +68,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await api.get("/api/user/me");
             if (response.data.success) {
                 setUser(response.data.user);
+                // Сохраняем актуальные данные в localStorage
+                localStorage.setItem("user", JSON.stringify(response.data.user));
             }
         } catch (error) {
             console.log("Ошибка проверки авторизации:", error);
             localStorage.removeItem("token");
             localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user");
             setUser(null);
         } finally {
             setLoading(false);
@@ -84,13 +101,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const login = async (email: string, password: string, telegramId: string, saleBotId: string, telegramUserName: string) => {
-        const response = await api.post("/api/user/login", { email, password, telegramId, saleBotId, telegramUserName });
+    const login = async (email: string, password: string) => {
+        const response = await api.post("/api/user/login", { email, password });
         
         if (response.data.success) {
             localStorage.setItem("token", response.data.accessToken);
             localStorage.setItem("refreshToken", response.data.refreshToken);
             setUser(response.data.userData);
+            localStorage.setItem("user", JSON.stringify(response.data.userData));
             
             // Проверяем сохраненный путь для редиректа
             const redirectPath = localStorage.getItem("redirectAfterLogin");
@@ -102,7 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (response.data.userData.role === "admin") {
                     navigate("/admin");
                 } else {
-                    navigate("/");
+                    navigate("/main");
                 }
             }
         } else {
@@ -110,21 +128,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const register = async (fullName: string, email: string, phone: string, password: string, telegramId: string, saleBotId: string, telegramUserName: string) => {
+    const register = async (fullName: string, email: string, phone: string, password: string, telegramId?: string) => {
         const response = await api.post("/api/user/register", { 
             fullName, 
             mail: email, 
             phone, 
             password,
-            telegramId,
-            saleBotId,
-            telegramUserName
+            ...(telegramId && { telegramId })
         });
         
         if (response.data.success) {
             localStorage.setItem("token", response.data.accessToken);
             localStorage.setItem("refreshToken", response.data.refreshToken);
             setUser(response.data.userData);
+            localStorage.setItem("user", JSON.stringify(response.data.userData));
             
             // Проверяем сохраненный путь для редиректа
             const redirectPath = localStorage.getItem("redirectAfterLogin");
@@ -136,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (response.data.userData.role === "admin") {
                     navigate("/admin");
                 } else {
-                    navigate("/");
+                    navigate("/main");
                 }
             }
         } else {
@@ -147,12 +164,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
         setUser(null);
         navigate("/login");
     };
 
+    // Метод для обновления пользователя в контексте
+    const updateUser = (userData: User) => {
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout, checkSession }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, checkSession, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

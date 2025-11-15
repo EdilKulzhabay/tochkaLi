@@ -35,9 +35,20 @@ export const About = () => {
                 <img 
                     src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
                     alt={content?.title} 
-                    className='w-full h-auto rounded-lg object-cover' 
+                    className='w-full h-auto rounded-lg object-cover z-10' 
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60"></div>
+                <div 
+                    className="absolute inset-0"
+                    style={{
+                        background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
+                    }}
+                />
+                <div 
+                    className="absolute inset-0"
+                    style={{
+                        background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
+                    }}
+                />
             </div>
             <div className='px-4 pb-10'>
                 <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>

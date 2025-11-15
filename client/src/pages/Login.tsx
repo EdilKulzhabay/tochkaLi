@@ -32,7 +32,7 @@ export const Login = () => {
 
         try {
             setLoading(true);
-            await login(email, password, telegramId, saleBotId, telegramUserName);
+            await login(email, password);
             toast.success("Вход выполнен успешно!");
         } catch (error: any) {
             toast.error(error.response?.data?.message || error.message || "Ошибка входа");

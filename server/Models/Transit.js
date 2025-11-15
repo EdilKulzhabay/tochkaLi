@@ -2,51 +2,40 @@ import mongoose from 'mongoose';
 
 const TransitSchema = new mongoose.Schema(
   {
-    dates: {
-      type: String,
-      required: [true, 'Даты обязательны'],
-      trim: true,
-      // Формат: "ГГГГ-ММ-ДД - ГГГГ-ММ-ДД"
+    startDate: {
+      type: Date,
+      required: [true, 'Начальная дата обязательна'],
     },
-    datesContent: [
+    endDate: {
+      type: Date,
+      required: [true, 'Конечная дата обязательна'],
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    subtitle: {
+      type: String,
+      trim: true,
+    },
+    lines: [
       {
         title: {
           type: String,
           required: true,
           trim: true,
         },
-        date: {
+        content: {
           type: String,
-          required: true
+          required: true,
         },
-        subtitle: {
-          type: String,
-          // required: true,
-          trim: true,
-        },
-        image: {
-          type: String,
-          trim: true,
-        },
-        lines: [
-          {
-            title: {
-              type: String,
-              required: true,
-              trim: true,
-            },
-            content: {
-              type: String,
-              required: true,
-            },
-          }
-        ],
       }
     ],
     accessType: {
       type: String,
       enum: ['free', 'paid', 'subscription'],
-      default: 'free',
+      default: 'subscription',
       required: true,
     },
   },
@@ -54,6 +43,17 @@ const TransitSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Статический метод для получения текущего транзита
+TransitSchema.statics.getCurrent = async function() {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  
+  return await this.findOne({
+    startDate: { $lte: now },
+    endDate: { $gte: now }
+  }).sort({ createdAt: -1 });
+};
 
 export default mongoose.model('Transit', TransitSchema);
 

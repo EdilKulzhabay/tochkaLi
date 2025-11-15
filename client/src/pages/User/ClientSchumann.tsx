@@ -25,7 +25,7 @@ export const ClientSchumann = () => {
                 <div className='mt-4 space-y-4'>
                     {schumanns.map((schumann) => (
                         <div key={schumann._id}>
-                            <p className='text-lg font-medium'>
+                            <p className=''>
                                 {new Date(schumann.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                             <img src={`${import.meta.env.VITE_API_URL}${schumann.image}`} alt={schumann.title} className='w-full h-auto rounded-lg object-cover mt-2' />

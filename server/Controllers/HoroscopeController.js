@@ -3,18 +3,22 @@ import Horoscope from "../Models/Horoscope.js";
 // Создать новый гороскоп
 export const create = async (req, res) => {
     try {
-        const { dates, datesContent, accessType } = req.body;
+        const { startDate, endDate, title, subtitle, image, lines, accessType } = req.body;
 
-        if (!dates || !datesContent || datesContent.length === 0) {
+        if (!startDate || !endDate || !title) {
             return res.status(400).json({
                 success: false,
-                message: "Все обязательные поля должны быть заполнены",
+                message: "Начальная дата, конечная дата и заголовок обязательны",
             });
         }
 
         const horoscope = new Horoscope({
-            dates,
-            datesContent,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            title,
+            subtitle: subtitle || '',
+            image: image || '',
+            lines: lines || [],
             accessType: accessType || 'free',
         });
 
@@ -38,12 +42,8 @@ export const create = async (req, res) => {
 // Получить все гороскопы
 export const getAll = async (req, res) => {
     try {
-        const { accessType } = req.query;
-        
-        const filter = {};
-        if (accessType) filter.accessType = accessType;
 
-        const horoscopes = await Horoscope.find(filter).sort({ createdAt: -1 });
+        const horoscopes = await Horoscope.find().sort({ createdAt: -1 });
 
         res.json({
             success: true,
@@ -92,7 +92,15 @@ export const getById = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const updateData = { ...req.body };
+
+        // Преобразуем даты в объекты Date, если они присутствуют
+        if (updateData.startDate) {
+            updateData.startDate = new Date(updateData.startDate);
+        }
+        if (updateData.endDate) {
+            updateData.endDate = new Date(updateData.endDate);
+        }
 
         const horoscope = await Horoscope.findByIdAndUpdate(
             id,
@@ -145,6 +153,32 @@ export const remove = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка при удалении гороскопа",
+            error: error.message,
+        });
+    }
+};
+
+// Получить текущий гороскоп
+export const getCurrent = async (req, res) => {
+    try {
+        const horoscope = await Horoscope.getCurrent();
+
+        if (!horoscope) {
+            return res.status(404).json({
+                success: false,
+                message: "Текущий гороскоп не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: horoscope,
+        });
+    } catch (error) {
+        console.log("Ошибка в HoroscopeController.getCurrent:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при получении текущего гороскопа",
             error: error.message,
         });
     }

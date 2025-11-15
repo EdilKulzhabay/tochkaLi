@@ -14,6 +14,9 @@ interface AdminTableProps {
 }
 
 export const AdminTable = ({ columns, data, onEdit, onDelete }: AdminTableProps) => {
+    // Защита от undefined
+    const safeData = data || [];
+    
     return (
         <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="min-w-full divide-y divide-gray-200">
@@ -33,7 +36,7 @@ export const AdminTable = ({ columns, data, onEdit, onDelete }: AdminTableProps)
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {data.length === 0 ? (
+                    {safeData.length === 0 ? (
                         <tr>
                             <td
                                 colSpan={columns.length + 1}
@@ -43,7 +46,7 @@ export const AdminTable = ({ columns, data, onEdit, onDelete }: AdminTableProps)
                             </td>
                         </tr>
                     ) : (
-                        data.map((row, index) => (
+                        safeData.map((row, index) => (
                             <tr key={row._id || index} className="hover:bg-gray-50">
                                 {columns.map((column) => (
                                     <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

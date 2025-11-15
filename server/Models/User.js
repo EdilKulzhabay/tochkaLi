@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin', 'content_manager', 'client_manager', 'manager'],
         default: 'user'
     },
     products: [
@@ -94,6 +94,10 @@ const UserSchema = new mongoose.Schema({
     invoiceId: {
         type: String,
         default: null,
+    },
+    emailConfirmed: {
+        type: Boolean,
+        default: false,
     },
 }, {
     timestamps: true

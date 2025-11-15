@@ -33,10 +33,17 @@ import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
 import { RobokassaSuccess } from "./pages/Robokassa/Success";
 import { RobokassaFail } from "./pages/Robokassa/Fail";
+import { ClientPerfomance } from "./pages/User/ClientPerfomance";
+import { ClientRegister } from "./pages/User/ClientRegister";
+import { ClientLogin } from "./pages/User/ClientLogin";
 import { About } from "./pages/User/About";
 import { ClientFAQ } from "./pages/User/ClientFAQ";
 import { ClientHoroscope } from "./pages/User/ClientHoroscope";
+import { ClientHoroscopesList } from "./pages/User/ClientHoroscopesList";
+import { ClientHoroscopeDetail } from "./pages/User/ClientHoroscopeDetail";
 import { ClientTransit } from "./pages/User/ClientTransit";
+import { ClientTransitsList } from "./pages/User/ClientTransitsList";
+import { ClientTransitDetail } from "./pages/User/ClientTransitDetail";
 import { ClientSchumann } from "./pages/User/ClientSchumann";
 import { ClientContactUs } from "./pages/User/ClientContactUs";
 import { ClientMeditationsList } from "./pages/User/ClientMeditationsList";
@@ -46,6 +53,8 @@ import { ClientPractice } from "./pages/User/ClientPractice";
 import { ClientVideoLessonsList } from "./pages/User/ClientVideoLessonsList";
 import { ClientVideoLesson } from "./pages/User/ClientVideoLesson";
 import { ClientSchedule } from "./pages/User/ClientSchedule";
+import { ClientDiary } from "./pages/User/ClientDiary";
+import { ClientProfile } from "./pages/User/ClientProfile";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -54,12 +63,24 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
 
 export const routes = createBrowserRouter([
     {
-        path: "/:telegramId?/:saleBotId?/:telegramUserName?/:phone?",
-        element: <RootLayout><ProtectedRoute><Welcome /></ProtectedRoute></RootLayout>,
+        path: "/",
+        element: <RootLayout><Welcome /></RootLayout>,
     },
     {
         path: "/main",
         element: <RootLayout><ProtectedRoute><Main /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client-performance",
+        element: <RootLayout><ProtectedRoute><ClientPerfomance /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/register",
+        element: <RootLayout><ProtectedRoute><ClientRegister /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/login",
+        element: <RootLayout><ProtectedRoute><ClientLogin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/about",
@@ -74,8 +95,24 @@ export const routes = createBrowserRouter([
         element: <RootLayout><ProtectedRoute><ClientHoroscope /></ProtectedRoute></RootLayout>,
     },
     {
+        path: "/client/horoscopes",
+        element: <RootLayout><ProtectedRoute><ClientHoroscopesList /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/horoscope/:id",
+        element: <RootLayout><ProtectedRoute><ClientHoroscopeDetail /></ProtectedRoute></RootLayout>,
+    },
+    {
         path: "/client/transit",
         element: <RootLayout><ProtectedRoute><ClientTransit /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/transits",
+        element: <RootLayout><ProtectedRoute><ClientTransitsList /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/transit/:id",
+        element: <RootLayout><ProtectedRoute><ClientTransitDetail /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/client/schumann",
@@ -114,6 +151,14 @@ export const routes = createBrowserRouter([
         element: <RootLayout><ProtectedRoute><ClientSchedule /></ProtectedRoute></RootLayout>,
     },
     {
+        path: "/client/diary",
+        element: <RootLayout><ProtectedRoute><ClientDiary /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/profile",
+        element: <RootLayout><ProtectedRoute><ClientProfile /></ProtectedRoute></RootLayout>,
+    },
+    {
         path: "/login",
         element: <RootLayout><Login /></RootLayout>,
     },
@@ -123,151 +168,151 @@ export const routes = createBrowserRouter([
     },
     {
         path: "/admin",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><AdminMain /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "client_manager", "manager"]}><AdminMain /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/faq",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><FAQAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><FAQAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/faq/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><FAQForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><FAQForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/faq/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><FAQForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><FAQForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/horoscope",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><HoroscopeAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><HoroscopeAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/horoscope/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><HoroscopeForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><HoroscopeForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/horoscope/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><HoroscopeForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><HoroscopeForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/meditation",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><MeditationAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><MeditationAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/meditation/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><MeditationForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><MeditationForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/meditation/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><MeditationForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><MeditationForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/practice",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><PracticeAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><PracticeAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/practice/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><PracticeForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><PracticeForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/practice/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><PracticeForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><PracticeForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/video-lesson",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><VideoLessonAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><VideoLessonAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/video-lesson/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><VideoLessonForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><VideoLessonForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/video-lesson/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><VideoLessonForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><VideoLessonForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/schedule",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><ScheduleAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><ScheduleAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/schedule/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><ScheduleForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><ScheduleForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/schedule/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><ScheduleForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><ScheduleForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/transit",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><TransitAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><TransitAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/transit/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><TransitForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><TransitForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/transit/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><TransitForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><TransitForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/dynamic-content",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><DynamicContentAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><DynamicContentAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/dynamic-content/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><DynamicContentForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><DynamicContentForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/dynamic-content/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><DynamicContentForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><DynamicContentForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/welcome",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><WelcomeAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><WelcomeAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/welcome/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><WelcomeForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><WelcomeForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/welcome/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><WelcomeForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><WelcomeForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/about-club",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><AboutClubAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><AboutClubAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/about-club/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><AboutClubForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><AboutClubForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/about-club/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><AboutClubForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><AboutClubForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/schumann",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><SchumannAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><SchumannAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/schumann/create",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><SchumannForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><SchumannForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/schumann/edit/:id",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><SchumannForm /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><SchumannForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/users",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><UsersAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><UsersAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/profile",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><ProfileAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "client_manager", "manager"]}><ProfileAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/broadcast",
-        element: <RootLayout><ProtectedRoute requiredRole="admin"><BroadcastAdmin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><BroadcastAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/robokassa_callback/success",

@@ -58,7 +58,7 @@ export const ClientSubscriptionModal = ({
                             Чат-группа для общения с другими участниками клуба.
                         </p>
                     </div>
-                    <MyLink to="/main" text="Вступить в клуб" className='w-full mt-4' color='red'/>
+                    <MyLink to="/about" text="Вступить в клуб" className='w-full mt-4' color='red'/>
                 </div>
             </div>
 
@@ -107,7 +107,7 @@ export const ClientSubscriptionModal = ({
                             Чат-группа для общения с другими участниками клуба.
                         </p>
                     </div>
-                    <MyLink to="/main" text="Вступить в клуб" className='w-full mt-4 text-lg' color='red'/>
+                    <MyLink to="/about" text="Вступить в клуб" className='w-full mt-4 text-lg' color='red'/>
                 </div>
             </div>
         </div>

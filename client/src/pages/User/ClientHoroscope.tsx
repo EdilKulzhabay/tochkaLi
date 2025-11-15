@@ -5,22 +5,26 @@ import api from "../../api"
 import { formatDateRangeReadable } from "../../components/User/dateUtils"
 import { MobileAccordionList } from "../../components/User/MobileAccordionList"
 import { RedButton } from "../../components/User/RedButton"
+import { useNavigate } from "react-router-dom"
 
 export const ClientHoroscope = () => {
-    const [horoscopes, setHoroscopes] = useState<any>(null);
-    const [currentHoroscope, setCurrentHoroscope] = useState<any>(null);
+    const [horoscope, setHoroscope] = useState<any>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchHoroscope();
     }, []);
 
     const fetchHoroscope = async () => {
-        const response = await api.get('/api/horoscope');
-        setHoroscopes(response.data.data);
-        const today = new Date().toISOString().split('T')[0];
-        const horoscopeList = response.data.data[0]
-        const currentHoroscope1 = horoscopeList.datesContent.find((horoscope: any) => horoscope.date === today);
-        setCurrentHoroscope(currentHoroscope1);
+        try {
+            const response = await api.get('/api/horoscope/current');
+            const data = response.data.data;
+            if (data) {
+                setHoroscope(data);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки гороскопа', error);
+        }
     }
 
     return (
@@ -32,30 +36,40 @@ export const ClientHoroscope = () => {
                         <p>
                             Социумные гороскопы помогают жить в комфорте для ума, но при этом не дают достичь сверхрезультатов. Когда вы начинаете действовать по врожденной энергии, а не как вам говорит ум, вы начинаете получать сверхрезультаты
                         </p>
-                        {currentHoroscope && (
+                        {horoscope && (
                             <div className="mt-4 flex items-center justify-between">
-                                <h2 className="text-xl font-medium">{currentHoroscope.title}</h2>
+                                <h2 className="text-xl font-medium">{horoscope.title}</h2>
                                 <p className="text-lg">
-                                    {formatDateRangeReadable(horoscopes[0].dates)}
+                                    {formatDateRangeReadable(horoscope.startDate, horoscope.endDate)}
                                 </p>
                             </div>
                         )}
                     </div>
-                    {currentHoroscope?.image && (
-                        <div className="mt-3">
-                            <img src={`${import.meta.env.VITE_API_URL}${currentHoroscope.image}`} alt={currentHoroscope.title} className="w-full h-auto rounded-lg object-cover" />
+                    {horoscope?.image && (
+                        <div className="mt-3 relative">
+                            <img src={`${import.meta.env.VITE_API_URL}${horoscope.image}`} alt={horoscope.title} className="w-full h-auto rounded-lg object-cover z-10" />
+                            <div 
+                                className="absolute inset-0"
+                                style={{
+                                    background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
+                                }}
+                            />
+                            <div 
+                                className="absolute inset-0"
+                                style={{
+                                    background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
+                                }}
+                            />
                         </div>
                     )}
-                    {currentHoroscope && (
+                    {horoscope && (
                         <div className="px-4 mt-8">
-                            {currentHoroscope.lines && currentHoroscope.lines.length > 0 && (
-                                <MobileAccordionList items={currentHoroscope.lines} />
+                            {horoscope.lines && horoscope.lines.length > 0 && (
+                                <MobileAccordionList items={horoscope.lines} />
                             )}
-
-                            
                         </div>
                     )}
-                    {!currentHoroscope && (
+                    {!horoscope && (
                         <div className="px-4 mt-8">
                             <h2 className="text-2xl font-bold">Нет данных</h2>
                             <p className="text-gray-600">Нет данных для текущего дня</p>
@@ -66,7 +80,7 @@ export const ClientHoroscope = () => {
                 <div className="px-4 mt-auto">
                     <RedButton
                         text="Посмотреть все гороскопы"
-                        onClick={() => {}}
+                        onClick={() => navigate('/client/horoscopes')}
                         className="w-full"
                     />
                 </div>

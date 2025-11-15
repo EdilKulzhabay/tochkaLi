@@ -3,19 +3,22 @@ import Transit from "../Models/Transit.js";
 // Создать новый транзит
 export const create = async (req, res) => {
     try {
-        const { dates, datesContent, accessType } = req.body;
+        const { startDate, endDate, title, subtitle, lines, accessType } = req.body;
 
-        if (!dates || !datesContent || datesContent.length === 0) {
+        if (!startDate || !endDate || !title) {
             return res.status(400).json({
                 success: false,
-                message: "Все обязательные поля должны быть заполнены",
+                message: "Начальная дата, конечная дата и заголовок обязательны",
             });
         }
 
         const transit = new Transit({
-            dates,
-            datesContent,
-            accessType: accessType || 'free',
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            title,
+            subtitle: subtitle || '',
+            lines: lines || [],
+            accessType: accessType || 'subscription',
         });
 
         await transit.save();
@@ -38,12 +41,7 @@ export const create = async (req, res) => {
 // Получить все транзиты
 export const getAll = async (req, res) => {
     try {
-        const { accessType } = req.query;
-        
-        const filter = {};
-        if (accessType) filter.accessType = accessType;
-
-        const transits = await Transit.find(filter).sort({ createdAt: -1 });
+        const transits = await Transit.find().sort({ createdAt: -1 });
 
         res.json({
             success: true,
@@ -92,7 +90,15 @@ export const getById = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const updateData = { ...req.body };
+
+        // Преобразуем даты в объекты Date, если они присутствуют
+        if (updateData.startDate) {
+            updateData.startDate = new Date(updateData.startDate);
+        }
+        if (updateData.endDate) {
+            updateData.endDate = new Date(updateData.endDate);
+        }
 
         const transit = await Transit.findByIdAndUpdate(
             id,
@@ -145,6 +151,32 @@ export const remove = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка при удалении транзита",
+            error: error.message,
+        });
+    }
+};
+
+// Получить текущий транзит
+export const getCurrent = async (req, res) => {
+    try {
+        const transit = await Transit.getCurrent();
+
+        if (!transit) {
+            return res.status(404).json({
+                success: false,
+                message: "Текущий транзит не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: transit,
+        });
+    } catch (error) {
+        console.log("Ошибка в TransitController.getCurrent:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при получении текущего транзита",
             error: error.message,
         });
     }

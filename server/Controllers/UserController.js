@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     port: 465, // Или 587 для TLS
     secure: true,
     auth: {
-        user: "info@tibetskaya.kz",
+        user: "aytenov_01@mail.ru",
         pass: process.env.MailSMTP,
     },
 });
@@ -72,7 +72,7 @@ export const sendMail = async (req, res) => {
         lastSentTime[normalizedMail] = now;
 
         const mailOptions = {
-            from: "info@tibetskaya.kz",
+            from: "aytenov_01@mail.ru",
             to: normalizedMail,
             subject: "Подтверждение электронной почты",
             text: `Ваш код подтверждения: ${confirmCode}`,
@@ -150,27 +150,24 @@ export const sendMailRecovery = async (req, res) => {
     sendingInProgress.add(normalizedMail);
 
     try {
-        // Генерация кода подтверждения
         const confirmCode = generateCode();
 
-        // Сохранение кода подтверждения
         codes[normalizedMail] = confirmCode;
         lastSentTime[normalizedMail] = now;
 
         const mailOptions = {
-            from: "info@tibetskaya.kz",
+            from: "aytenov_01@mail.ru",
             to: normalizedMail,
-            subject: "Восстановление пароля",
-            text: `Ваш код для восстановления пароля: ${confirmCode}`,
+            subject: "Подтверждение электронной почты",
+            text: `Ваш код подтверждения: ${confirmCode}`,
         };
 
-        // Отправка письма
         transporter.sendMail(mailOptions, function (error, info) {
             // Убираем из процесса отправки
             sendingInProgress.delete(normalizedMail);
             
             if (error) {
-                console.log("Ошибка отправки email восстановления:", error);
+                console.log("Ошибка отправки email:", error);
                 // Удаляем сохраненный код при ошибке
                 delete codes[normalizedMail];
                 delete lastSentTime[normalizedMail];
@@ -180,7 +177,7 @@ export const sendMailRecovery = async (req, res) => {
                     message: "Ошибка при отправке письма"
                 });
             } else {
-                console.log("Recovery email sent successfully:", info.response);
+                console.log("Email sent successfully:", info.response);
                 res.status(200).json({
                     success: true,
                     message: "Письмо успешно отправлено"
@@ -217,6 +214,8 @@ export const codeConfirm = async (req, res) => {
             console.log("codeConfirm code is correct");
             delete codes[normalizedMail]; // Удаляем код после успешного подтверждения
             delete lastSentTime[normalizedMail]; // Удаляем время последней отправки
+
+            await User.findOneAndUpdate({ mail: normalizedMail }, { status: 'registered' });
             res.status(200).json({
                 success: true,
                 message: "Код успешно подтвержден"
@@ -399,25 +398,15 @@ export const login = async (req, res) => {
             });
         }
 
-        if (candidate.status !== "active") {
-            console.log("login candidate.status is not active");
-            return res.status(403).json({
-                success: false,
-                message: "Ваш аккаунт заблокирован, свяжитесь с администратором",
-            });
-        }
+        // if (candidate.status !== "active") {
+        //     console.log("login candidate.status is not active");
+        //     return res.status(403).json({
+        //         success: false,
+        //         message: "Ваш аккаунт заблокирован, свяжитесь с администратором",
+        //     });
+        // }
 
-        const userData = {
-            _id: candidate._id,
-            fullName: candidate.fullName,
-            phone: candidate.phone,
-            mail: candidate.mail,
-            role: candidate.role,
-            status: candidate.status,
-            createdAt: candidate.createdAt,
-            updatedAt: candidate.updatedAt,
-        };
-
+        const { password: _, ...userData } = candidate.toObject();
         // Создаем новый токен (это инвалидирует предыдущую сессию)
         const accessToken = jwt.sign(
             { userId: candidate._id },
@@ -501,14 +490,88 @@ export const getUserById = async (req, res) => {
     }
 };
 
+// Создать пользователя (для админа и менеджеров)
+export const createUserByAdmin = async (req, res) => {
+    try {
+        const { fullName, mail, phone, password, role, status } = req.body;
+
+        if (!fullName || !mail || !phone) {
+            return res.status(400).json({
+                success: false,
+                message: "Имя, email и телефон обязательны для заполнения",
+            });
+        }
+
+        // Проверяем, существует ли пользователь с таким email
+        const candidate = await User.findOne({ mail: mail?.toLowerCase() });
+        if (candidate) {
+            return res.status(409).json({
+                success: false,
+                message: "Пользователь с такой почтой уже существует",
+            });
+        }
+
+        // Если пароль не указан, генерируем случайный
+        let hashedPassword = null;
+        let generatedPassword = password;
+        if (!password || password.trim() === '') {
+            // Генерируем случайный пароль из 12 символов
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            generatedPassword = '';
+            for (let i = 0; i < 12; i++) {
+                generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+        }
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(generatedPassword, salt);
+
+        const doc = new User({
+            fullName,
+            mail: mail?.toLowerCase(),
+            phone,
+            password: hashedPassword,
+            role: role || 'user',
+            status: status || 'active',
+            emailConfirmed: true, // Админ создает пользователя с подтвержденным email
+        });
+
+        const user = await doc.save();
+        
+        // Возвращаем сгенерированный пароль только если он был сгенерирован автоматически
+        const responseData = {
+            success: true,
+            data: user,
+            message: "Пользователь создан",
+        };
+        
+        if (!password || password.trim() === '') {
+            responseData.generatedPassword = generatedPassword;
+            responseData.message = `Пользователь создан. Сгенерированный пароль: ${generatedPassword}`;
+        }
+        
+        res.json(responseData);
+    } catch (error) {
+        console.log("Ошибка в createUserByAdmin:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка создания пользователя",
+            error: error.message,
+        });
+    }
+};
+
 // Обновить пользователя (только для админа)
 export const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
 
-        // Не позволяем обновлять пароль через этот метод
-        delete updateData.password;
+        // Не позволяем обновлять пароль через этот метод (используйте changePassword)
+        if (updateData.password) {
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(updateData.password, salt);
+        }
+        
         delete updateData.currentToken;
         delete updateData.refreshToken;
 
@@ -599,6 +662,50 @@ export const updateProfile = async (req, res) => {
     }
 };
 
+// Обновить пользователя по telegramId
+export const updateUserByTelegramId = async (req, res) => {
+    try {
+        const { telegramId } = req.params;
+        const updateData = req.body;
+
+        // Не позволяем обновлять пароль через этот метод
+        delete updateData.currentToken;
+        delete updateData.refreshToken;
+
+        if (updateData.password) {
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(updateData.password, salt);
+            updateData.password = hash;
+        }
+
+        const user = await User.findOneAndUpdate(
+            { telegramId },
+            updateData,
+            { new: true, runValidators: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: user,
+            message: "Пользователь обновлен",
+        });
+    } catch (error) {
+        console.log("Ошибка в updateUserByTelegramId:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка обновления пользователя",
+            error: error.message,
+        });
+    }
+};
+
 // Изменить пароль
 export const changePassword = async (req, res) => {
     try {
@@ -652,5 +759,16 @@ export const changePassword = async (req, res) => {
             success: false,
             message: "Ошибка изменения пароля",
         });
+    }
+};
+
+export const getProfile = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId).select("-password -currentToken -refreshToken");
+        res.json({ success: true, user });
+    } catch (error) {
+        console.log("Ошибка в getProfile:", error);
+        res.status(500).json({ success: false, message: "Ошибка получения профиля" });
     }
 };

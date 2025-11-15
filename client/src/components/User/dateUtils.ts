@@ -13,22 +13,25 @@ const MONTHS = [
     "декабря",
 ];
 
-export const formatDateRangeReadable = (range?: string) => {
-    if (!range) return "";
+export const formatDateRangeReadable = (startDate?: string | Date, endDate?: string | Date) => {
+    if (!startDate || !endDate) return "";
 
-    const match = range.match(/(\d{4})-(\d{2})-(\d{2})\s*-\s*(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return range;
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
 
-    const [, , startMonth, startDay, , endMonth, endDay] = match;
+    const startMonth = start.getMonth() + 1;
+    const startDay = start.getDate();
+    const endMonth = end.getMonth() + 1;
+    const endDay = end.getDate();
 
     if (startMonth === endMonth) {
-        const monthName = MONTHS[parseInt(startMonth, 10) - 1] || "";
-        return `${parseInt(startDay, 10)}-${parseInt(endDay, 10)} ${monthName}`;
+        const monthName = MONTHS[startMonth - 1] || "";
+        return `${startDay}-${endDay} ${monthName}`;
     }
 
-    const startMonthName = MONTHS[parseInt(startMonth, 10) - 1] || "";
-    const endMonthName = MONTHS[parseInt(endMonth, 10) - 1] || "";
+    const startMonthName = MONTHS[startMonth - 1] || "";
+    const endMonthName = MONTHS[endMonth - 1] || "";
 
-    return `${parseInt(startDay, 10)} ${startMonthName} - ${parseInt(endDay, 10)} ${endMonthName}`;
+    return `${startDay} ${startMonthName} - ${endDay} ${endMonthName}`;
 };
 

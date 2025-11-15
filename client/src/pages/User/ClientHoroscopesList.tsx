@@ -1,0 +1,178 @@
+import { useEffect, useState } from "react";
+import { UserLayout } from "../../components/User/UserLayout";
+import { BackNav } from "../../components/User/BackNav";
+import api from "../../api";
+import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptionModal";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+
+interface HoroscopeEntity {
+    _id: string;
+    startDate: string | Date;
+    endDate: string | Date;
+    title: string;
+    subtitle?: string;
+    image?: string;
+    lines: any[];
+    accessType: string;
+}
+
+export const ClientHoroscopesList = () => {
+    const [horoscopes, setHoroscopes] = useState<HoroscopeEntity[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [userHasPaid, setUserHasPaid] = useState(false);
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        fetchHoroscopes();
+        fetchUserPaymentStatus();
+    }, []);
+
+    const fetchUserPaymentStatus = async () => {
+        try {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const userData = JSON.parse(userStr);
+                if (userData._id) {
+                    const response = await api.post('/api/user/profile', { userId: userData._id });
+                    if (response.data && response.data.success && response.data.user) {
+                        setUserHasPaid(response.data.user.hasPaid || false);
+                    }
+                }
+            }
+            // Также проверяем из AuthContext
+            if (user?.hasPaid !== undefined) {
+                setUserHasPaid(user.hasPaid);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки статуса оплаты:', error);
+        }
+    };
+
+    const fetchHoroscopes = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get("/api/horoscope");
+            if (response.data && response.data.success && Array.isArray(response.data.data)) {
+                setHoroscopes(response.data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch horoscopes", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatDateRange = (startDate: string | Date, endDate: string | Date): string => {
+        const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+        const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+        
+        const startStr = start.toISOString().split('T')[0]; // YYYY-MM-DD
+        const endStr = end.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        return `${startStr} - ${endStr}`;
+    };
+
+    const isHoroscopeActive = (horoscope: HoroscopeEntity): boolean => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        
+        const start = typeof horoscope.startDate === 'string' ? new Date(horoscope.startDate) : horoscope.startDate;
+        const end = typeof horoscope.endDate === 'string' ? new Date(horoscope.endDate) : horoscope.endDate;
+        
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        
+        return start <= now && end >= now;
+    };
+
+    const handleHoroscopeClick = async (horoscope: HoroscopeEntity) => {
+        // Проверяем, активен ли гороскоп (startDate <= currentDate <= endDate)
+        const isActive = isHoroscopeActive(horoscope);
+        
+        if (isActive) {
+            // Если гороскоп активен, показываем его сразу
+            navigate(`/client/horoscope/${horoscope._id}`);
+        } else {
+            // Если гороскоп не активен (startDate > currentDate или endDate < currentDate), проверяем подписку
+            let hasPaid = userHasPaid;
+            
+            // Обновляем статус оплаты перед проверкой
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const userData = JSON.parse(userStr);
+                    if (userData._id) {
+                        const response = await api.post('/api/user/profile', { userId: userData._id });
+                        if (response.data && response.data.success && response.data.user) {
+                            hasPaid = response.data.user.hasPaid || false;
+                            setUserHasPaid(hasPaid);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка проверки статуса оплаты:', error);
+            }
+            
+            if (!hasPaid) {
+                // Показываем модальное окно подписки
+                setShowModal(true);
+            } else {
+                // Если есть подписка, показываем гороскоп
+                navigate(`/client/horoscope/${horoscope._id}`);
+            }
+        }
+    };
+
+    return (
+        <UserLayout>
+            <BackNav title="Все гороскопы" />
+            <div className="px-4 mt-4 pb-10">
+                {loading ? (
+                    <div className="text-center py-8">
+                        <p className="text-white/60">Загрузка...</p>
+                    </div>
+                ) : horoscopes.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-white/60">Нет гороскопов</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {horoscopes.map((horoscope) => {
+                            const isActive = isHoroscopeActive(horoscope);
+                            return (
+                                <div
+                                    key={horoscope._id}
+                                    onClick={() => handleHoroscopeClick(horoscope)}
+                                    className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
+                                >
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-medium text-white">{horoscope.title}</h3>
+                                            <p className="text-sm text-white/60 mt-1">
+                                                {formatDateRange(horoscope.startDate, horoscope.endDate)}
+                                            </p>
+                                        </div>
+                                        {isActive && (
+                                            <span className="ml-2 px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                                                Активен
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            <ClientSubscriptionModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+            />
+        </UserLayout>
+    );
+};
+
