@@ -36,7 +36,9 @@ export const authMiddleware = async (req, res, next) => {
             });
         }
 
-        if (user.status !== "active") {
+        // Админы и менеджеры могут иметь доступ даже если статус не "active"
+        // Для обычных пользователей проверяем статус
+        if (user.status !== "active" && !['admin', 'manager', 'content_manager', 'client_manager'].includes(user.role)) {
             return res.status(403).json({
                 success: false,
                 message: "Аккаунт заблокирован",
@@ -45,6 +47,7 @@ export const authMiddleware = async (req, res, next) => {
 
         req.userId = decoded.userId;
         req.user = user;
+        console.log("authMiddleware: user установлен, role =", user.role, "status =", user.status);
         next();
     } catch (error) {
         console.log("Auth middleware error:", error);
