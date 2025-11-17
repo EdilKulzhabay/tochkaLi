@@ -37,7 +37,7 @@ export const create = async (req, res) => {
 // Получить все динамические контенты
 export const getAll = async (req, res) => {
     try {
-        const dynamicContents = await DynamicContent.find().sort({ createdAt: -1 });
+        const dynamicContents = await DynamicContent.find().sort({ name: 1 });
 
         res.json({
             success: true,

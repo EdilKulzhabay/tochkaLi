@@ -56,6 +56,11 @@ export const FAQAdmin = () => {
     };
 
     const columns = [
+        { 
+            key: 'order', 
+            label: 'Порядок',
+            render: (value: number) => value || 0
+        },
         { key: 'question', label: 'Вопрос' },
         { 
             key: 'answer', 

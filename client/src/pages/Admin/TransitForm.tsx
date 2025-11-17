@@ -170,14 +170,6 @@ export const TransitForm = () => {
                     <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold text-gray-900">Элементы контента</h2>
-                            <button
-                                type="button"
-                                onClick={addLine}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                <Plus size={16} />
-                                Добавить элемент
-                            </button>
                         </div>
 
                         <div className="space-y-4">
@@ -223,6 +215,17 @@ export const TransitForm = () => {
                                     Нет элементов контента. Нажмите "Добавить элемент" чтобы начать.
                                 </div>
                             )}
+                        </div>
+
+                        <div className="flex items-center justify-end">
+                            <button
+                                type="button"
+                                onClick={addLine}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                <Plus size={16} />
+                                Добавить элемент
+                            </button>
                         </div>
                     </div>
 

@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { formatDateRangeReadable } from '../../components/User/dateUtils';
+import { formatDateRangeReadableWithYear } from '../../components/User/dateUtils';
 
 export const TransitAdmin = () => {
     const navigate = useNavigate();
@@ -48,7 +48,7 @@ export const TransitAdmin = () => {
         { 
             key: 'startDate', 
             label: 'Даты',
-            render: (_value: string, row: any) => formatDateRangeReadable(row.startDate, row.endDate)
+            render: (_value: string, row: any) => formatDateRangeReadableWithYear(row.startDate, row.endDate)
         },
         { key: 'title', label: 'Заголовок' },
         { 

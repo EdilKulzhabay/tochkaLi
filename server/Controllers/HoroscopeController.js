@@ -43,7 +43,7 @@ export const create = async (req, res) => {
 export const getAll = async (req, res) => {
     try {
 
-        const horoscopes = await Horoscope.find().sort({ createdAt: -1 });
+        const horoscopes = await Horoscope.find().sort({ startDate: -1 });
 
         res.json({
             success: true,

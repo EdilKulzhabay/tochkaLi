@@ -116,7 +116,7 @@ export const ClientDiary = () => {
                                                 value={diary.discovery}
                                                 onChange={handleChange}
                                                 className="w-full mt-1 focus:outline-none focus:border-white/80"
-                                                placeholder=""
+                                                placeholder="Что нового вы открыли для себя сегодня?"
                                                 rows={1}
                                                 style={{
                                                     overflow: "hidden",
@@ -137,7 +137,7 @@ export const ClientDiary = () => {
                                                 value={diary.achievement} 
                                                 onChange={handleChange} 
                                                 className="w-full mt-1 focus:outline-none focus:border-white/80" 
-                                                placeholder=""
+                                                placeholder="Что нового вы достигли сегодня?"
                                                 rows={1}
                                                 style={{
                                                     overflow: "hidden",
@@ -158,7 +158,7 @@ export const ClientDiary = () => {
                                                 value={diary.gratitude} 
                                                 onChange={handleChange} 
                                                 className="w-full mt-1 focus:outline-none focus:border-white/80" 
-                                                placeholder=""
+                                                placeholder="Кому и за что вы благодарны сегодня?"
                                                 rows={1}
                                                 style={{
                                                     overflow: "hidden",

@@ -3,7 +3,7 @@ import Meditation from "../Models/Meditation.js";
 // Создать новую медитацию
 export const create = async (req, res) => {
     try {
-        const { title, subtitle, category, shortDescription, fullDescription, imageUrl, videoUrl, accessType } = req.body;
+        const { title, shortDescription, fullDescription, imageUrl, videoUrl, accessType } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
         //     return res.status(400).json({
@@ -14,8 +14,6 @@ export const create = async (req, res) => {
 
         const meditation = new Meditation({
             title,
-            subtitle,
-            category,
             shortDescription,
             fullDescription,
             imageUrl,
@@ -43,10 +41,9 @@ export const create = async (req, res) => {
 // Получить все медитации
 export const getAll = async (req, res) => {
     try {
-        const { category, accessType } = req.query;
+        const { accessType } = req.query;
         
         const filter = {};
-        if (category) filter.category = category;
         if (accessType) filter.accessType = accessType;
 
         const meditations = await Meditation.find(filter).sort({ createdAt: -1 });

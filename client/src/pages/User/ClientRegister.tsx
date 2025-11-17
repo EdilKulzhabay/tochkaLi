@@ -256,7 +256,7 @@ export const ClientRegister = () => {
                             inputType="email"
                             disabled={codeSent}
                         />
-                        <div className='flex justify-end mt-3'>
+                        <div className='flex justify-end mt-3 pr-3'>
                             <Link to="/client/login" className='text-sm text-white/40 underline'>Авторизация</Link>
                         </div>
                     </div>

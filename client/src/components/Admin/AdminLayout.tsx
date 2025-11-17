@@ -13,7 +13,8 @@ import {
     User,
     Home,
     Users,
-    Send
+    Send,
+    Radio
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -33,6 +34,7 @@ const menuItems = [
     { path: '/admin/video-lesson', label: 'Видео уроки', icon: Video },
     { path: '/admin/schedule', label: 'Расписание', icon: Calendar },
     { path: '/admin/transit', label: 'Транзиты', icon: Sparkles },
+    { path: '/admin/schumann', label: 'Частота Шумана', icon: Radio },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {

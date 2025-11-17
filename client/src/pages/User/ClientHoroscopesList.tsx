@@ -65,16 +65,6 @@ export const ClientHoroscopesList = () => {
         }
     };
 
-    const formatDateRange = (startDate: string | Date, endDate: string | Date): string => {
-        const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
-        const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-        
-        const startStr = start.toISOString().split('T')[0]; // YYYY-MM-DD
-        const endStr = end.toISOString().split('T')[0]; // YYYY-MM-DD
-        
-        return `${startStr} - ${endStr}`;
-    };
-
     const isHoroscopeActive = (horoscope: HoroscopeEntity): boolean => {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
@@ -152,7 +142,7 @@ export const ClientHoroscopesList = () => {
                                         <div className="flex-1">
                                             <h3 className="text-lg font-medium text-white">{horoscope.title}</h3>
                                             <p className="text-sm text-white/60 mt-1">
-                                                {formatDateRange(horoscope.startDate, horoscope.endDate)}
+                                                {horoscope.subtitle}
                                             </p>
                                         </div>
                                         {isActive && (

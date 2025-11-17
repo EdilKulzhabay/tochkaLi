@@ -23,16 +23,16 @@ const mainCards = [
 
 const contentCards = [
     { title: 'FAQ', icon: HelpCircle, path: '/admin/faq', color: 'bg-blue-500', description: 'Вопросы и ответы' },
-    { title: 'Гороскопы', icon: Star, path: '/admin/horoscope', color: 'bg-purple-500', description: 'Астрологические прогнозы' },
-    { title: 'Медитации', icon: Sunset, path: '/admin/meditation', color: 'bg-orange-500', description: 'Практики медитации' },
-    { title: 'Практики', icon: Dumbbell, path: '/admin/practice', color: 'bg-green-500', description: 'Духовные практики' },
-    { title: 'Видео уроки', icon: Video, path: '/admin/video-lesson', color: 'bg-red-500', description: 'Обучающие видео' },
+    { title: 'Гороскопы', icon: Star, path: '/admin/horoscope', color: 'bg-purple-500', description: 'Антисоциумный гороскоп' },
+    { title: 'Медитации', icon: Sunset, path: '/admin/meditation', color: 'bg-orange-500', description: 'Контент на странице Медитации' },
+    { title: 'Практики', icon: Dumbbell, path: '/admin/practice', color: 'bg-green-500', description: 'Контент на странице Практики' },
+    { title: 'Видео', icon: Video, path: '/admin/video-lesson', color: 'bg-red-500', description: 'Контент на странице Видео' },
     { title: 'Расписание', icon: Calendar, path: '/admin/schedule', color: 'bg-indigo-500', description: 'События и вебинары' },
     { title: 'Транзиты', icon: Sparkles, path: '/admin/transit', color: 'bg-pink-500', description: 'Планетарные транзиты' },
     { title: 'Динамический контент', icon: FileText, path: '/admin/dynamic-content', color: 'bg-teal-500', description: 'Управление динамическим контентом' },
-    { title: 'Контент главной', icon: Home, path: '/admin/welcome', color: 'bg-amber-500', description: 'Контент на главной странице' },
-    { title: 'О клубе', icon: Info, path: '/admin/about-club', color: 'bg-cyan-600', description: 'Контент на странице "О клубе Tochka.li"' },
-    { title: 'Частота Шумана', icon: Radio, path: '/admin/schumann', color: 'bg-violet-500', description: 'Управление записями о частоте Шумана' },
+    { title: 'Приветствие', icon: Home, path: '/admin/welcome', color: 'bg-amber-500', description: 'Контент на странице Приветствие' },
+    { title: 'О клубе', icon: Info, path: '/admin/about-club', color: 'bg-cyan-600', description: 'Контент на странице О клубе' },
+    { title: 'Частота Шумана', icon: Radio, path: '/admin/schumann', color: 'bg-violet-500', description: 'Частоты Шумана' },
 ];
 
 export const Main = () => {

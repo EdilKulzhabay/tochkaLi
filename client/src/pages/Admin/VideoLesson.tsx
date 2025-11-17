@@ -45,7 +45,6 @@ export const VideoLessonAdmin = () => {
 
     const columns = [
         { key: 'title', label: 'Название' },
-        { key: 'category', label: 'Категория' },
         { 
             key: 'duration', 
             label: 'Длительность',

@@ -43,20 +43,20 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
 
                     {accessType === 'free' ? (
                         <Link to={link} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full ">
-                            <p className="text-sm text-[#FFC293]">Посмотреть</p>
+                            <p className="text-[12px] text-[#FFC293]">Посмотреть</p>
                             <img
                                 src={arrowRight}
                                 alt="arrow-right"
-                                className="w-[14px] h-[14px] ml-2"
+                                className="w-[12px] h-[12px] ml-px"
                             />
                         </Link>
                     ) : (
                         <button onClick={onLockedClick} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full ">
-                            <p className="text-sm text-[#FFC293]">100</p>
+                            <p className="text-[12px] text-[#FFC293]">100</p>
                             <img
                                 src={star}
                                 alt="star"
-                                className="w-[14px] h-[14px] ml-2"
+                                className="w-[12px] h-[12px] ml-2"
                             />
                         </button>
                     )}

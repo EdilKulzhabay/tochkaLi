@@ -72,7 +72,7 @@ export const ClientTransitsList = () => {
         const startStr = start.toISOString().split('T')[0]; // YYYY-MM-DD
         const endStr = end.toISOString().split('T')[0]; // YYYY-MM-DD
         
-        return `${startStr} - ${endStr}`;
+        return `${startStr} <> ${endStr}`;
     };
 
     const isTransitActive = (transit: TransitEntity): boolean => {
@@ -149,9 +149,9 @@ export const ClientTransitsList = () => {
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
-                                            <h3 className="text-lg font-medium text-white">{transit.title}</h3>
+                                            <h3 className="text-lg font-medium text-white">{formatDateRange(transit.startDate, transit.endDate)}</h3>
                                             <p className="text-sm text-white/60 mt-1">
-                                                {formatDateRange(transit.startDate, transit.endDate)}
+                                                {transit.title}
                                             </p>
                                         </div>
                                         {isActive && (

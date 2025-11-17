@@ -3,7 +3,7 @@ import FAQ from "../Models/FAQ.js";
 // Создать новый FAQ
 export const create = async (req, res) => {
     try {
-        const { question, answer } = req.body;
+        const { question, answer, order } = req.body;
 
         if (!question || !answer) {
             return res.status(400).json({
@@ -12,9 +12,17 @@ export const create = async (req, res) => {
             });
         }
 
+        // Если order не указан, устанавливаем максимальный order + 1
+        let orderValue = order;
+        if (orderValue === undefined || orderValue === null) {
+            const maxOrderFAQ = await FAQ.findOne().sort({ order: -1 });
+            orderValue = maxOrderFAQ ? (maxOrderFAQ.order || 0) + 1 : 0;
+        }
+
         const faq = new FAQ({
             question,
             answer,
+            order: orderValue,
         });
 
         await faq.save();
@@ -37,7 +45,7 @@ export const create = async (req, res) => {
 // Получить все FAQ
 export const getAll = async (req, res) => {
     try {
-        const faqs = await FAQ.find().sort({ createdAt: -1 });
+        const faqs = await FAQ.find().sort({ order: 1, createdAt: -1 });
 
         res.json({
             success: true,

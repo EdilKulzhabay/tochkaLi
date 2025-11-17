@@ -17,6 +17,7 @@ export const FAQForm = () => {
     const [formData, setFormData] = useState({
         question: '',
         answer: '',
+        order: 0,
     });
 
     useEffect(() => {
@@ -33,6 +34,7 @@ export const FAQForm = () => {
             setFormData({
                 question: faq.question,
                 answer: faq.answer,
+                order: faq.order || 0,
             });
         } catch (error: any) {
             toast.error('Ошибка загрузки FAQ');
@@ -78,14 +80,24 @@ export const FAQForm = () => {
 
                 <div className="bg-white rounded-lg shadow p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <MyInput
-                            label="Вопрос"
-                            type="text"
-                            value={formData.question}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, question: e.target.value })}
-                            placeholder="Введите вопрос"
-                            required
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <MyInput
+                                label="Вопрос"
+                                type="text"
+                                value={formData.question}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, question: e.target.value })}
+                                placeholder="Введите вопрос"
+                                required
+                            />
+
+                            <MyInput
+                                label="Порядок отображения"
+                                type="number"
+                                value={formData.order.toString()}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
+                            />
+                        </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-2">Ответ</label>

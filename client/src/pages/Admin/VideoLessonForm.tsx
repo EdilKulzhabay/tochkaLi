@@ -17,14 +17,13 @@ export const VideoLessonForm = () => {
     
     const [formData, setFormData] = useState({
         title: '',
-        subtitle: '',
-        category: '',
         shortDescription: '',
         fullDescription: '',
         imageUrl: '',
         videoUrl: '',
         duration: '',
         accessType: 'free',
+        starsRequired: 0,
     });
 
     useEffect(() => {
@@ -41,6 +40,7 @@ export const VideoLessonForm = () => {
             setFormData({
                 ...videoLesson,
                 duration: videoLesson.duration?.toString() || '',
+                starsRequired: videoLesson.starsRequired || 0,
             });
         } catch (error: any) {
             toast.error('Ошибка загрузки видео урока');
@@ -91,7 +91,7 @@ export const VideoLessonForm = () => {
 
                 <div className="bg-white rounded-lg shadow p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <MyInput
                                 label="Название"
                                 type="text"
@@ -99,24 +99,6 @@ export const VideoLessonForm = () => {
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 placeholder="Введите название"
                                 required
-                            />
-
-                            <MyInput
-                                label="Подзаголовок"
-                                type="text"
-                                value={formData.subtitle}
-                                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                                placeholder="Введите подзаголовок"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                            <MyInput
-                                label="Категория"
-                                type="text"
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                placeholder="Например: Астрология"
                             />
 
                             <MyInput
@@ -137,9 +119,20 @@ export const VideoLessonForm = () => {
                                     <option value="free">Бесплатно</option>
                                     <option value="paid">Платно</option>
                                     <option value="subscription">Подписка</option>
+                                    <option value="stars">Звёзды</option>
                                 </select>
                             </div>
                         </div>
+
+                        {formData.accessType === 'stars' && (
+                            <MyInput
+                                label="Количество звёзд для доступа"
+                                type="number"
+                                value={formData.starsRequired.toString()}
+                                onChange={(e) => setFormData({ ...formData, starsRequired: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
+                            />
+                        )}
 
                         <ImageUpload
                             label="Обложка видеоурока"

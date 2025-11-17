@@ -11,6 +11,11 @@ const FAQSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Ответ обязателен'],
     },
+    order: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
   },
   {
     timestamps: true,

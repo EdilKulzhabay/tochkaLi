@@ -1,5 +1,76 @@
 @import "tailwindcss";
 
+/* Подключение шрифтов FuturaCyrillic */
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicLight.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicBook.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicMedium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicDemi.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicBold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FuturaCyrillic';
+    src: url('./assets/font/FuturaCyrillicHeavy.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Настройка Tailwind CSS для использования шрифта по умолчанию */
+@theme {
+    --font-family-sans: 'FuturaCyrillic', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Установка шрифта по умолчанию для всего приложения */
+* {
+    font-family: 'FuturaCyrillic', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+    font-family: 'FuturaCyrillic', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
 /* Скрытие скроллбара для горизонтального скролла */
 .scrollbar-hide::-webkit-scrollbar {
     display: none;

@@ -3,7 +3,7 @@ import Practice from "../Models/Practice.js";
 // Создать новую практику
 export const create = async (req, res) => {
     try {
-        const { title, subtitle, category, shortDescription, fullDescription, imageUrl, videoUrl, accessType } = req.body;
+        const { title, shortDescription, fullDescription, imageUrl, videoUrl, accessType } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
         //     return res.status(400).json({
@@ -14,8 +14,6 @@ export const create = async (req, res) => {
 
         const practice = new Practice({
             title,
-            subtitle,
-            category,
             shortDescription,
             fullDescription,
             imageUrl,
@@ -43,10 +41,9 @@ export const create = async (req, res) => {
 // Получить все практики
 export const getAll = async (req, res) => {
     try {
-        const { category, accessType } = req.query;
+        const { accessType } = req.query;
         
         const filter = {};
-        if (category) filter.category = category;
         if (accessType) filter.accessType = accessType;
 
         const practices = await Practice.find(filter).sort({ createdAt: -1 });

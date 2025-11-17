@@ -37,9 +37,9 @@ export const ClientHoroscope = () => {
                             Социумные гороскопы помогают жить в комфорте для ума, но при этом не дают достичь сверхрезультатов. Когда вы начинаете действовать по врожденной энергии, а не как вам говорит ум, вы начинаете получать сверхрезультаты
                         </p>
                         {horoscope && (
-                            <div className="mt-4 flex items-center justify-between">
+                            <div className="mt-4">
                                 <h2 className="text-xl font-medium">{horoscope.title}</h2>
-                                <p className="text-lg">
+                                <p className="text-sm">
                                     {formatDateRangeReadable(horoscope.startDate, horoscope.endDate)}
                                 </p>
                             </div>
@@ -77,7 +77,14 @@ export const ClientHoroscope = () => {
                     )}
                 </div>
 
-                <div className="px-4 mt-auto">
+                <div className="px-4 mt-auto pt-8 space-y-3">
+                    <a
+                        href="https://tochka.li/signs"
+                        target="_blank"
+                        className="w-full block border border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
+                    >
+                        Подробнее об энергии на Точке Знаки
+                    </a>
                     <RedButton
                         text="Посмотреть все гороскопы"
                         onClick={() => navigate('/client/horoscopes')}

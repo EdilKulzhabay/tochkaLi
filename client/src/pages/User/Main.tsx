@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { UserLayout } from "../../components/User/UserLayout"
 import { Link } from "react-router-dom"
 import logo from "../../assets/logo.png"
@@ -7,18 +8,25 @@ import user from "../../assets/user.png"
 import mainVideo from "../../assets/mainVideo.png"
 import mainPractice from "../../assets/mainPractice.png"
 import mainMeditation from "../../assets/mainMeditation.png"
+import main1 from "../../assets/main1.png"
+import main2 from "../../assets/main2.png"
+import main3 from "../../assets/main3.png"
+import main4 from "../../assets/main4.png"
 
 
 const SmallCard = ({ title, link}: { title: string, link: string }) => {
     return (
-        <Link to={link} className="min-h-24 flex items-center bg-[#333333] relative rounded-lg p-4 overflow-hidden">
-            <p className="text-sm font-medium">{title}</p>
-            <div className="absolute top-0 right-0 bg-white/10 rounded-full translate-x-1/4 -translate-y-1/3"
-                style={{
-                    width: "33.33%",
-                    aspectRatio: "1 / 1",
-                }}
-            />
+        <Link 
+            to={link} 
+            className="min-h-24 flex items-center justify-center bg-[#333333] relative rounded-lg p-4 overflow-hidden"
+            style={{
+                backgroundImage: `url(${title === "Дневник ОДБ" ? main1 : title === "Расписание" ? main2 : title === "Описание транзитов" ? main3 : main4})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+            }}
+        >
+            <p className="text-sm font-medium text-center">{title}</p>
         </Link>
     )
 }
@@ -38,6 +46,12 @@ const LargeCard = ({ title, link, image, content }: { title: string, link: strin
 }
 
 export const Main = () => {
+    const [userName, setUserName] = useState<string>("");
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        setUserName(user.fullName.split(' ')[1] || "");
+    }, []);
 
     return (
         <UserLayout>
@@ -58,9 +72,9 @@ export const Main = () => {
                         </Link>
                     </div>
                 </div>
-                <h1 className="mt-3 text-2xl font-bold">Добро пожаловать!</h1>
+                <h1 className="mt-3 text-2xl font-bold">Добро пожаловать! {userName ? userName : ""}</h1>
                 <div className="grid grid-cols-2 gap-4 mt-3">
-                    <SmallCard title="Дневник" link="/client/diary" />
+                    <SmallCard title="Дневник ОДБ" link="/client/diary" />
                     <SmallCard title="Расписание" link="/client/schedule" />
                     <SmallCard title="Описание транзитов" link="/client/transit" />
                     <SmallCard title="Антисоциумный гороскоп" link="/client/horoscope" />
@@ -70,7 +84,7 @@ export const Main = () => {
                         title="Видео" 
                         link="/client/video-lessons" 
                         image={mainVideo} 
-                        content="Самые популярные видео проекта .li, которые содержать эксклюзивный контент и знакомят с нами" 
+                        content="Самые популярные видео проекта .li, которые содержат эксклюзивный контент и знакомят с Точкой" 
                     />
                     <LargeCard 
                         title="Практики" 
@@ -82,7 +96,7 @@ export const Main = () => {
                         title="Медитации" 
                         link="/client/meditations" 
                         image={mainMeditation} 
-                        content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск процессов" 
+                        content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск процессов изменений" 
                     />
                 </div>
             </div>

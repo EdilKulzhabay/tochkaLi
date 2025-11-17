@@ -90,7 +90,7 @@ export const ClientTransit = () => {
                     )}
                 </div>
 
-                <div className="px-4">
+                <div className="px-4 pt-8">
                     <Link 
                         to="/client/schumann"
                         className="w-full block border border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"

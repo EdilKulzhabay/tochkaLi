@@ -7,15 +7,6 @@ const MeditationSchema = new mongoose.Schema(
       required: [true, 'Название обязательно'],
       trim: true,
     },
-    subtitle: {
-      type: String,
-      trim: true,
-    },
-    category: {
-      type: String,
-      trim: true,
-      index: true,
-    },
     shortDescription: {
       type: String,
       maxlength: [500, 'Краткое описание не должно превышать 500 символов'],
@@ -31,8 +22,13 @@ const MeditationSchema = new mongoose.Schema(
     },
     accessType: {
       type: String,
-      enum: ['free', 'paid', 'subscription'],
+      enum: ['free', 'paid', 'subscription', 'stars'],
       default: 'free',
+    },
+    starsRequired: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
   },
   {

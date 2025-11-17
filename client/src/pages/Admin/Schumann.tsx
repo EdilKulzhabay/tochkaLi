@@ -55,7 +55,7 @@ export const SchumannAdmin = () => {
             render: (value: string) => (
                 value ? (
                     <img 
-                        src={value} 
+                        src={`${import.meta.env.VITE_API_URL}${value}`} 
                         alt="Частота Шумана" 
                         className="w-20 h-20 object-cover rounded"
                     />

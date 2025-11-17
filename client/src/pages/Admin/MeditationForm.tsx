@@ -17,13 +17,12 @@ export const MeditationForm = () => {
     
     const [formData, setFormData] = useState({
         title: '',
-        subtitle: '',
-        category: '',
         shortDescription: '',
         fullDescription: '',
         imageUrl: '',
         videoUrl: '',
         accessType: 'free',
+        starsRequired: 0,
     });
 
     useEffect(() => {
@@ -37,7 +36,10 @@ export const MeditationForm = () => {
         try {
             const response = await api.get(`/api/meditation/${id}`);
             const meditation = response.data.data;
-            setFormData(meditation);
+            setFormData({
+                ...meditation,
+                starsRequired: meditation.starsRequired || 0,
+            });
         } catch (error: any) {
             toast.error('Ошибка загрузки медитации');
             navigate('/admin/meditation');
@@ -83,30 +85,12 @@ export const MeditationForm = () => {
                 <div className="bg-white rounded-lg shadow p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
-                        <MyInput
-                            label="Название"
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="Введите название"
-                        />
-
                             <MyInput
-                                label="Подзаголовок"
+                                label="Название"
                                 type="text"
-                                value={formData.subtitle}
-                                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                                placeholder="Введите подзаголовок"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <MyInput
-                                label="Категория"
-                                type="text"
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                placeholder="Например: Утро, Вечер"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="Введите название"
                             />
 
                             <div>
@@ -119,9 +103,20 @@ export const MeditationForm = () => {
                                     <option value="free">Бесплатно</option>
                                     <option value="paid">Платно</option>
                                     <option value="subscription">Подписка</option>
+                                    <option value="stars">Звёзды</option>
                                 </select>
                             </div>
                         </div>
+
+                        {formData.accessType === 'stars' && (
+                            <MyInput
+                                label="Количество звёзд для доступа"
+                                type="number"
+                                value={formData.starsRequired.toString()}
+                                onChange={(e) => setFormData({ ...formData, starsRequired: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
+                            />
+                        )}
 
                         <ImageUpload
                             label="Обложка медитации"

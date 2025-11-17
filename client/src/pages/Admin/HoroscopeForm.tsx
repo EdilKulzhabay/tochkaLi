@@ -4,6 +4,7 @@ import { RichTextEditor } from '../../components/Admin/RichTextEditor';
 import { MyInput } from '../../components/Admin/MyInput';
 import { MyButton } from '../../components/Admin/MyButton';
 import { ImageUpload } from '../../components/Admin/ImageUpload';
+import { MonthDayInput } from '../../components/Admin/MonthDayInput';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
@@ -44,13 +45,31 @@ export const HoroscopeForm = () => {
         }
     }, [id]);
 
+    // Преобразование полной даты в формат MM-DD
+    const dateToMonthDay = (dateString: string): string => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${month}-${day}`;
+    };
+
+    // Преобразование формата MM-DD в полную дату (используя текущий год)
+    const monthDayToDate = (monthDay: string): string => {
+        if (!monthDay || !monthDay.includes('-')) return '';
+        const [month, day] = monthDay.split('-');
+        const year = new Date().getFullYear();
+        const date = new Date(year, parseInt(month) - 1, parseInt(day));
+        return date.toISOString().split('T')[0];
+    };
+
     const fetchHoroscope = async () => {
         try {
             const response = await api.get(`/api/horoscope/${id}`);
             const data = response.data.data;
             setFormData({
-                startDate: data.startDate ? new Date(data.startDate).toISOString().split('T')[0] : '',
-                endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : '',
+                startDate: data.startDate ? dateToMonthDay(data.startDate) : '',
+                endDate: data.endDate ? dateToMonthDay(data.endDate) : '',
                 title: data.title || '',
                 subtitle: data.subtitle || '',
                 image: data.image || '',
@@ -94,11 +113,18 @@ export const HoroscopeForm = () => {
         setLoading(true);
 
         try {
+            // Преобразуем формат MM-DD в полную дату перед отправкой
+            const submitData = {
+                ...formData,
+                startDate: monthDayToDate(formData.startDate),
+                endDate: monthDayToDate(formData.endDate),
+            };
+
             if (id) {
-                await api.put(`/api/horoscope/${id}`, formData);
+                await api.put(`/api/horoscope/${id}`, submitData);
                 toast.success('Гороскоп обновлен');
             } else {
-                await api.post('/api/horoscope', formData);
+                await api.post('/api/horoscope', submitData);
                 toast.success('Гороскоп создан');
             }
             navigate('/admin/horoscope');
@@ -132,18 +158,16 @@ export const HoroscopeForm = () => {
                         <h2 className="text-xl font-semibold text-gray-900">Настройки</h2>
                         
                         <div className="grid grid-cols-2 gap-4">
-                            <MyInput
+                            <MonthDayInput
                                 label="Начальная дата"
-                                type="date"
                                 value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                onChange={(value) => setFormData({ ...formData, startDate: value })}
                                 placeholder="Выберите начальную дату"
                             />
-                            <MyInput
+                            <MonthDayInput
                                 label="Конечная дата"
-                                type="date"
                                 value={formData.endDate}
-                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                onChange={(value) => setFormData({ ...formData, endDate: value })}
                                 placeholder="Выберите конечную дату"
                                 min={formData.startDate || undefined}
                             />
@@ -181,14 +205,6 @@ export const HoroscopeForm = () => {
                     <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold text-gray-900">Элементы контента</h2>
-                            <button
-                                type="button"
-                                onClick={addLine}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                <Plus size={16} />
-                                Добавить элемент
-                            </button>
                         </div>
 
                         <div className="space-y-4">
@@ -234,6 +250,17 @@ export const HoroscopeForm = () => {
                                     Нет элементов контента. Нажмите "Добавить элемент" чтобы начать.
                                 </div>
                             )}
+                        </div>
+
+                        <div className="flex items-center justify-end">
+                            <button
+                                type="button"
+                                onClick={addLine}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                <Plus size={16} />
+                                Добавить элемент
+                            </button>
                         </div>
                     </div>
 

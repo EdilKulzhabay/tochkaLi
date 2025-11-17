@@ -67,7 +67,7 @@ export const ClientLogin = () => {
                         inputType="password"
                     />
                 </div>
-                <div className='flex justify-end mt-3'>
+                <div className='flex justify-end mt-3 pr-3'>
                     <Link to="/client/register" className='text-sm text-white/40 underline'>Регистрация</Link>
                 </div>
             </div>
