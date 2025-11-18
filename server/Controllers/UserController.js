@@ -237,7 +237,7 @@ export const codeConfirm = async (req, res) => {
 
 export const createUser = async (req, res) => {
     try {
-        const { telegramId, telegramUserName, saleBotId, phone } = req.body;
+        const { telegramId, telegramUserName, saleBotId } = req.body;
         const candidate = await User.findOne({ telegramId });
 
         console.log("createUser req.body: ", req.body);
@@ -253,7 +253,6 @@ export const createUser = async (req, res) => {
             telegramId,
             telegramUserName,
             saleBotId,
-            phone,
             status: 'guest',
         });
 
