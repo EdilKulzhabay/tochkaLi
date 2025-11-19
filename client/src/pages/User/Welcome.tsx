@@ -59,6 +59,7 @@ export const Welcome = () => {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
                 if (response.data.success && response.data.user) {
                     if (response.data.user.fullName && response.data.user.fullName.trim() !== '') {
+                        localStorage.setItem('user', JSON.stringify(response.data.user));
                         navigate('/main');
                     }
                 }
