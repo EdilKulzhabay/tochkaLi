@@ -1,9 +1,8 @@
 import bgGar from '../../assets/bgGar.png';
 import { ClientInput } from '../../components/User/ClientInput';
 import { useEffect, useState } from 'react';
-import { MyLink } from '../../components/User/MyLink';
 import { RedButton } from '../../components/User/RedButton';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -12,7 +11,7 @@ export const ClientLogin = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
-
+    const navigate = useNavigate();
     const handleLogin = async () => {
         if (email.trim() === '' || password.trim() === '') {
             toast.error('Пожалуйста, заполните все поля');
@@ -73,7 +72,10 @@ export const ClientLogin = () => {
             </div>
 
             <div>
-                <MyLink to="/" text="Назад" className='w-full mt-4' color='gray'/>
+                <button 
+                    onClick={() => navigate(-1)}
+                    className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
+                >Назад</button>
                 <RedButton 
                     text={loading ? 'Вход...' : 'Войти'} 
                     onClick={handleLogin} 

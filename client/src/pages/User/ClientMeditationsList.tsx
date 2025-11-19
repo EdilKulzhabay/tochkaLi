@@ -72,7 +72,7 @@ export const ClientMeditationsList = () => {
                 <div className="px-4 mt-8 pb-10">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {meditations.length > 0 ? (
-                            meditations.filter((meditation: any) => meditation.accessType !== 'subscription').map((meditation: any) => (
+                            meditations.filter((meditation: any) => meditation.accessType === 'subscription').map((meditation: any) => (
                                 <div 
                                     key={meditation._id} 
                                     data-card

@@ -1,9 +1,8 @@
 import bgGar from '../../assets/bgGar.png';
 import { ClientInput } from '../../components/User/ClientInput';
 import { useEffect, useState } from 'react';
-import { MyLink } from '../../components/User/MyLink';
 import { RedButton } from '../../components/User/RedButton';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,7 +19,7 @@ export const ClientRegister = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const { register, login, updateUser } = useAuth();
-
+    const navigate = useNavigate();
     useEffect(() => {
         // Загружаем данные из localStorage
         const userStr = localStorage.getItem('user');
@@ -276,7 +275,10 @@ export const ClientRegister = () => {
             </div>
 
             <div>
-                <MyLink to="/client-performance" text="Назад" className='w-full mt-4' color='gray'/>
+                <button 
+                    onClick={() => navigate(-1)}
+                    className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
+                >Назад</button>
                 {codeSent ? (
                     <RedButton
                         text={loading ? 'Подтверждение...' : 'Подтвердить код'}

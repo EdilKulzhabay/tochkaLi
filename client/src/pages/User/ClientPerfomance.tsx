@@ -1,7 +1,6 @@
 import bgGar from '../../assets/bgGar.png';
 import { ClientInput } from '../../components/User/ClientInput';
 import { useState, useEffect } from 'react';
-import { MyLink } from '../../components/User/MyLink';
 import { RedButton } from '../../components/User/RedButton';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -14,7 +13,6 @@ export const ClientPerfomance = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { updateUser } = useAuth();
-
     useEffect(() => {
         // Загружаем данные из localStorage если есть
         const userStr = localStorage.getItem('user');
@@ -106,7 +104,10 @@ export const ClientPerfomance = () => {
             </div>
 
             <div>
-                <MyLink to="/" text="Назад" className='w-full mt-4' color='gray'/>
+                <button 
+                    onClick={() => navigate(-1)}
+                    className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
+                >Назад</button>
                 <RedButton 
                     text={loading ? 'Сохранение...' : 'Продолжить'} 
                     onClick={handleContinue} 
