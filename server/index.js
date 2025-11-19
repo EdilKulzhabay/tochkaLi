@@ -127,11 +127,11 @@ app.put("/api/video-lesson/:id", authMiddleware, requireContentManager, VideoLes
 app.delete("/api/video-lesson/:id", authMiddleware, requireContentManager, VideoLessonController.remove);
 
 // ==================== Schedule маршруты ====================
-app.post("/api/schedule", authMiddleware, requireContentManager, ScheduleController.create);
+app.post("/api/schedule", requireContentManager, ScheduleController.create);
 app.get("/api/schedule", ScheduleController.getAll);
 app.get("/api/schedule/:id", ScheduleController.getById);
-app.put("/api/schedule/:id", authMiddleware, requireContentManager, ScheduleController.update);
-app.delete("/api/schedule/:id", authMiddleware, requireContentManager, ScheduleController.remove);
+app.put("/api/schedule/:id", requireContentManager, ScheduleController.update);
+app.delete("/api/schedule/:id", requireContentManager, ScheduleController.remove);
 
 // ==================== Transit маршруты ====================
 app.post("/api/transit", authMiddleware, requireContentManager, TransitController.create);

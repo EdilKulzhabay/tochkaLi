@@ -16,8 +16,8 @@ export const ScheduleForm = () => {
     
     const [formData, setFormData] = useState({
         eventTitle: '',
-        eventDate: '',
-        location: '',
+        startDate: '',
+        endDate: '',
         eventLink: '',
         description: '',
     });
@@ -27,9 +27,11 @@ export const ScheduleForm = () => {
             setIsEdit(true);
             fetchSchedule();
         } else {
+            const now = new Date().toISOString().slice(0, 16);
             setFormData(prev => ({
                 ...prev,
-                eventDate: new Date().toISOString().slice(0, 16),
+                startDate: now,
+                endDate: now,
             }));
         }
     }, [id]);
@@ -40,8 +42,8 @@ export const ScheduleForm = () => {
             const schedule = response.data.data;
             setFormData({
                 eventTitle: schedule.eventTitle,
-                eventDate: new Date(schedule.eventDate).toISOString().slice(0, 16),
-                location: schedule.location,
+                startDate: new Date(schedule.startDate).toISOString().slice(0, 16),
+                endDate: new Date(schedule.endDate).toISOString().slice(0, 16),
                 eventLink: schedule.eventLink || '',
                 description: schedule.description,
             });
@@ -99,18 +101,17 @@ export const ScheduleForm = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <MyInput
-                                label="Дата и время"
+                                label="Дата и время начала"
                                 type="datetime-local"
-                                value={formData.eventDate}
-                                onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+                                value={formData.startDate}
+                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                             />
 
                             <MyInput
-                                label="Место проведения"
-                                type="text"
-                                value={formData.location}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                placeholder="Zoom, Адрес и т.д."
+                                label="Дата и время окончания"
+                                type="datetime-local"
+                                value={formData.endDate}
+                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                             />
                         </div>
 

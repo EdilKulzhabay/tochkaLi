@@ -63,7 +63,15 @@ export const ClientHoroscopesList = () => {
         try {
             const response = await api.get("/api/horoscope");
             if (response.data && response.data.success && Array.isArray(response.data.data)) {
-                setHoroscopes(response.data.data);
+                // Сортируем: активные гороскопы первыми
+                const sortedHoroscopes = [...response.data.data].sort((a, b) => {
+                    const aActive = isHoroscopeActive(a);
+                    const bActive = isHoroscopeActive(b);
+                    if (aActive && !bActive) return -1;
+                    if (!aActive && bActive) return 1;
+                    return 0;
+                });
+                setHoroscopes(sortedHoroscopes);
             }
         } catch (error) {
             console.error("Failed to fetch horoscopes", error);

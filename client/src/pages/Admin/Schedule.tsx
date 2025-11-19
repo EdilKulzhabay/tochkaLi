@@ -46,11 +46,15 @@ export const ScheduleAdmin = () => {
     const columns = [
         { key: 'eventTitle', label: 'Название события' },
         { 
-            key: 'eventDate', 
-            label: 'Дата и время',
+            key: 'startDate', 
+            label: 'Дата начала',
             render: (value: string) => new Date(value).toLocaleString('ru-RU')
         },
-        { key: 'location', label: 'Место' },
+        { 
+            key: 'endDate', 
+            label: 'Дата окончания',
+            render: (value: string) => new Date(value).toLocaleString('ru-RU')
+        },
     ];
 
     return (

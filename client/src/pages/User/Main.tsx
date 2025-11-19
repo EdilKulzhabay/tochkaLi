@@ -12,14 +12,13 @@ import main1 from "../../assets/main1.png"
 import main2 from "../../assets/main2.png"
 import main3 from "../../assets/main3.png"
 import main4 from "../../assets/main4.png"
-import api from "../../api";
 
 
 const SmallCard = ({ title, link}: { title: string, link: string }) => {
     return (
         <Link 
             to={link} 
-            className="min-h-24 flex items-center justify-center bg-[#333333] relative rounded-lg p-4 overflow-hidden"
+            className="min-h-24 flex items-center bg-[#333333] relative rounded-lg p-4 overflow-hidden"
             style={{
                 backgroundImage: `url(${title === "Дневник ОДБ" ? main1 : title === "Расписание" ? main2 : title === "Описание транзитов" ? main3 : main4})`,
                 backgroundSize: 'cover',
@@ -27,7 +26,7 @@ const SmallCard = ({ title, link}: { title: string, link: string }) => {
                 backgroundRepeat: 'no-repeat',
             }}
         >
-            <p className="text-sm font-medium text-center" dangerouslySetInnerHTML={{ __html: title }}></p>
+            <p className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: title }}></p>
         </Link>
     )
 }
@@ -48,36 +47,11 @@ const LargeCard = ({ title, link, image, content }: { title: string, link: strin
 
 export const Main = () => {
     const [userName, setUserName] = useState<string>("");
-    const [meditationContent, setMeditationContent] = useState<string>('');
-    const [practiceContent, setPracticeContent] = useState<string>('');
-    const [videoContent, setVideoContent] = useState<string>('');
-    const [mainContent1, setMainContent1] = useState<string>('');
-    const [mainContent2, setMainContent2] = useState<string>('');
-    const [mainContent3, setMainContent3] = useState<string>('');
-    const [mainContent4, setMainContent4] = useState<string>('');
 
     useEffect(() => {
-        fetchContent();
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         setUserName(user.fullName.split(' ')[1] || "");
     }, []);
-
-    const fetchContent = async () => {
-        const responseMeditation = await api.get('/api/dynamic-content/name/main-meditation');
-        setMeditationContent(responseMeditation.data.data.content);
-        const responsePractice = await api.get('/api/dynamic-content/name/main-practice');
-        setPracticeContent(responsePractice.data.data.content);
-        const responseVideo = await api.get('/api/dynamic-content/name/main-video');
-        setVideoContent(responseVideo.data.data.content);
-        const responseMainContent1 = await api.get('/api/dynamic-content/name/main-1');
-        setMainContent1(responseMainContent1.data.data.content);
-        const responseMainContent2 = await api.get('/api/dynamic-content/name/main-2');
-        setMainContent2(responseMainContent2.data.data.content);
-        const responseMainContent3 = await api.get('/api/dynamic-content/name/main-3');
-        setMainContent3(responseMainContent3.data.data.content);
-        const responseMainContent4 = await api.get('/api/dynamic-content/name/main-4');
-        setMainContent4(responseMainContent4.data.data.content);
-    }
 
     return (
         <UserLayout>
@@ -100,29 +74,29 @@ export const Main = () => {
                 </div>
                 <h1 className="mt-3 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
                 <div className="grid grid-cols-2 gap-4 mt-3">
-                    <SmallCard title={mainContent1 || ''} link="/client/diary" />
-                    <SmallCard title={mainContent2 || ''} link="/client/schedule" />
-                    <SmallCard title={mainContent3 || ''} link="/client/transit" />
-                    <SmallCard title={mainContent4 || ''} link="/client/horoscope" />
+                    <SmallCard title="Дневник ОДБ" link="/client/diary" />
+                    <SmallCard title="Расписание" link="/client/schedule" />
+                    <SmallCard title={`Описание<br />транзитов`} link="/client/transit" />
+                    <SmallCard title={`Описание<br />гороскопов`} link="/client/horoscope" />
                 </div>
                 <div className="mt-4 space-y-3">
                     <LargeCard 
                         title="Видео" 
                         link="/client/video-lessons" 
                         image={mainVideo} 
-                        content={videoContent || ''}
+                        content="Популярные видео проекта .li, которые содержат эксклюзивный контент и знакомят с Точкой"
                     />
                     <LargeCard 
                         title="Практики" 
                         link="/client/practices" 
                         image={mainPractice} 
-                        content={practiceContent || ''}
+                        content="Самые действенные и простые инструменты управления подсознанием на каждый день"
                     />
                     <LargeCard 
                         title="Медитации" 
                         link="/client/meditations" 
                         image={mainMeditation} 
-                        content={meditationContent || ''}
+                        content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск процессов изменений"
                     />
                 </div>
             </div>

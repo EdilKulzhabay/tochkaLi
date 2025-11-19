@@ -6,13 +6,13 @@ const ScheduleSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    eventDate: {
+    startDate: {
       type: Date,
       index: true,
     },
-    location: {
-      type: String,
-      trim: true,
+    endDate: {
+      type: Date,
+      index: true,
     },
     eventLink: {
       type: String,

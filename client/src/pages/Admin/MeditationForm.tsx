@@ -21,6 +21,8 @@ export const MeditationForm = () => {
         fullDescription: '',
         imageUrl: '',
         videoUrl: '',
+        duration: '',
+        order: 0,
         accessType: 'free',
         starsRequired: 0,
     });
@@ -38,6 +40,8 @@ export const MeditationForm = () => {
             const meditation = response.data.data;
             setFormData({
                 ...meditation,
+                duration: meditation.duration?.toString() || '',
+                order: meditation.order || 0,
                 starsRequired: meditation.starsRequired || 0,
             });
         } catch (error: any) {
@@ -51,11 +55,17 @@ export const MeditationForm = () => {
         setLoading(true);
 
         try {
+            const dataToSend = {
+                ...formData,
+                duration: formData.duration ? parseInt(formData.duration) : undefined,
+                order: formData.order ? parseInt(formData.order.toString()) : 0,
+            };
+            
             if (isEdit) {
-                await api.put(`/api/meditation/${id}`, formData);
+                await api.put(`/api/meditation/${id}`, dataToSend);
                 toast.success('Медитация обновлена');
             } else {
-                await api.post('/api/meditation', formData);
+                await api.post('/api/meditation', dataToSend);
                 toast.success('Медитация создана');
             }
             navigate('/admin/meditation');
@@ -84,13 +94,29 @@ export const MeditationForm = () => {
 
                 <div className="bg-white rounded-lg shadow p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-4 gap-4">
                             <MyInput
                                 label="Название"
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 placeholder="Введите название"
+                            />
+
+                            <MyInput
+                                label="Длительность (мин)"
+                                type="number"
+                                value={formData.duration}
+                                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                                placeholder="45"
+                            />
+
+                            <MyInput
+                                label="Порядок"
+                                type="number"
+                                value={formData.order.toString()}
+                                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
                             />
 
                             <div>

@@ -3,7 +3,7 @@ import VideoLesson from "../Models/VideoLesson.js";
 // Создать новый видео урок
 export const create = async (req, res) => {
     try {
-        const { title, shortDescription, fullDescription, imageUrl, videoUrl, accessType, duration } = req.body;
+        const { title, shortDescription, fullDescription, imageUrl, videoUrl, accessType, duration, order } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
         //     return res.status(400).json({
@@ -20,6 +20,7 @@ export const create = async (req, res) => {
             videoUrl,
             accessType: accessType || 'free',
             duration,
+            order: order || 0,
         });
 
         await videoLesson.save();
@@ -47,7 +48,7 @@ export const getAll = async (req, res) => {
         const filter = {};
         if (accessType) filter.accessType = accessType;
 
-        const videoLessons = await VideoLesson.find(filter).sort({ createdAt: -1 });
+        const videoLessons = await VideoLesson.find(filter).sort({ order: 1, createdAt: -1 });
 
         res.json({
             success: true,

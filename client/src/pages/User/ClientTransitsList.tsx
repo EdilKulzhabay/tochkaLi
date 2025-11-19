@@ -58,12 +58,33 @@ export const ClientTransitsList = () => {
         }
     };
 
+    const isTransitActive = (transit: TransitEntity): boolean => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        
+        const start = typeof transit.startDate === 'string' ? new Date(transit.startDate) : transit.startDate;
+        const end = typeof transit.endDate === 'string' ? new Date(transit.endDate) : transit.endDate;
+        
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        
+        return start <= now && end >= now;
+    };
+
     const fetchTransits = async () => {
         setLoading(true);
         try {
             const response = await api.get("/api/transit");
             if (response.data && response.data.success && Array.isArray(response.data.data)) {
-                setTransits(response.data.data);
+                // Сортируем: активные транзиты первыми
+                const sortedTransits = [...response.data.data].sort((a, b) => {
+                    const aActive = isTransitActive(a);
+                    const bActive = isTransitActive(b);
+                    if (aActive && !bActive) return -1;
+                    if (!aActive && bActive) return 1;
+                    return 0;
+                });
+                setTransits(sortedTransits);
             }
         } catch (error) {
             console.error("Failed to fetch transits", error);
@@ -76,23 +97,19 @@ export const ClientTransitsList = () => {
         const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
         const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
         
-        const startStr = start.toISOString().split('T')[0]; // YYYY-MM-DD
-        const endStr = end.toISOString().split('T')[0]; // YYYY-MM-DD
+        const year = start.getFullYear();
+        const startDay = start.getDate();
+        const endDay = end.getDate();
         
-        return `${startStr} <> ${endStr}`;
-    };
-
-    const isTransitActive = (transit: TransitEntity): boolean => {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
+        const monthNames = [
+            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+        ];
         
-        const start = typeof transit.startDate === 'string' ? new Date(transit.startDate) : transit.startDate;
-        const end = typeof transit.endDate === 'string' ? new Date(transit.endDate) : transit.endDate;
+        const startMonth = monthNames[start.getMonth()];
+        const endMonth = monthNames[end.getMonth()];
         
-        start.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
-        
-        return start <= now && end >= now;
+        return `${year}: ${startDay} ${startMonth} - ${endDay} ${endMonth}`;
     };
 
     const handleTransitClick = async (transit: TransitEntity) => {

@@ -34,6 +34,10 @@ const VideoLessonSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

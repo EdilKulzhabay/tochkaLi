@@ -22,6 +22,7 @@ export const VideoLessonForm = () => {
         imageUrl: '',
         videoUrl: '',
         duration: '',
+        order: 0,
         accessType: 'free',
         starsRequired: 0,
     });
@@ -40,6 +41,7 @@ export const VideoLessonForm = () => {
             setFormData({
                 ...videoLesson,
                 duration: videoLesson.duration?.toString() || '',
+                order: videoLesson.order || 0,
                 starsRequired: videoLesson.starsRequired || 0,
             });
         } catch (error: any) {
@@ -56,6 +58,7 @@ export const VideoLessonForm = () => {
             const dataToSend = {
                 ...formData,
                 duration: formData.duration ? parseInt(formData.duration) : undefined,
+                order: formData.order ? parseInt(formData.order.toString()) : 0,
             };
 
             if (isEdit) {
@@ -91,7 +94,7 @@ export const VideoLessonForm = () => {
 
                 <div className="bg-white rounded-lg shadow p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-4 gap-4">
                             <MyInput
                                 label="Название"
                                 type="text"
@@ -107,6 +110,14 @@ export const VideoLessonForm = () => {
                                 value={formData.duration}
                                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                                 placeholder="45"
+                            />
+
+                            <MyInput
+                                label="Порядок"
+                                type="number"
+                                value={formData.order.toString()}
+                                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
                             />
 
                             <div>

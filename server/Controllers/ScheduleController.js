@@ -3,9 +3,9 @@ import Schedule from "../Models/Schedule.js";
 // Создать новое событие
 export const create = async (req, res) => {
     try {
-        const { eventTitle, eventDate, location, eventLink, description } = req.body;
+        const { eventTitle, startDate, endDate, eventLink, description } = req.body;
 
-        // if (!eventTitle || !eventDate || !location || !description) {
+        // if (!eventTitle || !startDate || !endDate || !description) {
         //     return res.status(400).json({
         //         success: false,
         //         message: "Все обязательные поля должны быть заполнены",
@@ -14,8 +14,8 @@ export const create = async (req, res) => {
 
         const schedule = new Schedule({
             eventTitle,
-            eventDate,
-            location,
+            startDate,
+            endDate,
             eventLink,
             description,
         });
@@ -70,19 +70,19 @@ const parseDate = (dateString) => {
 // Получить все события
 export const getAll = async (req, res) => {
     try {
-        const { startDate, endDate, upcoming } = req.query;
+        const { startDate: queryStartDate, endDate: queryEndDate, upcoming } = req.query;
         
         const filter = {};
         
         // Фильтр для предстоящих событий
         if (upcoming === 'true') {
-            filter.eventDate = { $gte: new Date() };
+            filter.startDate = { $gte: new Date() };
         }
         
-        // Фильтр по диапазону дат
-        if (startDate && endDate) {
-            const parsedStartDate = parseDate(startDate);
-            const parsedEndDate = parseDate(endDate);
+        // Фильтр по диапазону дат (для поиска событий, которые пересекаются с указанным диапазоном)
+        if (queryStartDate && queryEndDate) {
+            const parsedStartDate = parseDate(queryStartDate);
+            const parsedEndDate = parseDate(queryEndDate);
             
             if (parsedStartDate && parsedEndDate) {
                 // Устанавливаем время начала дня для startDate
@@ -93,17 +93,17 @@ export const getAll = async (req, res) => {
                 const end = new Date(parsedEndDate);
                 end.setHours(23, 59, 59, 999);
                 
-                filter.eventDate = { 
-                    $gte: start, 
-                    $lte: end 
-                };
+                // Ищем события, которые пересекаются с указанным диапазоном
+                filter.$or = [
+                    { startDate: { $lte: end }, endDate: { $gte: start } }
+                ];
             } else {
                 return res.status(400).json({
                     success: false,
                     message: "Неверный формат даты. Используйте формат DD.MM.YYYY",
                 });
             }
-        } else if (startDate || endDate) {
+        } else if (queryStartDate || queryEndDate) {
             // Если передана только одна дата
             return res.status(400).json({
                 success: false,
@@ -111,7 +111,7 @@ export const getAll = async (req, res) => {
             });
         }
 
-        const schedules = await Schedule.find(filter).sort({ eventDate: 1 });
+        const schedules = await Schedule.find(filter).sort({ startDate: 1 });
 
         res.json({
             success: true,
