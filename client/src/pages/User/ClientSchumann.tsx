@@ -5,9 +5,10 @@ import { BackNav } from '../../components/User/BackNav';
 
 export const ClientSchumann = () => {
     const [schumanns, setSchumanns] = useState<any[]>([]);
-
+    const [content, setContent] = useState<any>(null);
     useEffect(() => {
         fetchSchumanns();
+        fetchContent();
     }, []);
 
     const fetchSchumanns = async () => {
@@ -15,12 +16,16 @@ export const ClientSchumann = () => {
         setSchumanns(response.data.data);
     };
 
+    const fetchContent = async () => {
+        const response = await api.get(`/api/dynamic-content/name/desc-shumana`);
+        setContent(response.data.data);
+    };
+
     return (
         <UserLayout>
             <BackNav title="Частота Шумана" />
             <div className='px-4 mt-8 pb-10'>
-                <p className=''>
-                    Резонанс Шумана – это частота электромагнитного поля Земли, которая возникает в результате взаимодействия молний с ионосферой и образования глобальной резонансной полости между поверхностью Земли и ионосферой. Шишковидная железа, расположенная в головном мозге, является ключевым органом, который воспринимает и реагирует на неё. Этот орган управляет многими психическими и телесными процессами, включая гормональную регуляцию. На графиках ниже показана частота Шумана в часовом поясе Омска +3 часа ко времени Москвы.
+                <p className='' dangerouslySetInnerHTML={{ __html: content?.content }}>
                 </p>
                 <div className='mt-4 space-y-4'>
                     {schumanns.map((schumann) => (

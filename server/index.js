@@ -147,7 +147,7 @@ app.get("/api/dynamic-content", DynamicContentController.getAll);
 app.get("/api/dynamic-content/:id", DynamicContentController.getById);
 app.put("/api/dynamic-content/:id", authMiddleware, requireContentManager, DynamicContentController.update);
 app.delete("/api/dynamic-content/:id", authMiddleware, requireContentManager, DynamicContentController.remove);
-
+app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
 // ==================== Welcome маршруты ====================
 app.post("/api/welcome", authMiddleware, requireContentManager, WelcomeController.create);
 app.get("/api/welcome", WelcomeController.getAll);

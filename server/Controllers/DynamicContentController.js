@@ -82,6 +82,17 @@ export const getById = async (req, res) => {
     }
 };
 
+export const getByName = async (req, res) => {
+    try {
+        const { name } = req.params;
+        const dynamicContent = await DynamicContent.findOne({ name });
+        res.json({ success: true, data: dynamicContent });
+    } catch (error) {
+        console.log("Ошибка в DynamicContentController.getBySlug:", error);
+        res.status(500).json({ success: false, message: "Ошибка при получении динамического контента" });
+    }
+};
+
 // Обновить динамический контент
 export const update = async (req, res) => {
     try {
