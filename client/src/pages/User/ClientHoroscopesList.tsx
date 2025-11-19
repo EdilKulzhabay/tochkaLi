@@ -67,15 +67,27 @@ export const ClientHoroscopesList = () => {
 
     const isHoroscopeActive = (horoscope: HoroscopeEntity): boolean => {
         const now = new Date();
-        now.setHours(0, 0, 0, 0);
+        const nowMonth = now.getMonth();
+        const nowDay = now.getDate();
         
         const start = typeof horoscope.startDate === 'string' ? new Date(horoscope.startDate) : horoscope.startDate;
         const end = typeof horoscope.endDate === 'string' ? new Date(horoscope.endDate) : horoscope.endDate;
         
-        start.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
+        const startMonth = start.getMonth();
+        const startDay = start.getDate();
+        const endMonth = end.getMonth();
+        const endDay = end.getDate();
         
-        return start <= now && end >= now;
+        // Если период пересекает границу года (например, декабрь - январь)
+        if (startMonth > endMonth) {
+            // Текущая дата должна быть либо после start (в том же году), либо до end (в следующем году)
+            return (nowMonth > startMonth || (nowMonth === startMonth && nowDay >= startDay)) ||
+                   (nowMonth < endMonth || (nowMonth === endMonth && nowDay <= endDay));
+        } else {
+            // Обычный случай: период в пределах одного года
+            return (nowMonth > startMonth || (nowMonth === startMonth && nowDay >= startDay)) &&
+                   (nowMonth < endMonth || (nowMonth === endMonth && nowDay <= endDay));
+        }
     };
 
     const handleHoroscopeClick = async (horoscope: HoroscopeEntity) => {
