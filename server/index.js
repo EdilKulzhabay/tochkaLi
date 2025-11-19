@@ -62,6 +62,7 @@ app.post("/api/user/send-mail-recovery", UserController.sendMailRecovery);
 app.patch("/api/users/:telegramId", UserController.updateUserByTelegramId);
 app.post("/api/send-code", UserController.sendMail);
 app.post("/api/user/profile", UserController.getProfile);
+app.get("/api/user/telegram/:telegramId", UserController.getUserByTelegramId);
 
 // Защищенные маршруты (требуют авторизации)
 app.get("/api/user/me", authMiddleware, async (req, res) => {

@@ -771,3 +771,20 @@ export const getProfile = async (req, res) => {
         res.status(500).json({ success: false, message: "Ошибка получения профиля" });
     }
 };
+
+export const getUserByTelegramId = async (req, res) => {
+    try {
+        const { telegramId } = req.params;
+        const user = await User.findOne({ telegramId });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+        res.json({ success: true, user });
+    } catch (error) {
+        console.log("Ошибка в getUserByTelegramId:", error);
+        res.status(500).json({ success: false, message: "Ошибка получения пользователя" });
+    }
+};

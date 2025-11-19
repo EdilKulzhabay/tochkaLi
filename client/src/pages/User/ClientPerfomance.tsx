@@ -63,7 +63,7 @@ export const ClientPerfomance = () => {
                 localStorage.setItem('lastName', lastName);
                 updateUser(response.data.data);
                 toast.success('Данные сохранены');
-                navigate('/client/register');
+                navigate('/main');
             } else {
                 toast.error('Ошибка обновления данных');
             }

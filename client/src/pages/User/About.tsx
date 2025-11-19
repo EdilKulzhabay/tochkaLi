@@ -2,12 +2,51 @@ import { useEffect, useState } from 'react';
 import { UserLayout } from '../../components/User/UserLayout';
 import api from '../../api';
 import { MobileAccordionList } from '../../components/User/MobileAccordionList';
-import { MyLink } from '../../components/User/MyLink';
 import { RedButton } from '../../components/User/RedButton';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export const About = () => {
     const [content, setContent] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const handleJoinClub = () => {
+        const telegramId = localStorage.getItem('telegramId');
+        if (!telegramId) {
+            toast.error('Ошибка: не найден telegramId');
+            navigate(-1);
+            return;
+        }
+        const fetchUser = async () => {
+            try {
+                const response = await api.get(`/api/user/telegram/${telegramId}`);
+                if (response.data.success && response.data.user) {
+                    if (!response.data.user.emailConfirmed) {
+                        navigate('/client/register');
+                    } else {
+                        // Если email подтвержден, редиректим пользователя на страницу оплаты Робокассы
+                        // Примерная ссылка на оплату (замените на свою реальную страницу/endpoint)
+                        window.location.href = "https://auth.robokassa.ru/Merchant/Index.aspx?MerchantLogin=YOUR_MERCHANT_LOGIN&OutSum=1000&InvId=12345&Description=Оплата+клуба+li&SignatureValue=YOUR_SIGNATURE";
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        fetchUser();
+    }
+
+    const handleSkip = () => {
+        const firstName = localStorage.getItem('firstName');
+        const lastName = localStorage.getItem('lastName');
+        if (!firstName || !lastName) {
+            navigate("/client-performance");
+        } else {
+            navigate("/main");
+        }
+    }
 
     useEffect(() => {
         setLoading(true);
@@ -59,8 +98,13 @@ export const About = () => {
                         <MobileAccordionList items={content?.list} />
                     </div>
                 )}
-                <MyLink to="/main" text="Пропустить" className='w-full mt-4' color='gray'/>
-                <RedButton text="Вступить в клуб" onClick={() => {}} className='w-full mt-4'/>
+                <button 
+                    className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4'
+                    onClick={handleSkip}
+                >
+                    Пропустить
+                </button>
+                <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4'/>
             </div>
         </UserLayout>
     )

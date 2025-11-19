@@ -22,25 +22,25 @@ export const ClientDiary = () => {
     
     useEffect(() => {
         // Проверяем авторизацию
-        const token = localStorage.getItem('token');
-        const userStr = localStorage.getItem('user');
+        // const token = localStorage.getItem('token');
+        // const userStr = localStorage.getItem('user');
         
-        if (!token || !userStr) {
-            navigate('/client/login');
-            return;
-        }
+        // if (!token || !userStr) {
+        //     navigate('/client/login');
+        //     return;
+        // }
 
-        try {
-            const user = JSON.parse(userStr);
-            // Проверяем, что пользователь зарегистрирован (есть токен и подтвержденный email)
-            if (!user.emailConfirmed) {
-                navigate('/client/login');
-                return;
-            }
-        } catch (e) {
-            navigate('/client/login');
-            return;
-        }
+        // try {
+        //     const user = JSON.parse(userStr);
+        //     // Проверяем, что пользователь зарегистрирован (есть токен и подтвержденный email)
+        //     if (!user.emailConfirmed) {
+        //         navigate('/client/login');
+        //         return;
+        //     }
+        // } catch (e) {
+        //     navigate('/client/login');
+        //     return;
+        // }
 
         fetchDiaries();
     }, [navigate]);
