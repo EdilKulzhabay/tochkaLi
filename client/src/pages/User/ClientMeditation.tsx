@@ -46,7 +46,6 @@ export const ClientMeditation = () => {
 
     const fetchMeditation = async () => {
         const response = await api.get(`/api/meditation/${id}`);
-        console.log(response.data.data);
         setMeditation(response.data.data);
     }
 

@@ -46,7 +46,6 @@ export const ClientVideoLesson = () => {
 
     const fetchVideoLesson = async () => {
         const response = await api.get(`/api/video-lesson/${id}`);
-        console.log(response.data.data);
         setVideoLesson(response.data.data);
     }
 

@@ -14,7 +14,6 @@ export const ClientFAQ = () => {
 
     const fetchFaqs = async () => {
         const response = await api.get('/api/faq');
-        console.log(response.data.list);
         setFaqs(response.data.list);
     }
     return (

@@ -46,7 +46,6 @@ export const ClientPractice = () => {
 
     const fetchPractice = async () => {
         const response = await api.get(`/api/practice/${id}`);
-        console.log(response.data.data);
         setPractice(response.data.data);
     }
 

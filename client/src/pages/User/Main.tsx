@@ -49,8 +49,32 @@ export const Main = () => {
     const [userName, setUserName] = useState<string>("");
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
-        setUserName(user.fullName.split(' ')[1] || "");
+        const loadUserName = () => {
+            try {
+                const fullNameStr = localStorage.getItem("fullName");
+                if (fullNameStr) {
+                    const fullName = fullNameStr.split(' ')[1];
+                    setUserName(fullName.slice(0, fullName.length - 1));
+                }
+            } catch (error) {
+                console.error('Ошибка парсинга user из localStorage:', error);
+            }
+        };
+        
+        loadUserName();
+        
+        // Слушаем изменения в localStorage на случай, если данные обновятся
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'user') {
+                loadUserName();
+            }
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     return (

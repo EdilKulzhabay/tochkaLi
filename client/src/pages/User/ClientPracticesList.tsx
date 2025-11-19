@@ -86,6 +86,7 @@ export const ClientPracticesList = () => {
                                             progress={0} 
                                             accessType={practice.accessType}
                                             onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined}
+                                            duration={practice?.duration || 0}
                                         />
                                     </div>
                                 </div>
@@ -110,6 +111,7 @@ export const ClientPracticesList = () => {
                                             progress={0} 
                                             onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined} 
                                             starsRequired={practice?.starsRequired || 0}
+                                            duration={practice?.duration || 0}
                                         />
                                     ))
                                 }
@@ -125,6 +127,7 @@ export const ClientPracticesList = () => {
                                             progress={0} 
                                             onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined} 
                                             starsRequired={practice?.starsRequired || 0}
+                                            duration={practice?.duration || 0}
                                         />
                                     ))
                                 }

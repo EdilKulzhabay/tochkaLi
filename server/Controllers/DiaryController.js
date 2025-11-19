@@ -136,8 +136,6 @@ export const update = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
-        const userId = req.userId;
-        const userRole = req.user?.role;
 
         const diary = await Diary.findById(id);
 
@@ -147,17 +145,6 @@ export const update = async (req, res) => {
                 message: "Запись дневника не найдена",
             });
         }
-
-        // Проверка прав доступа: пользователь может обновлять только свои записи, админ - все
-        if (userRole !== 'admin' && diary.user.toString() !== userId) {
-            return res.status(403).json({
-                success: false,
-                message: "Нет доступа к этой записи",
-            });
-        }
-
-        // Не позволяем изменять пользователя через update
-        delete updateData.user;
 
         const updatedDiary = await Diary.findByIdAndUpdate(
             id,

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import lock from '../../assets/lock.png';
 
-export const MiniVideoCard = ({ title, image, link, progress, accessType, onLockedClick }: { title: string, image: string, link: string, progress: number, accessType: string, onLockedClick?: () => void }) => {
+export const MiniVideoCard = ({ title, image, link, progress, accessType, onLockedClick, duration }: { title: string, image: string, link: string, progress: number, accessType: string, onLockedClick?: () => void, duration?: number }) => {
     return (
         <>
         {accessType === 'free' ? (
@@ -13,7 +13,10 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                 <div className='p-4 pt-3 text-left flex-grow flex flex-col'>
                     <p className="font-medium">{title}</p>
                     <div className="mt-auto">
-                        <p className='text-sm font-medium mt-2'>{progress}%</p>
+                        <div className='flex items-center justify-between'>
+                            <p className='text-sm font-medium mt-2'>{progress}%</p>
+                            <p className='text-sm font-medium'>{duration} мин.</p>
+                        </div>
                         <div className='w-full h-1.5 bg-white/40 rounded-full mt-1'>
                             <div className='h-full bg-white rounded-full' style={{ width: `${progress}%` }} />
                         </div>
@@ -35,7 +38,10 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                 <div className='p-4 pt-3 text-left flex-grow flex flex-col'>
                     <p className="font-medium">{title}</p>
                     <div className="mt-auto">
-                        <p className='text-sm font-medium mt-2'>{progress}%</p>
+                        <div className='flex items-center justify-between'>
+                            <p className='text-sm font-medium mt-2'>{progress}%</p>
+                            <p className='text-sm font-medium'>{duration} мин.</p>
+                        </div>
                         <div className='w-full h-1.5 bg-white/40 rounded-full mt-1'>
                             <div className='h-full bg-white rounded-full' style={{ width: `${progress}%` }} />
                         </div>

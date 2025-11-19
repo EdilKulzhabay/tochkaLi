@@ -53,7 +53,6 @@ export const About = () => {
         const fetchUser = async () => {
             try {
                 const response = await api.get(`/api/about-club`);
-                console.log(response.data);
                 setContent(response.data.data[0]);
                 setLoading(false);
             } catch (error) {

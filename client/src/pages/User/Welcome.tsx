@@ -55,20 +55,33 @@ export const Welcome = () => {
         // };
 
         const fetchUser = async () => {
+            if (!telegramId) {
+                console.log('telegramId не найден');
+                return;
+            }
+            
             try {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
                 if (response.data.success && response.data.user) {
+                    console.log("response.data.user in welcome.tsx: ", response.data.user);
+                    // Всегда сохраняем пользователя в localStorage, даже если fullName пустой
+                    localStorage.setItem('user', JSON.stringify(response.data.user));
+                    // Небольшая задержка для гарантии сохранения в localStorage
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    // Переходим на главную только если есть fullName
                     if (response.data.user.fullName && response.data.user.fullName.trim() !== '') {
-                        localStorage.setItem('user', JSON.stringify(response.data.user));
+                        localStorage.setItem('fullName', JSON.stringify(response.data.user.fullName));
                         navigate('/main');
                     }
                 }
             } catch (error) {
-                console.log(error);
+                console.error('Ошибка получения пользователя:', error);
             }
         }
 
-        fetchUser();
+        if (telegramId) {
+            fetchUser();
+        }
 
         // createUser();
     }, [searchParams]);
@@ -78,7 +91,6 @@ export const Welcome = () => {
         const fetchUser = async () => {
             try {
                 const response = await api.get(`/api/welcome`);
-                console.log(response.data);
                 setContent(response.data.data[0]);
                 setLoading(false);
             } catch (error) {
@@ -97,7 +109,7 @@ export const Welcome = () => {
         <UserLayout>
             <div className='relative'>
                 <img 
-                    src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
+                    src={`${import.meta.env.VITE_API_URL}/${content?.image}`} 
                     alt={content?.title} 
                     className='w-full h-auto rounded-lg object-cover z-10' 
                 />

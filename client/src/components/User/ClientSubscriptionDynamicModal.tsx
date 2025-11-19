@@ -1,6 +1,5 @@
 import { X } from 'lucide-react';
 import { MyLink } from './MyLink';
-import { useEffect } from 'react';
 
 interface ClientSubscriptionDynamicModalProps {
     isOpen: boolean;
@@ -14,10 +13,6 @@ export const ClientSubscriptionDynamicModal = ({
     content,
 }: ClientSubscriptionDynamicModalProps) => {
     if (!isOpen) return null;
-
-    useEffect(() => {
-        console.log(content);
-    }, [content]);
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">

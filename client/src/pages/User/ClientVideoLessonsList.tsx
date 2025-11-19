@@ -86,6 +86,7 @@ export const ClientVideoLessonsList = () => {
                                             progress={0} 
                                             accessType={videoLesson.accessType}
                                             onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined}
+                                            duration={videoLesson?.duration || 0}
                                         />
                                     </div>
                                 </div>
@@ -110,6 +111,7 @@ export const ClientVideoLessonsList = () => {
                                             progress={0} 
                                             onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined} 
                                             starsRequired={videoLesson?.starsRequired || 0}
+                                            duration={videoLesson?.duration || 0}
                                         />
                                     ))
                                 }
@@ -125,6 +127,7 @@ export const ClientVideoLessonsList = () => {
                                             progress={0} 
                                             onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined} 
                                             starsRequired={videoLesson?.starsRequired || 0}
+                                            duration={videoLesson?.duration || 0}
                                         />
                                     ))
                                 }

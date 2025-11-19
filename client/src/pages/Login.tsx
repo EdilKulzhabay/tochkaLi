@@ -11,9 +11,6 @@ export const Login = () => {
     const [telegramUserName, setTelegramUserName] = useState("");
 
     useEffect(() => {
-        console.log("telegramId: ", localStorage.getItem("telegramId"));
-        console.log("saleBotId: ", localStorage.getItem("saleBotId"));
-        console.log("telegramUserName: ", localStorage.getItem("telegramUserName"));
         setTelegramId(localStorage.getItem("telegramId") || "");
         setSaleBotId(localStorage.getItem("saleBotId") || "");
         setTelegramUserName(localStorage.getItem("telegramUserName") || "");

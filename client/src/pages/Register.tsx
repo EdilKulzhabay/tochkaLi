@@ -58,13 +58,6 @@ export const Register = () => {
         }
     };
 
-    useEffect(() => {
-        console.log("telegramId: ", localStorage.getItem("telegramId"));
-        console.log("saleBotId: ", localStorage.getItem("saleBotId"));
-        console.log("telegramUserName: ", localStorage.getItem("telegramUserName"));
-        console.log("phone: ", localStorage.getItem("phone"));
-    }, [telegramId, saleBotId, telegramUserName, phone]);
-
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
             <div className="flex flex-col items-center justify-center bg-white p-10 rounded-lg shadow-md w-full max-w-md">

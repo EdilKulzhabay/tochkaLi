@@ -3,7 +3,7 @@ import lock from '../../assets/lock.png';
 import arrowRight from '../../assets/arrowRight.png';
 import star from '../../assets/star.png';
 
-export const VideoCard = ({ title, description, image, link, accessType, progress, onLockedClick, starsRequired }: { title: string, description: string, image: string, link: string, accessType: string, progress: number, onLockedClick?: () => void, starsRequired?: number }) => {
+export const VideoCard = ({ title, description, image, link, accessType, progress, onLockedClick, starsRequired, duration }: { title: string, description: string, image: string, link: string, accessType: string, progress: number, onLockedClick?: () => void, starsRequired?: number, duration?: number }) => {
     return (
         <div className="bg-[#333333] rounded-lg flex gap-x-3">
             <div className="basis-[40%] relative">
@@ -35,7 +35,10 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                 </p>
                 <div className="mt-4 flex items-center justify-between">
                     <div className='w-[40%]'>
-                        <p className='text-sm font-medium'>{progress}%</p>
+                        <div className='flex items-center justify-between'>
+                            <p className='text-sm font-medium'>{progress}%</p>
+                            <p className='text-sm font-medium'>{duration} мин.</p>
+                        </div>
                         <div className='w-full h-1.5 bg-white/40 rounded-full mt-1'>
                             <div className='h-full bg-white rounded-full' style={{ width: `${progress}%` }} />
                         </div>

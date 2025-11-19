@@ -87,6 +87,7 @@ export const ClientMeditationsList = () => {
                                             progress={0} 
                                             accessType={meditation.accessType}
                                             onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined}
+                                            duration={meditation?.duration || 0}
                                         />
                                     </div>
                                 </div>
@@ -110,6 +111,7 @@ export const ClientMeditationsList = () => {
                                     progress={0} 
                                     onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined} 
                                     starsRequired={meditation?.starsRequired || 0}
+                                    duration={meditation?.duration || 0}
                                 />
                             ))}
                             {meditations.filter((meditation: any) => meditation.accessType === 'free').map((meditation: any) => (
@@ -123,6 +125,7 @@ export const ClientMeditationsList = () => {
                                     progress={0} 
                                     onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined} 
                                     starsRequired={meditation?.starsRequired || 0}
+                                    duration={meditation?.duration || 0}
                                 />
                             ))}
                             </>

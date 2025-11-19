@@ -3,13 +3,15 @@ import { BackNav } from "../../components/User/BackNav";
 import { DateRangeCalendar } from "../../components/User/DateRangeCalendar";
 import { useEffect, useState } from "react";
 import api from "../../api";
+import { Switch } from "../../components/User/Switch";
 
 export const ClientSchedule = () => {
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [schedules, setSchedules] = useState<any>([]);
     const [eventDates, setEventDates] = useState<Date[]>([]);
-
+    const [showAllEvents, setShowAllEvents] = useState(false);
+    
     const formatDate = (date: Date | null) => {
         if (!date) return '';
         const day = date.getDate().toString().padStart(2, '0');
@@ -34,6 +36,24 @@ export const ClientSchedule = () => {
         setStartDate(today);
         setEndDate(futureDate);
     }, []);
+
+    useEffect(() => {
+        if (showAllEvents) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getFullYear() + 100);
+            setStartDate(today);
+            setEndDate(futureDate);
+        } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getDate() + 90);
+            setStartDate(today);
+            setEndDate(futureDate);
+        }
+    }, [showAllEvents]);
 
     // Фильтруем события по выбранному диапазону дат
     useEffect(() => {
@@ -139,8 +159,15 @@ export const ClientSchedule = () => {
                     selectedEndDate={endDate}
                     eventDates={eventDates}
                 />
-                <div className="mt-6 text-white/60">
-                    {new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
+                <div className="mt-6 flex items-center justify-between">
+                    <div className="text-white/60">{new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                    <div className="flex items-center gap-x-3">
+                        <div className="text-white/60">Все меропрития</div>
+                        <Switch
+                            checked={showAllEvents}
+                            onChange={() => setShowAllEvents(!showAllEvents)}
+                        />
+                    </div>
                 </div>
                 <div className="mt-4 space-y-4">
                     {schedules.length > 0 && schedules.map((schedule: any) => (
