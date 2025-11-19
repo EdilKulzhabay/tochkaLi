@@ -98,7 +98,7 @@ export const Main = () => {
                         </Link>
                     </div>
                 </div>
-                <h1 className="mt-3 text-2xl font-bold">Добро пожаловать! {userName ? userName : ""}</h1>
+                <h1 className="mt-3 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
                 <div className="grid grid-cols-2 gap-4 mt-3">
                     <SmallCard title={mainContent1 || ''} link="/client/diary" />
                     <SmallCard title={mainContent2 || ''} link="/client/schedule" />

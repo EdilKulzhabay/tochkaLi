@@ -1,5 +1,7 @@
 import { BackNav } from "../../components/User/BackNav";
 import { UserLayout } from "../../components/User/UserLayout";
+import api from "../../api";
+import { useState, useEffect } from "react";
 
 const ContactUsBlock = ({ title, content, isLink = false }: { title: string, content: string, isLink?: boolean }) => {
     return (
@@ -11,6 +13,15 @@ const ContactUsBlock = ({ title, content, isLink = false }: { title: string, con
 };
 
 export const ClientContactUs = () => {
+    const [content, setContent] = useState<string>('');
+    useEffect(() => {
+        fetchContent();
+    }, []);
+
+    const fetchContent = async () => {
+        const response = await api.get('/api/dynamic-content/name/version');
+        setContent(response.data.data.content);
+    }
     return (
         <div>
             <UserLayout>
@@ -24,7 +35,7 @@ export const ClientContactUs = () => {
                         <ContactUsBlock title="Instagram" content="instagram.com/nurlan_muratkali" isLink={true} />
                         <ContactUsBlock title="Адрес" content="123104, г. Москва, ул. Малая Бронная, д.21/13, кв.3" />
                     </div>
-                    <div className="text-center text-white/60 mt-3">Версия приложения 0.0.1</div>
+                    <div className="text-center text-white/60 mt-3">Версия приложения {content}</div>
                 </div>
             </UserLayout>
         </div>

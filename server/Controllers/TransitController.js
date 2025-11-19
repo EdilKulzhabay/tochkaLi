@@ -41,7 +41,7 @@ export const create = async (req, res) => {
 // Получить все транзиты
 export const getAll = async (req, res) => {
     try {
-        const transits = await Transit.find().sort({ startDate: -1 });
+        const transits = await Transit.find().sort({ startDate: 1 });
 
         res.json({
             success: true,

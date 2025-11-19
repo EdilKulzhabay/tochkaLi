@@ -10,9 +10,16 @@ import { useNavigate } from "react-router-dom"
 export const ClientHoroscope = () => {
     const [horoscope, setHoroscope] = useState<any>(null);
     const navigate = useNavigate();
+    const [content, setContent] = useState<string>('');
+
+    const fetchContent = async () => {
+        const response = await api.get('/api/dynamic-content/name/horoscope-desc');
+        setContent(response.data.data.content);
+    }
 
     useEffect(() => {
         fetchHoroscope();
+        fetchContent();
     }, []);
 
     const fetchHoroscope = async () => {
@@ -33,9 +40,7 @@ export const ClientHoroscope = () => {
                 <div>
                     <BackNav title="Антисоциумный гороскоп" />
                     <div className="px-4 mt-2">
-                        <p>
-                            Социумные гороскопы помогают жить в комфорте для ума, но при этом не дают достичь сверхрезультатов. Когда вы начинаете действовать по врожденной энергии, а не как вам говорит ум, вы начинаете получать сверхрезультаты
-                        </p>
+                        <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {horoscope && (
                             <div className="mt-4">
                                 <h2 className="text-xl font-medium">{horoscope.title}</h2>

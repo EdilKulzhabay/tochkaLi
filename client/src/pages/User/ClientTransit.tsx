@@ -25,9 +25,16 @@ interface TransitEntity {
 export const ClientTransit = () => {
     const [transit, setTransit] = useState<TransitEntity | null>(null);
     const navigate = useNavigate();
+    const [content, setContent] = useState<string>('');
+
+    const fetchContent = async () => {
+        const response = await api.get('/api/dynamic-content/name/transit-desc');
+        setContent(response.data.data.content);
+    }
 
     useEffect(() => {
         fetchTransit();
+        fetchContent();
     }, []);
 
     const fetchTransit = async () => {
@@ -49,10 +56,7 @@ export const ClientTransit = () => {
                 <div>
                     <BackNav title="Описание транзитов" />
                     <div className="px-4 mt-2">
-                        <p>
-                            Следите за транзитами, чтобы понимать, какие энергии активны прямо сейчас. Это поможет выстраивать
-                            планы и действия в гармонии с текущей обстановкой.
-                        </p>
+                        <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {transit && (
                             <div className="mt-4">
                                 <p className="text-xl font-semibold">

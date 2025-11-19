@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { UserLayout } from "../../components/User/UserLayout";
 import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
-import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptionModal";
+import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -24,11 +24,18 @@ export const ClientHoroscopesList = () => {
     const [userHasPaid, setUserHasPaid] = useState(false);
     const navigate = useNavigate();
     const { user } = useAuth();
+    const [content, setContent] = useState<string>('');
 
     useEffect(() => {
         fetchHoroscopes();
         fetchUserPaymentStatus();
+        fetchContent();
     }, []);
+
+    const fetchContent = async () => {
+        const response = await api.get('/api/dynamic-content/name/horoscope-subscription');
+        setContent(response.data.data.content);
+    }
 
     const fetchUserPaymentStatus = async () => {
         try {
@@ -170,9 +177,10 @@ export const ClientHoroscopesList = () => {
                 )}
             </div>
 
-            <ClientSubscriptionModal
+            <ClientSubscriptionDynamicModal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
+                content={content}
             />
         </UserLayout>
     );
