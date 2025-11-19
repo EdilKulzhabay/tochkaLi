@@ -23,7 +23,7 @@ import {
     DiaryController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
-import { requireContentManager, requireClientManager, requireAdmin } from "./Middlewares/roleMiddleware.js";
+import { requireAdmin } from "./Middlewares/roleMiddleware.js";
 import User from "./Models/User.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -80,107 +80,107 @@ app.get("/api/user/check-session", (req, res) => {
 });
 
 // Управление пользователями (для client_manager, manager, admin)
-app.post("/api/user/create-by-admin", requireClientManager, UserController.createUserByAdmin);
-app.get("/api/user/all", requireClientManager, UserController.getAllUsers);
-app.get("/api/user/:id", requireClientManager, UserController.getUserById);
-app.put("/api/user/:id", requireClientManager, UserController.updateUser);
-app.delete("/api/user/:id", requireClientManager, UserController.deleteUser);
+app.post("/api/user/create-by-admin", UserController.createUserByAdmin);
+app.get("/api/user/all", UserController.getAllUsers);
+app.get("/api/user/:id", UserController.getUserById);
+app.put("/api/user/:id", UserController.updateUser);
+app.delete("/api/user/:id", UserController.deleteUser);
 
 // Управление профилем (для авторизованных пользователей)
 app.put("/api/user/profile/update", UserController.updateProfile);
 app.put("/api/user/profile/change-password", UserController.changePassword);
 
 // ==================== FAQ маршруты ====================
-app.post("/api/faq", requireContentManager, FAQController.create);
+app.post("/api/faq", FAQController.create);
 app.get("/api/faq", FAQController.getAll);
 app.get("/api/faq/:id", FAQController.getById);
-app.put("/api/faq/:id", requireContentManager, FAQController.update);
-app.delete("/api/faq/:id", requireContentManager, FAQController.remove);
+app.put("/api/faq/:id", FAQController.update);
+app.delete("/api/faq/:id", FAQController.remove);
 
 // ==================== Horoscope маршруты ====================
-app.post("/api/horoscope", requireContentManager, HoroscopeController.create);
+app.post("/api/horoscope", HoroscopeController.create);
 app.get("/api/horoscope", HoroscopeController.getAll);
 app.get("/api/horoscope/current", HoroscopeController.getCurrent);
 app.get("/api/horoscope/:id", HoroscopeController.getById);
-app.put("/api/horoscope/:id", requireContentManager, HoroscopeController.update);
-app.delete("/api/horoscope/:id", requireContentManager, HoroscopeController.remove);
+app.put("/api/horoscope/:id", HoroscopeController.update);
+app.delete("/api/horoscope/:id", HoroscopeController.remove);
 
 // ==================== Meditation маршруты ====================
-app.post("/api/meditation", requireContentManager, MeditationController.create);
+app.post("/api/meditation", MeditationController.create);
 app.get("/api/meditation", MeditationController.getAll);
 app.get("/api/meditation/:id", MeditationController.getById);
-app.put("/api/meditation/:id", requireContentManager, MeditationController.update);
-app.delete("/api/meditation/:id", requireContentManager, MeditationController.remove);
+app.put("/api/meditation/:id", MeditationController.update);
+app.delete("/api/meditation/:id", MeditationController.remove);
 
 // ==================== Practice маршруты ====================
-app.post("/api/practice", requireContentManager, PracticeController.create);
+app.post("/api/practice", PracticeController.create);
 app.get("/api/practice", PracticeController.getAll);
 app.get("/api/practice/:id", PracticeController.getById);
-app.put("/api/practice/:id", requireContentManager, PracticeController.update);
-app.delete("/api/practice/:id", requireContentManager, PracticeController.remove);
+app.put("/api/practice/:id", PracticeController.update);
+app.delete("/api/practice/:id", PracticeController.remove);
 
 // ==================== VideoLesson маршруты ====================
-app.post("/api/video-lesson", requireContentManager, VideoLessonController.create);
+app.post("/api/video-lesson", VideoLessonController.create);
 app.get("/api/video-lesson", VideoLessonController.getAll);
 app.get("/api/video-lesson/:id", VideoLessonController.getById);
-app.put("/api/video-lesson/:id", requireContentManager, VideoLessonController.update);
-app.delete("/api/video-lesson/:id", requireContentManager, VideoLessonController.remove);
+app.put("/api/video-lesson/:id", VideoLessonController.update);
+app.delete("/api/video-lesson/:id", VideoLessonController.remove);
 
 // ==================== Schedule маршруты ====================
-app.post("/api/schedule", requireContentManager, ScheduleController.create);
+app.post("/api/schedule", ScheduleController.create);
 app.get("/api/schedule", ScheduleController.getAll);
 app.get("/api/schedule/:id", ScheduleController.getById);
-app.put("/api/schedule/:id", requireContentManager, ScheduleController.update);
-app.delete("/api/schedule/:id", requireContentManager, ScheduleController.remove);
+app.put("/api/schedule/:id", ScheduleController.update);
+app.delete("/api/schedule/:id", ScheduleController.remove);
 
 // ==================== Transit маршруты ====================
-app.post("/api/transit", requireContentManager, TransitController.create);
+app.post("/api/transit", TransitController.create);
 app.get("/api/transit", TransitController.getAll);
 app.get("/api/transit/current", TransitController.getCurrent);
 app.get("/api/transit/:id", TransitController.getById);
-app.put("/api/transit/:id", requireContentManager, TransitController.update);
-app.delete("/api/transit/:id", requireContentManager, TransitController.remove);
+app.put("/api/transit/:id", TransitController.update);
+app.delete("/api/transit/:id", TransitController.remove);
 
 // ==================== DynamicContent маршруты ====================
-app.post("/api/dynamic-content", requireContentManager, DynamicContentController.create);
+app.post("/api/dynamic-content", DynamicContentController.create);
 app.get("/api/dynamic-content", DynamicContentController.getAll);
 app.get("/api/dynamic-content/:id", DynamicContentController.getById);
-app.put("/api/dynamic-content/:id", requireContentManager, DynamicContentController.update);
-app.delete("/api/dynamic-content/:id", requireContentManager, DynamicContentController.remove);
+app.put("/api/dynamic-content/:id", DynamicContentController.update);
+app.delete("/api/dynamic-content/:id", DynamicContentController.remove);
 app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
 // ==================== Welcome маршруты ====================
-app.post("/api/welcome", requireContentManager, WelcomeController.create);
+app.post("/api/welcome", WelcomeController.create);
 app.get("/api/welcome", WelcomeController.getAll);
 app.get("/api/welcome/:id", WelcomeController.getById);
-app.put("/api/welcome/:id", requireContentManager, WelcomeController.update);
-app.delete("/api/welcome/:id", requireContentManager, WelcomeController.remove);
+app.put("/api/welcome/:id", WelcomeController.update);
+app.delete("/api/welcome/:id", WelcomeController.remove);
 
 // ==================== AboutClub маршруты ====================
-app.post("/api/about-club", requireContentManager, AboutClubController.create);
+app.post("/api/about-club", AboutClubController.create);
 app.get("/api/about-club", AboutClubController.getAll);
 app.get("/api/about-club/:id", AboutClubController.getById);
-app.put("/api/about-club/:id", requireContentManager, AboutClubController.update);
-app.delete("/api/about-club/:id", requireContentManager, AboutClubController.remove);
+app.put("/api/about-club/:id", AboutClubController.update);
+app.delete("/api/about-club/:id", AboutClubController.remove);
 
 // ==================== Schumann маршруты ====================
-app.post("/api/schumann", requireContentManager, SchumannController.create);
+app.post("/api/schumann", SchumannController.create);
 app.get("/api/schumann", SchumannController.getAll);
 app.get("/api/schumann/:id", SchumannController.getById);
-app.put("/api/schumann/:id", requireContentManager, SchumannController.update);
-app.delete("/api/schumann/:id", requireContentManager, SchumannController.remove);
+app.put("/api/schumann/:id", SchumannController.update);
+app.delete("/api/schumann/:id", SchumannController.remove);
 
 // ==================== Broadcast маршруты ====================
-app.get("/api/broadcast/users", requireClientManager, BroadcastController.getFilteredUsers);
-app.post("/api/broadcast/send", requireClientManager, BroadcastController.sendBroadcast);
-app.post("/api/broadcast/test", requireClientManager, BroadcastController.sendTestMessage);
+app.get("/api/broadcast/users", BroadcastController.getFilteredUsers);
+app.post("/api/broadcast/send", BroadcastController.sendBroadcast);
+app.post("/api/broadcast/test", BroadcastController.sendTestMessage);
 
 // ==================== Robokassa маршруты ====================
 // ResultURL - обработка результата оплаты (вызывается Robokassa)
 app.post("/api/robres", RobokassaController.handleResult);
 
 // ==================== Upload маршруты ====================
-app.post("/api/upload/image", requireContentManager, UploadController.upload.single('image'), UploadController.uploadImage);
-app.post("/api/upload/delete", requireContentManager, UploadController.deleteImage);
+app.post("/api/upload/image", UploadController.upload.single('image'), UploadController.uploadImage);
+app.post("/api/upload/delete", UploadController.deleteImage);
 
 // ==================== Diary маршруты ====================
 app.post("/api/diary", DiaryController.create);
