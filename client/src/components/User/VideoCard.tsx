@@ -3,7 +3,7 @@ import lock from '../../assets/lock.png';
 import arrowRight from '../../assets/arrowRight.png';
 import star from '../../assets/star.png';
 
-export const VideoCard = ({ title, description, image, link, accessType, progress, onLockedClick }: { title: string, description: string, image: string, link: string, accessType: string, progress: number, onLockedClick?: () => void }) => {
+export const VideoCard = ({ title, description, image, link, accessType, progress, onLockedClick, starsRequired }: { title: string, description: string, image: string, link: string, accessType: string, progress: number, onLockedClick?: () => void, starsRequired?: number }) => {
     return (
         <div className="bg-[#333333] rounded-lg flex gap-x-3">
             <div className="basis-[40%] relative">
@@ -41,7 +41,7 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                         </div>
                     </div>
 
-                    {accessType === 'free' ? (
+                    {accessType === 'free' && (
                         <Link to={link} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full ">
                             <p className="text-[12px] text-[#FFC293]">Посмотреть</p>
                             <img
@@ -50,9 +50,10 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                                 className="w-[12px] h-[12px] ml-px"
                             />
                         </Link>
-                    ) : (
+                    )}
+                    {accessType === 'stars' && (
                         <button onClick={onLockedClick} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full ">
-                            <p className="text-[12px] text-[#FFC293]">100</p>
+                            <p className="text-[12px] text-[#FFC293]">{starsRequired}</p>
                             <img
                                 src={star}
                                 alt="star"

@@ -4,17 +4,27 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../api";
 import { MiniVideoCard } from "../../components/User/MiniVideoCard";
 import { VideoCard } from "../../components/User/VideoCard";
-import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptionModal";
+import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 
 export const ClientVideoLessonsList = () => {
     const [videoLessons, setVideoLessons] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
-
+    const [content, setContent] = useState<string>('');
+    const [subscriptionContent, setSubscriptionContent] = useState<string>('');
+    const [starsContent, setStarsContent] = useState<string>('');
     useEffect(() => {
         fetchVideoLessons();
+        fetchContent();
     }, []);
+
+    const fetchContent = async () => {
+        const responseSubscription = await api.get('/api/dynamic-content/name/video-subscription');
+        setSubscriptionContent(responseSubscription.data.data.content);
+        const responseStars = await api.get('/api/dynamic-content/name/video-stars');
+        setStarsContent(responseStars.data.data.content);
+    }
 
     useEffect(() => {
         if (videoLessons.length > 0 && cardsContainerRef.current) {
@@ -40,7 +50,12 @@ export const ClientVideoLessonsList = () => {
         setVideoLessons(response.data.data);
     }
 
-    const handleLockedVideoLessonClick = () => {
+    const handleLockedVideoLessonClick = (accessType: string) => {
+        if (accessType === 'subscription') {
+            setContent(subscriptionContent);
+        } else if (accessType === 'stars') {
+            setContent(starsContent);
+        }
         setIsModalOpen(true);
     }
 
@@ -56,7 +71,7 @@ export const ClientVideoLessonsList = () => {
                 <div className="px-4 mt-8 pb-10">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {videoLessons.length > 0 ? (
-                            videoLessons.map((videoLesson: any) => (
+                            videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'subscription').map((videoLesson: any) => (
                                 <div 
                                     key={videoLesson._id} 
                                     data-card
@@ -70,7 +85,7 @@ export const ClientVideoLessonsList = () => {
                                             link={`/client/video-lesson/${videoLesson._id}`} 
                                             progress={0} 
                                             accessType={videoLesson.accessType}
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick() : undefined}
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined}
                                         />
                                     </div>
                                 </div>
@@ -82,18 +97,38 @@ export const ClientVideoLessonsList = () => {
 
                     <div className="mt-4 space-y-3">
                         { videoLessons.length > 0 ? (
-                            videoLessons.map((videoLesson: any) => (
-                                <VideoCard 
-                                    key={videoLesson._id} 
-                                    title={videoLesson.title} 
-                                    description={videoLesson.shortDescription} 
-                                    image={videoLesson.imageUrl} 
-                                    link={`/client/video-lesson/${videoLesson._id}`} 
-                                    accessType={videoLesson.accessType} 
-                                    progress={0} 
-                                    onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick() : undefined} 
-                                />
-                            ))
+                            <>
+                                {
+                                    videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'stars').map((videoLesson: any) => (
+                                        <VideoCard 
+                                            key={videoLesson._id} 
+                                            title={videoLesson.title} 
+                                            description={videoLesson.shortDescription} 
+                                            image={videoLesson.imageUrl} 
+                                            link={`/client/video-lesson/${videoLesson._id}`} 
+                                            accessType={videoLesson.accessType} 
+                                            progress={0} 
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined} 
+                                            starsRequired={videoLesson?.starsRequired || 0}
+                                        />
+                                    ))
+                                }
+                                {
+                                    videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'free').map((videoLesson: any) => (
+                                        <VideoCard 
+                                            key={videoLesson._id} 
+                                            title={videoLesson.title} 
+                                            description={videoLesson.shortDescription} 
+                                            image={videoLesson.imageUrl} 
+                                            link={`/client/video-lesson/${videoLesson._id}`} 
+                                            accessType={videoLesson.accessType} 
+                                            progress={0} 
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined} 
+                                            starsRequired={videoLesson?.starsRequired || 0}
+                                        />
+                                    ))
+                                }
+                            </>
                         ) : (
                             <p className="text-center text-gray-500">Нет видео уроков</p>
                         )}
@@ -102,9 +137,10 @@ export const ClientVideoLessonsList = () => {
             </UserLayout>
 
             {/* Модальное окно для платных видео уроков */}
-            <ClientSubscriptionModal
+            <ClientSubscriptionDynamicModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                content={content}
             />
         </div>
     )

@@ -4,17 +4,28 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../api";
 import { MiniVideoCard } from "../../components/User/MiniVideoCard";
 import { VideoCard } from "../../components/User/VideoCard";
-import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptionModal";
+import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 
 export const ClientMeditationsList = () => {
     const [meditations, setMeditations] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [subscriptionContent, setSubscriptionContent] = useState<string>('');
+    const [starsContent, setStarsContent] = useState<string>('');
+    const [content, setContent] = useState<string>('');
     const cardsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchMeditations();
+        fetchContent();
     }, []);
+
+    const fetchContent = async () => {
+        const responseSubscription = await api.get('/api/dynamic-content/name/meditation-subscription');
+        setSubscriptionContent(responseSubscription.data.data.content);
+        const responseStars = await api.get('/api/dynamic-content/name/meditation-stars');
+        setStarsContent(responseStars.data.data.content);
+    }
 
     useEffect(() => {
         if (meditations.length > 0 && cardsContainerRef.current) {
@@ -40,7 +51,12 @@ export const ClientMeditationsList = () => {
         setMeditations(response.data.data);
     }
 
-    const handleLockedMeditationClick = () => {
+    const handleLockedMeditationClick = (accessType: string) => {
+        if (accessType === 'subscription') {
+            setContent(subscriptionContent);
+        } else if (accessType === 'stars') {
+            setContent(starsContent);
+        }
         setIsModalOpen(true);
     }
 
@@ -56,7 +72,7 @@ export const ClientMeditationsList = () => {
                 <div className="px-4 mt-8 pb-10">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {meditations.length > 0 ? (
-                            meditations.map((meditation: any) => (
+                            meditations.filter((meditation: any) => meditation.accessType !== 'subscription').map((meditation: any) => (
                                 <div 
                                     key={meditation._id} 
                                     data-card
@@ -70,7 +86,7 @@ export const ClientMeditationsList = () => {
                                             link={`/client/meditation/${meditation._id}`} 
                                             progress={0} 
                                             accessType={meditation.accessType}
-                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick() : undefined}
+                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined}
                                         />
                                     </div>
                                 </div>
@@ -82,7 +98,8 @@ export const ClientMeditationsList = () => {
 
                     <div className="mt-4 space-y-3">
                         { meditations.length > 0 ? (
-                            meditations.map((meditation: any) => (
+                            <>
+                            {meditations.filter((meditation: any) => meditation.accessType === 'stars').map((meditation: any) => (
                                 <VideoCard 
                                     key={meditation._id} 
                                     title={meditation.title} 
@@ -91,9 +108,24 @@ export const ClientMeditationsList = () => {
                                     link={`/client/meditation/${meditation._id}`} 
                                     accessType={meditation.accessType} 
                                     progress={0} 
-                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick() : undefined} 
+                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined} 
+                                    starsRequired={meditation?.starsRequired || 0}
                                 />
-                            ))
+                            ))}
+                            {meditations.filter((meditation: any) => meditation.accessType === 'free').map((meditation: any) => (
+                                <VideoCard 
+                                    key={meditation._id} 
+                                    title={meditation.title} 
+                                    description={meditation.shortDescription} 
+                                    image={meditation.imageUrl} 
+                                    link={`/client/meditation/${meditation._id}`} 
+                                    accessType={meditation.accessType} 
+                                    progress={0} 
+                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined} 
+                                    starsRequired={meditation?.starsRequired || 0}
+                                />
+                            ))}
+                            </>
                         ) : (
                             <p className="text-center text-gray-500">Нет медитаций</p>
                         )}
@@ -102,9 +134,10 @@ export const ClientMeditationsList = () => {
             </UserLayout>
 
             {/* Модальное окно для платных медитаций */}
-            <ClientSubscriptionModal
+            <ClientSubscriptionDynamicModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                content={content}
             />
         </div>
     )

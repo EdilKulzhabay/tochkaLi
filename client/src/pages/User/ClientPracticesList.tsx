@@ -4,17 +4,27 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../api";
 import { MiniVideoCard } from "../../components/User/MiniVideoCard";
 import { VideoCard } from "../../components/User/VideoCard";
-import { ClientSubscriptionModal } from "../../components/User/ClientSubscriptionModal";
+import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 
 export const ClientPracticesList = () => {
     const [practices, setPractices] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
-
+    const [subscriptionContent, setSubscriptionContent] = useState<string>('');
+    const [starsContent, setStarsContent] = useState<string>('');
+    const [content, setContent] = useState<string>('');
     useEffect(() => {
         fetchPractices();
+        fetchContent();
     }, []);
+
+    const fetchContent = async () => {
+        const responseSubscription = await api.get('/api/dynamic-content/name/practice-subscription');
+        setSubscriptionContent(responseSubscription.data.data.content);
+        const responseStars = await api.get('/api/dynamic-content/name/practice-stars');
+        setStarsContent(responseStars.data.data.content);
+    }
 
     useEffect(() => {
         if (practices.length > 0 && cardsContainerRef.current) {
@@ -40,7 +50,12 @@ export const ClientPracticesList = () => {
         setPractices(response.data.data);
     }
 
-    const handleLockedPracticeClick = () => {
+    const handleLockedPracticeClick = (accessType: string) => {
+        if (accessType === 'subscription') {
+            setContent(subscriptionContent);
+        } else if (accessType === 'stars') {
+            setContent(starsContent);
+        }
         setIsModalOpen(true);
     }
 
@@ -56,7 +71,7 @@ export const ClientPracticesList = () => {
                 <div className="px-4 mt-8 pb-10">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {practices.length > 0 ? (
-                            practices.map((practice: any) => (
+                            practices.filter((practice: any) => practice.accessType === 'subscription').map((practice: any) => (
                                 <div 
                                     key={practice._id} 
                                     data-card
@@ -70,7 +85,7 @@ export const ClientPracticesList = () => {
                                             link={`/client/practice/${practice._id}`} 
                                             progress={0} 
                                             accessType={practice.accessType}
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick() : undefined}
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined}
                                         />
                                     </div>
                                 </div>
@@ -82,18 +97,38 @@ export const ClientPracticesList = () => {
 
                     <div className="mt-4 space-y-3">
                         { practices.length > 0 ? (
-                            practices.map((practice: any) => (
-                                <VideoCard 
-                                    key={practice._id} 
-                                    title={practice.title} 
-                                    description={practice.shortDescription} 
-                                    image={practice.imageUrl} 
-                                    link={`/client/practice/${practice._id}`} 
-                                    accessType={practice.accessType} 
-                                    progress={0} 
-                                    onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick() : undefined} 
-                                />
-                            ))
+                            <>
+                                {
+                                    practices.filter((practice: any) => practice.accessType === 'stars').map((practice: any) => (
+                                        <VideoCard 
+                                            key={practice._id} 
+                                            title={practice.title} 
+                                            description={practice.shortDescription} 
+                                            image={practice.imageUrl} 
+                                            link={`/client/practice/${practice._id}`} 
+                                            accessType={practice.accessType} 
+                                            progress={0} 
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined} 
+                                            starsRequired={practice?.starsRequired || 0}
+                                        />
+                                    ))
+                                }
+                                {
+                                    practices.filter((practice: any) => practice.accessType === 'free').map((practice: any) => (
+                                        <VideoCard 
+                                            key={practice._id} 
+                                            title={practice.title} 
+                                            description={practice.shortDescription} 
+                                            image={practice.imageUrl} 
+                                            link={`/client/practice/${practice._id}`} 
+                                            accessType={practice.accessType} 
+                                            progress={0} 
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined} 
+                                            starsRequired={practice?.starsRequired || 0}
+                                        />
+                                    ))
+                                }
+                            </>
                         ) : (
                             <p className="text-center text-gray-500">Нет практик</p>
                         )}
@@ -102,9 +137,10 @@ export const ClientPracticesList = () => {
             </UserLayout>
 
             {/* Модальное окно для платных практик */}
-            <ClientSubscriptionModal
+            <ClientSubscriptionDynamicModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                content={content}
             />
         </div>
     )

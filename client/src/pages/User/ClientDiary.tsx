@@ -18,6 +18,7 @@ export const ClientDiary = () => {
     const [diaries, setDiaries] = useState<any>([]);
     const [isOpenToday, setIsOpenToday] = useState(false);
     const [showTodayDiary, setShowTodayDiary] = useState(true);
+    const [content, setContent] = useState<any>(null);
     const navigate = useNavigate();
     
     useEffect(() => {
@@ -43,6 +44,7 @@ export const ClientDiary = () => {
         // }
 
         fetchDiaries();
+        fetchContent();
     }, [navigate]);
 
     const fetchDiaries = async () => {
@@ -85,13 +87,17 @@ export const ClientDiary = () => {
         setIsOpenToday(!isOpenToday);
     }
 
+    const fetchContent = async () => {
+        const response = await api.get(`/api/dynamic-content/name/dnevnik-desc`);
+        setContent(response.data.data);
+    };
+
     return (
         <div>
             <UserLayout>
                 <BackNav title="Дневник ОДБ" />
                 <div className="px-4 mt-8 pb-10">
-                    <p className="mt-4">
-                        Закрепляйте свои каждодневные достижения на материальном носителе – ведите Дневник открытий, достижений и благодарности. Эта простая технология позволяет избегать уныния и быть в состоянии искреннего интереса к жизни. Записывайте в него все, что вам пришло в голову, даже если оно кажется неважным.
+                    <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }}>
                     </p>
 
                     {showTodayDiary && (
