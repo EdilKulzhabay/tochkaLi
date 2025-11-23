@@ -87,9 +87,9 @@ app.put("/api/user/:id", UserController.updateUser);
 app.delete("/api/user/:id", UserController.deleteUser);
 
 // Управление профилем (для авторизованных пользователей)
-app.put("/api/user/profile/update", authMiddleware, UserController.updateProfile);
-app.put("/api/user/profile/change-password", authMiddleware, UserController.changePassword);
-app.post("/api/user/purchase-content", authMiddleware, UserController.purchaseContent);
+app.put("/api/user/profile/update", UserController.updateProfile);
+app.put("/api/user/profile/change-password", UserController.changePassword);
+app.post("/api/user/purchase-content", UserController.purchaseContent);
 
 // ==================== FAQ маршруты ====================
 app.post("/api/faq", FAQController.create);

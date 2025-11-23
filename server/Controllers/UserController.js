@@ -791,8 +791,7 @@ export const getUserByTelegramId = async (req, res) => {
 // Покупка контента за бонусы
 export const purchaseContent = async (req, res) => {
     try {
-        const userId = req.userId;
-        const { contentId, contentType } = req.body; // contentType: 'practice', 'meditation', 'video-lesson'
+        const { userId, contentId, contentType } = req.body; // contentType: 'practice', 'meditation', 'video-lesson'
 
         if (!contentId || !contentType) {
             return res.status(400).json({

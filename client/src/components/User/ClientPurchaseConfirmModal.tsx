@@ -30,8 +30,11 @@ export const ClientPurchaseConfirmModal = ({
 
     const handlePurchase = async () => {
         try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user._id;
             setLoading(true);
             const response = await api.post('/api/user/purchase-content', {
+                userId,
                 contentId,
                 contentType,
             });

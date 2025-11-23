@@ -56,6 +56,7 @@ export const ClientPerfomance = () => {
 
             if (response.data.success && response.data.data) {
                 // Сохраняем обновленные данные пользователя в localStorage и обновляем контекст
+                console.log("response.data.data в clientPerfomance.tsx: ", response.data.data);
                 localStorage.setItem('user', JSON.stringify(response.data.data));
                 localStorage.setItem('firstName', firstName);
                 localStorage.setItem('lastName', lastName);
