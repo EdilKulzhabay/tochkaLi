@@ -45,6 +45,7 @@ export const PracticeAdmin = () => {
 
     const columns = [
         { key: 'title', label: 'Название' },
+        { key: 'order', label: 'Порядок' },
         { key: 'accessType', label: 'Доступ' },
     ];
 

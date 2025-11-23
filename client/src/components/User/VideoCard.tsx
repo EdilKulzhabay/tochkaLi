@@ -45,7 +45,7 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                     </div>
 
                     {accessType === 'free' && (
-                        <Link to={link} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full ">
+                        <Link to={link} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full cursor-pointer">
                             <p className="text-[12px] text-[#FFC293]">Посмотреть</p>
                             <img
                                 src={arrowRight}
@@ -55,7 +55,7 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                         </Link>
                     )}
                     {accessType === 'stars' && (
-                        <button onClick={onLockedClick} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full ">
+                        <button onClick={onLockedClick} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full cursor-pointer">
                             <p className="text-[12px] text-[#FFC293]">{starsRequired}</p>
                             <img
                                 src={star}

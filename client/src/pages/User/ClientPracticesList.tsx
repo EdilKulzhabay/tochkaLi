@@ -5,19 +5,40 @@ import api from "../../api";
 import { MiniVideoCard } from "../../components/User/MiniVideoCard";
 import { VideoCard } from "../../components/User/VideoCard";
 import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
+import { ClientPurchaseConfirmModal } from "../../components/User/ClientPurchaseConfirmModal";
+import { ClientInsufficientBonusModal } from "../../components/User/ClientInsufficientBonusModal";
 
 export const ClientPracticesList = () => {
     const [practices, setPractices] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+    const [isInsufficientBonusModalOpen, setIsInsufficientBonusModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
     const [subscriptionContent, setSubscriptionContent] = useState<string>('');
     const [starsContent, setStarsContent] = useState<string>('');
     const [content, setContent] = useState<string>('');
+    const [accessType, setAccessType] = useState<string>('');
+    const [userData, setUserData] = useState<any>(null);
+    const [selectedPractice, setSelectedPractice] = useState<any>(null);
+
     useEffect(() => {
         fetchPractices();
         fetchContent();
+        fetchUserData();
     }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user._id) {
+                const response = await api.get(`/api/user/${user._id}`);
+                setUserData(response.data.data);
+            }
+        } catch (error) {
+            console.error('Ошибка получения данных пользователя:', error);
+        }
+    };
 
     const fetchContent = async () => {
         const responseSubscription = await api.get('/api/dynamic-content/name/practice-subscription');
@@ -50,17 +71,61 @@ export const ClientPracticesList = () => {
         setPractices(response.data.data);
     }
 
-    const handleLockedPracticeClick = (accessType: string) => {
+    const handleLockedPracticeClick = (practice: any) => {
+        const accessType = practice.accessType;
+        
+        // Если это контент за бонусы (stars)
+        if (accessType === 'stars') {
+            // Проверяем, зарегистрирован ли клиент
+            if (!userData?.emailConfirmed) {
+                // Если не зарегистрирован, показываем стандартное модальное окно
+                setAccessType(accessType);
+                setContent(starsContent);
+                setIsModalOpen(true);
+                return;
+            }
+
+            // Если зарегистрирован, проверяем бонусы
+            const starsRequired = practice.starsRequired || 0;
+            if (userData.bonus < starsRequired) {
+                // Недостаточно бонусов, показываем модальное окно о недостатке бонусов
+                setSelectedPractice(practice);
+                setIsInsufficientBonusModalOpen(true);
+                return;
+            }
+
+            // Достаточно бонусов, показываем модальное окно подтверждения покупки
+            setSelectedPractice(practice);
+            setIsPurchaseModalOpen(true);
+            return;
+        }
+
+        // Для subscription показываем стандартное модальное окно
+        setAccessType(accessType);
         if (accessType === 'subscription') {
             setContent(subscriptionContent);
-        } else if (accessType === 'stars') {
-            setContent(starsContent);
         }
         setIsModalOpen(true);
     }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+    }
+
+    const handleClosePurchaseModal = () => {
+        setIsPurchaseModalOpen(false);
+        setSelectedPractice(null);
+    }
+
+    const handleCloseInsufficientBonusModal = () => {
+        setIsInsufficientBonusModalOpen(false);
+        setSelectedPractice(null);
+    }
+
+    const handlePurchaseSuccess = async () => {
+        // Обновляем данные пользователя после покупки
+        await fetchUserData();
+        await fetchPractices();
     }
 
     return (
@@ -85,7 +150,7 @@ export const ClientPracticesList = () => {
                                             link={`/client/practice/${practice._id}`} 
                                             progress={0} 
                                             accessType={practice.accessType}
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined}
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined}
                                             duration={practice?.duration || 0}
                                         />
                                     </div>
@@ -109,7 +174,7 @@ export const ClientPracticesList = () => {
                                             link={`/client/practice/${practice._id}`} 
                                             accessType={practice.accessType} 
                                             progress={0} 
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined} 
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined} 
                                             starsRequired={practice?.starsRequired || 0}
                                             duration={practice?.duration || 0}
                                         />
@@ -125,7 +190,7 @@ export const ClientPracticesList = () => {
                                             link={`/client/practice/${practice._id}`} 
                                             accessType={practice.accessType} 
                                             progress={0} 
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice.accessType) : undefined} 
+                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined} 
                                             starsRequired={practice?.starsRequired || 0}
                                             duration={practice?.duration || 0}
                                         />
@@ -144,7 +209,32 @@ export const ClientPracticesList = () => {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 content={content}
+                accessType={accessType}
             />
+
+            {/* Модальное окно подтверждения покупки */}
+            {selectedPractice && (
+                <ClientPurchaseConfirmModal
+                    isOpen={isPurchaseModalOpen}
+                    onClose={handleClosePurchaseModal}
+                    contentId={selectedPractice._id}
+                    contentType="practice"
+                    contentTitle={selectedPractice.title}
+                    starsRequired={selectedPractice.starsRequired || 0}
+                    userBonus={userData?.bonus || 0}
+                    onPurchaseSuccess={handlePurchaseSuccess}
+                />
+            )}
+
+            {/* Модальное окно недостаточного количества бонусов */}
+            {selectedPractice && (
+                <ClientInsufficientBonusModal
+                    isOpen={isInsufficientBonusModalOpen}
+                    onClose={handleCloseInsufficientBonusModal}
+                    starsRequired={selectedPractice.starsRequired || 0}
+                    userBonus={userData?.bonus || 0}
+                />
+            )}
         </div>
     )
 }

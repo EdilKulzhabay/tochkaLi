@@ -7,12 +7,10 @@ import { useAuth } from "../contexts/AuthContext";
 
 export const Login = () => {
     const [telegramId, setTelegramId] = useState("");
-    const [saleBotId, setSaleBotId] = useState("");
     const [telegramUserName, setTelegramUserName] = useState("");
 
     useEffect(() => {
         setTelegramId(localStorage.getItem("telegramId") || "");
-        setSaleBotId(localStorage.getItem("saleBotId") || "");
         setTelegramUserName(localStorage.getItem("telegramUserName") || "");
     }, []);
 
@@ -57,8 +55,8 @@ export const Login = () => {
                     placeholder="Введите ваш пароль"
                 />
                 <Link 
-                    to={telegramId && saleBotId && telegramUserName 
-                        ? `/register/${telegramId}/${saleBotId}/${telegramUserName}` 
+                    to={telegramId && telegramUserName 
+                        ? `/register/${telegramId}/${telegramUserName}` 
                         : "/register"
                     } 
                     className="text-blue-500 hover:underline my-4"

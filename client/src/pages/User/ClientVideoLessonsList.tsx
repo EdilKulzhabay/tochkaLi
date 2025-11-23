@@ -5,19 +5,40 @@ import api from "../../api";
 import { MiniVideoCard } from "../../components/User/MiniVideoCard";
 import { VideoCard } from "../../components/User/VideoCard";
 import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
+import { ClientPurchaseConfirmModal } from "../../components/User/ClientPurchaseConfirmModal";
+import { ClientInsufficientBonusModal } from "../../components/User/ClientInsufficientBonusModal";
 
 export const ClientVideoLessonsList = () => {
     const [videoLessons, setVideoLessons] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+    const [isInsufficientBonusModalOpen, setIsInsufficientBonusModalOpen] = useState(false);
     const cardsContainerRef = useRef<HTMLDivElement>(null);
     const [content, setContent] = useState<string>('');
     const [subscriptionContent, setSubscriptionContent] = useState<string>('');
     const [starsContent, setStarsContent] = useState<string>('');
+    const [accessType, setAccessType] = useState<string>('');
+    const [userData, setUserData] = useState<any>(null);
+    const [selectedVideoLesson, setSelectedVideoLesson] = useState<any>(null);
+
     useEffect(() => {
         fetchVideoLessons();
         fetchContent();
+        fetchUserData();
     }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user._id) {
+                const response = await api.get(`/api/user/${user._id}`);
+                setUserData(response.data.data);
+            }
+        } catch (error) {
+            console.error('Ошибка получения данных пользователя:', error);
+        }
+    }
 
     const fetchContent = async () => {
         const responseSubscription = await api.get('/api/dynamic-content/name/video-subscription');
@@ -50,17 +71,61 @@ export const ClientVideoLessonsList = () => {
         setVideoLessons(response.data.data);
     }
 
-    const handleLockedVideoLessonClick = (accessType: string) => {
+    const handleLockedVideoLessonClick = (videoLesson: any) => {
+        const accessType = videoLesson.accessType;
+        
+        // Если это контент за бонусы (stars)
+        if (accessType === 'stars') {
+            // Проверяем, зарегистрирован ли клиент
+            if (!userData?.emailConfirmed) {
+                // Если не зарегистрирован, показываем стандартное модальное окно
+                setAccessType(accessType);
+                setContent(starsContent);
+                setIsModalOpen(true);
+                return;
+            }
+
+            // Если зарегистрирован, проверяем бонусы
+            const starsRequired = videoLesson.starsRequired || 0;
+            if (userData.bonus < starsRequired) {
+                // Недостаточно бонусов, показываем модальное окно о недостатке бонусов
+                setSelectedVideoLesson(videoLesson);
+                setIsInsufficientBonusModalOpen(true);
+                return;
+            }
+
+            // Достаточно бонусов, показываем модальное окно подтверждения покупки
+            setSelectedVideoLesson(videoLesson);
+            setIsPurchaseModalOpen(true);
+            return;
+        }
+
+        // Для subscription показываем стандартное модальное окно
+        setAccessType(accessType);
         if (accessType === 'subscription') {
             setContent(subscriptionContent);
-        } else if (accessType === 'stars') {
-            setContent(starsContent);
         }
         setIsModalOpen(true);
     }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+    }
+
+    const handleClosePurchaseModal = () => {
+        setIsPurchaseModalOpen(false);
+        setSelectedVideoLesson(null);
+    }
+
+    const handleCloseInsufficientBonusModal = () => {
+        setIsInsufficientBonusModalOpen(false);
+        setSelectedVideoLesson(null);
+    }
+
+    const handlePurchaseSuccess = async () => {
+        // Обновляем данные пользователя после покупки
+        await fetchUserData();
+        await fetchVideoLessons();
     }
 
     return (
@@ -85,7 +150,7 @@ export const ClientVideoLessonsList = () => {
                                             link={`/client/video-lesson/${videoLesson._id}`} 
                                             progress={0} 
                                             accessType={videoLesson.accessType}
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined}
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined}
                                             duration={videoLesson?.duration || 0}
                                         />
                                     </div>
@@ -109,7 +174,7 @@ export const ClientVideoLessonsList = () => {
                                             link={`/client/video-lesson/${videoLesson._id}`} 
                                             accessType={videoLesson.accessType} 
                                             progress={0} 
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined} 
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined} 
                                             starsRequired={videoLesson?.starsRequired || 0}
                                             duration={videoLesson?.duration || 0}
                                         />
@@ -125,7 +190,7 @@ export const ClientVideoLessonsList = () => {
                                             link={`/client/video-lesson/${videoLesson._id}`} 
                                             accessType={videoLesson.accessType} 
                                             progress={0} 
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson.accessType) : undefined} 
+                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined} 
                                             starsRequired={videoLesson?.starsRequired || 0}
                                             duration={videoLesson?.duration || 0}
                                         />
@@ -144,7 +209,32 @@ export const ClientVideoLessonsList = () => {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 content={content}
+                accessType={accessType}
             />
+
+            {/* Модальное окно подтверждения покупки */}
+            {selectedVideoLesson && (
+                <ClientPurchaseConfirmModal
+                    isOpen={isPurchaseModalOpen}
+                    onClose={handleClosePurchaseModal}
+                    contentId={selectedVideoLesson._id}
+                    contentType="video-lesson"
+                    contentTitle={selectedVideoLesson.title}
+                    starsRequired={selectedVideoLesson.starsRequired || 0}
+                    userBonus={userData?.bonus || 0}
+                    onPurchaseSuccess={handlePurchaseSuccess}
+                />
+            )}
+
+            {/* Модальное окно недостаточного количества бонусов */}
+            {selectedVideoLesson && (
+                <ClientInsufficientBonusModal
+                    isOpen={isInsufficientBonusModalOpen}
+                    onClose={handleCloseInsufficientBonusModal}
+                    starsRequired={selectedVideoLesson.starsRequired || 0}
+                    userBonus={userData?.bonus || 0}
+                />
+            )}
         </div>
     )
 }

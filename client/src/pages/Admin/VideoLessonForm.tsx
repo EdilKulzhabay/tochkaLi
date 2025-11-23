@@ -31,8 +31,26 @@ export const VideoLessonForm = () => {
         if (id) {
             setIsEdit(true);
             fetchVideoLesson();
+        } else {
+            // При создании нового видео урока устанавливаем порядок равным количеству существующих видео уроков
+            fetchVideoLessonsForOrder();
         }
     }, [id]);
+
+    const fetchVideoLessonsForOrder = async () => {
+        try {
+            const response = await api.get('/api/video-lesson');
+            if (response.data && response.data.data) {
+                const videoLessonsCount = response.data.data.length || 0;
+                setFormData(prev => ({
+                    ...prev,
+                    order: videoLessonsCount
+                }));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки видео уроков для определения порядка:', error);
+        }
+    };
 
     const fetchVideoLesson = async () => {
         try {

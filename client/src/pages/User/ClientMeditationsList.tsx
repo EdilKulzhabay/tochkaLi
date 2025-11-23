@@ -5,20 +5,41 @@ import api from "../../api";
 import { MiniVideoCard } from "../../components/User/MiniVideoCard";
 import { VideoCard } from "../../components/User/VideoCard";
 import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
+import { ClientPurchaseConfirmModal } from "../../components/User/ClientPurchaseConfirmModal";
+import { ClientInsufficientBonusModal } from "../../components/User/ClientInsufficientBonusModal";
 
 export const ClientMeditationsList = () => {
     const [meditations, setMeditations] = useState([]);
     const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+    const [isInsufficientBonusModalOpen, setIsInsufficientBonusModalOpen] = useState(false);
     const [subscriptionContent, setSubscriptionContent] = useState<string>('');
     const [starsContent, setStarsContent] = useState<string>('');
     const [content, setContent] = useState<string>('');
     const cardsContainerRef = useRef<HTMLDivElement>(null);
+    const [accessType, setAccessType] = useState<string>('');
+    const [userData, setUserData] = useState<any>(null);
+    const [selectedMeditation, setSelectedMeditation] = useState<any>(null);
 
     useEffect(() => {
         fetchMeditations();
         fetchContent();
+        fetchUserData();
     }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user._id) {
+                const response = await api.get(`/api/user/${user._id}`);
+                setUserData(response.data.data);
+                console.log("response.data.data.emailConfirmed = =", response.data.data.emailConfirmed);
+            }
+        } catch (error) {
+            console.error('Ошибка получения данных пользователя:', error);
+        }
+    };
 
     const fetchContent = async () => {
         const responseSubscription = await api.get('/api/dynamic-content/name/meditation-subscription');
@@ -51,17 +72,61 @@ export const ClientMeditationsList = () => {
         setMeditations(response.data.data);
     }
 
-    const handleLockedMeditationClick = (accessType: string) => {
+    const handleLockedMeditationClick = (meditation: any) => {
+        const accessType = meditation.accessType;
+        
+        // Если это контент за бонусы (stars)
+        if (accessType === 'stars') {
+            // Проверяем, зарегистрирован ли клиент
+            if (!userData?.emailConfirmed) {
+                // Если не зарегистрирован, показываем стандартное модальное окно
+                setAccessType(accessType);
+                setContent(starsContent);
+                setIsModalOpen(true);
+                return;
+            }
+
+            // Если зарегистрирован, проверяем бонусы
+            const starsRequired = meditation.starsRequired || 0;
+            if (userData.bonus < starsRequired) {
+                // Недостаточно бонусов, показываем модальное окно о недостатке бонусов
+                setSelectedMeditation(meditation);
+                setIsInsufficientBonusModalOpen(true);
+                return;
+            }
+
+            // Достаточно бонусов, показываем модальное окно подтверждения покупки
+            setSelectedMeditation(meditation);
+            setIsPurchaseModalOpen(true);
+            return;
+        }
+
+        // Для subscription показываем стандартное модальное окно
+        setAccessType(accessType);
         if (accessType === 'subscription') {
             setContent(subscriptionContent);
-        } else if (accessType === 'stars') {
-            setContent(starsContent);
         }
         setIsModalOpen(true);
     }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+    }
+
+    const handleClosePurchaseModal = () => {
+        setIsPurchaseModalOpen(false);
+        setSelectedMeditation(null);
+    }
+
+    const handleCloseInsufficientBonusModal = () => {
+        setIsInsufficientBonusModalOpen(false);
+        setSelectedMeditation(null);
+    }
+
+    const handlePurchaseSuccess = async () => {
+        // Обновляем данные пользователя после покупки
+        await fetchUserData();
+        await fetchMeditations();
     }
 
     return (
@@ -86,7 +151,7 @@ export const ClientMeditationsList = () => {
                                             link={`/client/meditation/${meditation._id}`} 
                                             progress={0} 
                                             accessType={meditation.accessType}
-                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined}
+                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined}
                                             duration={meditation?.duration || 0}
                                         />
                                     </div>
@@ -109,7 +174,7 @@ export const ClientMeditationsList = () => {
                                     link={`/client/meditation/${meditation._id}`} 
                                     accessType={meditation.accessType} 
                                     progress={0} 
-                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined} 
+                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined} 
                                     starsRequired={meditation?.starsRequired || 0}
                                     duration={meditation?.duration || 0}
                                 />
@@ -123,7 +188,7 @@ export const ClientMeditationsList = () => {
                                     link={`/client/meditation/${meditation._id}`} 
                                     accessType={meditation.accessType} 
                                     progress={0} 
-                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation.accessType) : undefined} 
+                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined} 
                                     starsRequired={meditation?.starsRequired || 0}
                                     duration={meditation?.duration || 0}
                                 />
@@ -141,7 +206,32 @@ export const ClientMeditationsList = () => {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 content={content}
+                accessType={accessType}
             />
+
+            {/* Модальное окно подтверждения покупки */}
+            {selectedMeditation && (
+                <ClientPurchaseConfirmModal
+                    isOpen={isPurchaseModalOpen}
+                    onClose={handleClosePurchaseModal}
+                    contentId={selectedMeditation._id}
+                    contentType="meditation"
+                    contentTitle={selectedMeditation.title}
+                    starsRequired={selectedMeditation.starsRequired || 0}
+                    userBonus={userData?.bonus || 0}
+                    onPurchaseSuccess={handlePurchaseSuccess}
+                />
+            )}
+
+            {/* Модальное окно недостаточного количества бонусов */}
+            {selectedMeditation && (
+                <ClientInsufficientBonusModal
+                    isOpen={isInsufficientBonusModalOpen}
+                    onClose={handleCloseInsufficientBonusModal}
+                    starsRequired={selectedMeditation.starsRequired || 0}
+                    userBonus={userData?.bonus || 0}
+                />
+            )}
         </div>
     )
 }

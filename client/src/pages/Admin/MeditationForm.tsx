@@ -31,8 +31,26 @@ export const MeditationForm = () => {
         if (id) {
             setIsEdit(true);
             fetchMeditation();
+        } else {
+            // При создании новой медитации устанавливаем порядок равным количеству существующих медитаций
+            fetchMeditationsForOrder();
         }
     }, [id]);
+
+    const fetchMeditationsForOrder = async () => {
+        try {
+            const response = await api.get('/api/meditation');
+            if (response.data && response.data.data) {
+                const meditationsCount = response.data.data.length || 0;
+                setFormData(prev => ({
+                    ...prev,
+                    order: meditationsCount
+                }));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки медитаций для определения порядка:', error);
+        }
+    };
 
     const fetchMeditation = async () => {
         try {

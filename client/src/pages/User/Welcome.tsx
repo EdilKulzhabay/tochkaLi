@@ -13,46 +13,11 @@ export const Welcome = () => {
     useEffect(() => {
         // Извлекаем параметры из URL
         const telegramId = searchParams.get('telegramId') || '';
-        const saleBotId = searchParams.get('saleBotId') || '';
         const telegramUserName = searchParams.get('telegramUserName') || '';
 
         // Сохраняем в localStorage
         if (telegramId) localStorage.setItem("telegramId", telegramId);
-        if (saleBotId) localStorage.setItem("saleBotId", saleBotId);
         if (telegramUserName) localStorage.setItem("telegramUserName", telegramUserName);
-
-        // Создаем пользователя через API
-        // const createUser = async () => {
-        //     if (!telegramId) return; // Если нет telegramId, пропускаем создание
-
-        //     try {
-        //         const response = await api.post('/api/user/create', {
-        //             telegramId,
-        //             saleBotId,
-        //             telegramUserName,
-        //         });
-
-        //         if (response.data.success && response.data.user) {
-        //             // Сохраняем данные пользователя в localStorage и обновляем контекст
-        //             localStorage.setItem('user', JSON.stringify(response.data.user));
-        //             updateUser(response.data.user);
-        //         } else if (response.data.success === false) {
-        //             // Пользователь уже существует, пытаемся получить его через обновление (это вернет пользователя)
-        //             try {
-        //                 const updateResponse = await api.patch(`/api/users/${telegramId}`, {});
-        //                 if (updateResponse.data.success && updateResponse.data.data) {
-        //                     localStorage.setItem('user', JSON.stringify(updateResponse.data.data));
-        //                     updateUser(updateResponse.data.data);
-        //                 }
-        //             } catch (updateError) {
-        //                 console.error('Ошибка получения пользователя:', updateError);
-        //             }
-        //         }
-        //     } catch (error: any) {
-        //         console.error('Ошибка создания пользователя:', error);
-        //         toast.error(error.response?.data?.message || 'Ошибка создания пользователя');
-        //     }
-        // };
 
         const fetchUser = async () => {
             if (!telegramId) {
@@ -62,17 +27,39 @@ export const Welcome = () => {
             
             try {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
+                console.log("Полный response в welcome.tsx: ", response.data);
+                
                 if (response.data.success && response.data.user) {
-                    console.log("response.data.user in welcome.tsx: ", response.data.user);
-                    // Всегда сохраняем пользователя в localStorage, даже если fullName пустой
-                    localStorage.setItem('user', JSON.stringify(response.data.user));
-                    // Небольшая задержка для гарантии сохранения в localStorage
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    // Переходим на главную только если есть fullName
-                    if (response.data.user.fullName && response.data.user.fullName.trim() !== '') {
-                        localStorage.setItem('fullName', JSON.stringify(response.data.user.fullName));
-                        navigate('/main');
+                    console.log("response.data.user в welcome.tsx: ", response.data.user);
+                    console.log("Тип response.data.user: ", typeof response.data.user);
+                    
+                    // Проверяем, что user не null и не undefined
+                    if (response.data.user !== null && response.data.user !== undefined) {
+                        // Всегда сохраняем пользователя в localStorage, даже если fullName пустой
+                        const userString = JSON.stringify(response.data.user);
+                        console.log("Сохранение user в localStorage: ", userString);
+                        localStorage.setItem('user', userString);
+                        
+                        // Проверяем, что данные действительно сохранились
+                        const savedUser = localStorage.getItem('user');
+                        console.log("Проверка сохраненного user: ", savedUser);
+                        
+                        // Небольшая задержка для гарантии сохранения в localStorage
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        // Переходим на главную только если есть fullName
+                        if (response.data.user.fullName && response.data.user.fullName.trim() !== '') {
+                            localStorage.setItem('fullName', JSON.stringify(response.data.user.fullName));
+                            navigate('/main');
+                        }
+                    } else {
+                        console.error('response.data.user равен null или undefined');
                     }
+                } else {
+                    console.error('Не удалось получить пользователя:', {
+                        success: response.data.success,
+                        user: response.data.user
+                    });
                 }
             } catch (error) {
                 console.error('Ошибка получения пользователя:', error);

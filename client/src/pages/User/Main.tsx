@@ -14,13 +14,13 @@ import main3 from "../../assets/main3.png"
 import main4 from "../../assets/main4.png"
 
 
-const SmallCard = ({ title, link}: { title: string, link: string }) => {
+const SmallCard = ({ title, link, img }: { title: string, link: string, img: string }) => {
     return (
         <Link 
             to={link} 
             className="min-h-24 flex items-center bg-[#333333] relative rounded-lg p-4 overflow-hidden"
             style={{
-                backgroundImage: `url(${title === "Дневник ОДБ" ? main1 : title === "Расписание" ? main2 : title === "Описание транзитов" ? main3 : main4})`,
+                backgroundImage: `url(${img})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -98,10 +98,10 @@ export const Main = () => {
                 </div>
                 <h1 className="mt-3 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
                 <div className="grid grid-cols-2 gap-4 mt-3">
-                    <SmallCard title="Дневник ОДБ" link="/client/diary" />
-                    <SmallCard title="Расписание" link="/client/schedule" />
-                    <SmallCard title={`Описание<br />транзитов`} link="/client/transit" />
-                    <SmallCard title={`Описание<br />гороскопов`} link="/client/horoscope" />
+                    <SmallCard title="Дневник ОДБ" link="/client/diary" img={main1}/>
+                    <SmallCard title="Расписание" link="/client/schedule" img={main2}/>
+                    <SmallCard title={`Описание<br />транзитов`} link="/client/transit" img={main3}/>
+                    <SmallCard title={`Описание<br />гороскопов`} link="/client/horoscope" img={main4}/>
                 </div>
                 <div className="mt-4 space-y-3">
                     <LargeCard 

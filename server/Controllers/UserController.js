@@ -237,7 +237,7 @@ export const codeConfirm = async (req, res) => {
 
 export const createUser = async (req, res) => {
     try {
-        const { telegramId, telegramUserName, saleBotId } = req.body;
+        const { telegramId, telegramUserName } = req.body;
         const candidate = await User.findOne({ telegramId });
 
         console.log("createUser req.body: ", req.body);
@@ -252,7 +252,6 @@ export const createUser = async (req, res) => {
         const doc = new User({
             telegramId,
             telegramUserName,
-            saleBotId,
             status: 'guest',
         });
 
@@ -786,5 +785,122 @@ export const getUserByTelegramId = async (req, res) => {
     } catch (error) {
         console.log("Ошибка в getUserByTelegramId:", error);
         res.status(500).json({ success: false, message: "Ошибка получения пользователя" });
+    }
+};
+
+// Покупка контента за бонусы
+export const purchaseContent = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { contentId, contentType } = req.body; // contentType: 'practice', 'meditation', 'video-lesson'
+
+        if (!contentId || !contentType) {
+            return res.status(400).json({
+                success: false,
+                message: "Необходимо указать contentId и contentType",
+            });
+        }
+
+        // Получаем пользователя
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        // Проверяем, подтвержден ли email
+        if (!user.emailConfirmed) {
+            return res.status(400).json({
+                success: false,
+                message: "Необходимо подтвердить email для покупки контента",
+            });
+        }
+
+        // Импортируем модели контента
+        const Practice = (await import("../Models/Practice.js")).default;
+        const Meditation = (await import("../Models/Meditation.js")).default;
+        const VideoLesson = (await import("../Models/VideoLesson.js")).default;
+
+        // Получаем контент в зависимости от типа
+        let content;
+        if (contentType === 'practice') {
+            content = await Practice.findById(contentId);
+        } else if (contentType === 'meditation') {
+            content = await Meditation.findById(contentId);
+        } else if (contentType === 'video-lesson') {
+            content = await VideoLesson.findById(contentId);
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "Неверный тип контента",
+            });
+        }
+
+        if (!content) {
+            return res.status(404).json({
+                success: false,
+                message: "Контент не найден",
+            });
+        }
+
+        // Проверяем, что контент доступен за бонусы
+        if (content.accessType !== 'stars') {
+            return res.status(400).json({
+                success: false,
+                message: "Этот контент нельзя купить за бонусы",
+            });
+        }
+
+        // Проверяем, есть ли уже этот контент у пользователя
+        const existingProduct = user.products.find(
+            (p) => p.productId === contentId.toString() && p.type === 'one-time'
+        );
+
+        if (existingProduct) {
+            return res.status(400).json({
+                success: false,
+                message: "У вас уже есть доступ к этому контенту",
+            });
+        }
+
+        // Проверяем количество бонусов
+        const starsRequired = content.starsRequired || 0;
+        if (user.bonus < starsRequired) {
+            return res.status(400).json({
+                success: false,
+                message: `Недостаточно бонусов. Требуется: ${starsRequired}, у вас: ${user.bonus}`,
+                starsRequired,
+                userBonus: user.bonus,
+            });
+        }
+
+        // Списываем бонусы и добавляем контент в products
+        user.bonus -= starsRequired;
+        user.products.push({
+            productId: contentId.toString(),
+            type: 'one-time',
+            paymentDate: new Date(),
+            paymentAmount: starsRequired,
+            paymentStatus: 'paid',
+        });
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: "Контент успешно приобретен",
+            user: {
+                bonus: user.bonus,
+                products: user.products,
+            },
+        });
+    } catch (error) {
+        console.log("Ошибка в purchaseContent:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при покупке контента",
+        });
     }
 };

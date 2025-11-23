@@ -45,6 +45,7 @@ export const MeditationAdmin = () => {
 
     const columns = [
         { key: 'title', label: 'Название' },
+        { key: 'order', label: 'Порядок' },
         { key: 'accessType', label: 'Доступ' },
     ];
 

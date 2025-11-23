@@ -4,9 +4,6 @@ const UserSchema = new mongoose.Schema({
     telegramId: {
         type: String,
     },
-    saleBotId: {
-        type: String,
-    },
     telegramUserName: {
         type: String,
         default: '',

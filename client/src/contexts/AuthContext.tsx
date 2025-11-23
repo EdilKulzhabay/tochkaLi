@@ -53,12 +53,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userStr) {
             try {
                 const userFromStorage = JSON.parse(userStr);
-                setUser(userFromStorage);
+                // Проверяем, что user не null и не пустой объект
+                if (userFromStorage && userFromStorage !== null && Object.keys(userFromStorage).length > 0) {
+                    setUser(userFromStorage);
+                }
             } catch (e) {
                 console.error("Ошибка парсинга user из localStorage:", e);
             }
         }
         
+        // Если нет токена, не удаляем user из localStorage (может быть пользователь из Telegram)
         if (!token) {
             setLoading(false);
             return;
@@ -71,11 +75,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // Сохраняем актуальные данные в localStorage
                 localStorage.setItem("user", JSON.stringify(response.data.user));
             } else {
-                // Если запрос успешен, но success = false
+                // Если запрос успешен, но success = false, удаляем только токены
                 setUser(null);
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                localStorage.removeItem("user");
+                // НЕ удаляем user, так как он может быть нужен для Telegram пользователей
+                // localStorage.removeItem("user");
             }
         } catch (error: any) {
             console.log("Ошибка проверки авторизации:", error);
@@ -83,7 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (error.response?.status === 403 || error.response?.status === 401) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                localStorage.removeItem("user");
+                // НЕ удаляем user, так как он может быть нужен для Telegram пользователей
+                // localStorage.removeItem("user");
                 setUser(null);
             }
             // Если это другая ошибка (сеть, таймаут), оставляем данные из localStorage

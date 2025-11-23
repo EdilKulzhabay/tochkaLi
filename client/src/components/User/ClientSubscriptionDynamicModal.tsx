@@ -5,12 +5,14 @@ interface ClientSubscriptionDynamicModalProps {
     isOpen: boolean;
     onClose: () => void;
     content: string;
+    accessType: string;
 }
 
 export const ClientSubscriptionDynamicModal = ({ 
     isOpen, 
     onClose,
     content,
+    accessType,
 }: ClientSubscriptionDynamicModalProps) => {
     if (!isOpen) return null;
 
@@ -39,7 +41,12 @@ export const ClientSubscriptionDynamicModal = ({
                         className="mt-4 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_div]:mb-2 [&_span]:font-bold" 
                         dangerouslySetInnerHTML={{ __html: content }} 
                     />
-                    <MyLink to="/about" text="Вступить в клуб" className='w-full mt-4' color='red'/>
+                    {accessType === "subscription" && (
+                        <MyLink to="/about" text="Вступить в клуб" className='w-full mt-4 text-lg' color='red'/>
+                    )}
+                    {accessType === "stars" && (
+                        <MyLink to="/client/register" text="Зарегистрироваться" className='w-full mt-4 text-lg' color='red'/>
+                    )}
                 </div>
             </div>
 
@@ -67,7 +74,12 @@ export const ClientSubscriptionDynamicModal = ({
                         className="mt-4 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_div]:mb-2 [&_span]:font-bold" 
                         dangerouslySetInnerHTML={{ __html: content }} 
                     />
-                    <MyLink to="/about" text="Вступить в клуб" className='w-full mt-4 text-lg' color='red'/>
+                    {accessType === "subscription" && (
+                        <MyLink to="/about" text="Вступить в клуб" className='w-full mt-4 text-lg' color='red'/>
+                    )}
+                    {accessType === "stars" && (
+                        <MyLink to="/client/register" text="Зарегистрироваться" className='w-full mt-4 text-lg' color='red'/>
+                    )}
                 </div>
             </div>
         </div>

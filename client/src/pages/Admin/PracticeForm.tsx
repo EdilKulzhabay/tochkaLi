@@ -31,8 +31,26 @@ export const PracticeForm = () => {
         if (id) {
             setIsEdit(true);
             fetchPractice();
+        } else {
+            // При создании новой практики устанавливаем порядок равным количеству существующих практик
+            fetchPracticesForOrder();
         }
     }, [id]);
+
+    const fetchPracticesForOrder = async () => {
+        try {
+            const response = await api.get('/api/practice');
+            if (response.data && response.data.data) {
+                const practicesCount = response.data.data.length || 0;
+                setFormData(prev => ({
+                    ...prev,
+                    order: practicesCount
+                }));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки практик для определения порядка:', error);
+        }
+    };
 
     const fetchPractice = async () => {
         try {

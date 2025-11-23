@@ -7,13 +7,11 @@ import { toast } from "react-toastify";
 
 export const Register = () => {
     const [telegramId, setTelegramId] = useState("");
-    const [saleBotId, setSaleBotId] = useState("");
     const [telegramUserName, setTelegramUserName] = useState("");
     const [phone, setPhone] = useState("");
     
     useEffect(() => {
         setTelegramId(localStorage.getItem("telegramId") || "");
-        setSaleBotId(localStorage.getItem("saleBotId") || "");
         setTelegramUserName(localStorage.getItem("telegramUserName") || "");
         setPhone(localStorage.getItem("phone") || "");
     }, []);
@@ -104,8 +102,8 @@ export const Register = () => {
                 />
                 
                 <Link 
-                    to={telegramId && saleBotId && telegramUserName 
-                        ? `/login/${telegramId}/${saleBotId}/${telegramUserName}` 
+                    to={telegramId && telegramUserName 
+                        ? `/login/${telegramId}/${telegramUserName}` 
                         : "/login"
                     } 
                     className="text-blue-500 hover:underline mb-4"

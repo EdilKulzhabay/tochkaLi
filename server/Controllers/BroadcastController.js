@@ -3,6 +3,8 @@ import axios from "axios";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+// URL бот сервера для рассылки
+const BOT_SERVER_URL = process.env.BOT_SERVER_URL || 'http://localhost:5011';
 
 // Отправка сообщения через Telegram Bot API
 const sendTelegramMessage = async (chatId, message) => {
@@ -31,8 +33,8 @@ export const getFilteredUsers = async (req, res) => {
             filter.status = status;
         }
 
-        // Получаем только пользователей с saleBotId (для рассылки)
-        filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
+        // Получаем только пользователей с telegramId (для рассылки)
+        filter.telegramId = { $exists: true, $ne: null, $ne: '' };
 
         // Поиск по нескольким полям
         if (search && search.trim()) {
@@ -46,7 +48,7 @@ export const getFilteredUsers = async (req, res) => {
         }
 
         const users = await User.find(filter)
-            .select('saleBotId telegramId telegramUserName userName fullName phone status createdAt')
+            .select('telegramId telegramUserName userName fullName phone status createdAt')
             .sort({ createdAt: -1 });
 
         res.json({
@@ -61,22 +63,6 @@ export const getFilteredUsers = async (req, res) => {
             message: "Ошибка получения пользователей",
         });
     }
-};
-
-// Функция для задержки
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Функция для разбивки массива на чанки
-const chunkArray = (array, size) => {
-    const chunks = [];
-    for (let i = 0; i < array.length; i += size) {
-        if (i + size > array.length) {
-            chunks.push(array.slice(i, array.length));
-            break;
-        }
-        chunks.push(array.slice(i, i + size));
-    }
-    return chunks;
 };
 
 // Отправить рассылку
@@ -104,8 +90,8 @@ export const sendBroadcast = async (req, res) => {
         // Если переданы конкретные ID пользователей (выборочная отправка)
         if (userIds && Array.isArray(userIds) && userIds.length > 0) {
             filter._id = { $in: userIds };
-            filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
-            users = await User.find(filter).select('saleBotId telegramUserName userName fullName phone status');
+            filter.telegramId = { $exists: true, $ne: null, $ne: '' };
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status');
         } else {
             // Иначе используем фильтры по статусу и поиску
             
@@ -114,8 +100,8 @@ export const sendBroadcast = async (req, res) => {
                 filter.status = status;
             }
 
-            // Получаем только пользователей с saleBotId
-            filter.saleBotId = { $exists: true, $ne: null, $ne: '' };
+            // Получаем только пользователей с telegramId
+            filter.telegramId = { $exists: true, $ne: null, $ne: '' };
 
             // Поиск по нескольким полям
             if (search && search.trim()) {
@@ -128,7 +114,7 @@ export const sendBroadcast = async (req, res) => {
                 ];
             }
 
-            users = await User.find(filter).select('saleBotId telegramUserName userName fullName phone status');
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status');
         }
 
         if (users.length === 0) {
@@ -141,59 +127,54 @@ export const sendBroadcast = async (req, res) => {
             });
         }
 
-        const clientsId = users.map(user => user.saleBotId);
+        const telegramIds = users.map(user => user.telegramId).filter(id => id); // Фильтруем пустые значения
         
-        // Разбиваем на пакеты по 100 пользователей
-        const BATCH_SIZE = 100;
-        const DELAY_MS = 15000; // 15 секунд
-        const batches = chunkArray(clientsId, BATCH_SIZE);
-
-        console.log(`Начинаем рассылку для ${clientsId.length} пользователей в ${batches.length} пакетах`);
-
-        let totalSent = 0;
-        let totalFailed = 0;
-        let allFailedUsers = [];
-
-        // Отправляем каждый пакет с задержкой
-        for (let i = 0; i < batches.length; i++) {
-            const batch = batches[i];
-            console.log(`Отправка пакета ${i + 1}/${batches.length} (${batch.length} пользователей)...`);
-
-            console.log("batch: ", batch);
-            try {
-                const response = await axios.post(`https://chatter.salebot.pro/api/${process.env.TELEGRAM_BOT_TOKEN}/broadcast`, {
-                    clients: batch,
-                    message,
-                    shift: 0.3,
-                }, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                console.log("response: ", response.data);
-            } catch (error) {
-                console.error(`Ошибка отправки пакета ${i + 1}:`, error.response?.data || error.message);
-                totalFailed += batch.length;
-            }
-
-            if (i < batches.length - 1) {
-                console.log(`Ожидание ${DELAY_MS / 1000} секунд перед следующим пакетом...`);
-                await delay(DELAY_MS);
-            }
+        if (telegramIds.length === 0) {
+            return res.json({
+                success: true,
+                message: "Нет пользователей с telegramId для отправки",
+                sent: 0,
+                failed: 0,
+                total: 0,
+            });
         }
 
-        console.log(`Рассылка завершена. Отправлено: ${totalSent}, Ошибок: ${totalFailed}`);
+        console.log(`Начинаем рассылку для ${telegramIds.length} пользователей через бот сервер`);
 
-        return res.status(200).json({
-            success: true,
-            message: "Рассылка завершена",
-            sent: totalSent,
-            failed: totalFailed,
-            total: users.length,
-            batches: batches.length,
-            failedUsers: allFailedUsers,
-        });
+        // Отправляем запрос на бот сервер для рассылки
+        try {
+            const response = await axios.post(`${BOT_SERVER_URL}/api/bot/broadcast`, {
+                text: message,
+                telegramIds: telegramIds,
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                timeout: 300000, // 5 минут таймаут для больших рассылок
+            });
+
+            const { results } = response.data;
+            const totalSent = results.success.length;
+            const totalFailed = results.failed.length;
+
+            console.log(`Рассылка завершена. Отправлено: ${totalSent}, Ошибок: ${totalFailed}`);
+
+            return res.status(200).json({
+                success: true,
+                message: "Рассылка завершена",
+                sent: totalSent,
+                failed: totalFailed,
+                total: telegramIds.length,
+                failedUsers: results.failed,
+            });
+        } catch (error) {
+            console.error('Ошибка при отправке запроса на бот сервер:', error.response?.data || error.message);
+            return res.status(500).json({
+                success: false,
+                message: "Ошибка при отправке рассылки на бот сервер",
+                error: error.response?.data || error.message,
+            });
+        }
     } catch (error) {
         console.log("Ошибка в sendBroadcast:", error);
         res.status(500).json({
