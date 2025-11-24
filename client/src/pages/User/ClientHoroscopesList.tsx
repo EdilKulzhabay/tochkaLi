@@ -189,6 +189,7 @@ export const ClientHoroscopesList = () => {
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
                 content={content}
+                accessType={"subscription"}
             />
         </UserLayout>
     );

@@ -195,6 +195,7 @@ export const ClientTransitsList = () => {
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
                 content={content}
+                accessType={"subscription"}
             />
         </UserLayout>
     );
