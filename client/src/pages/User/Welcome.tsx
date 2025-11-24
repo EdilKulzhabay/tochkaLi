@@ -29,17 +29,13 @@ export const Welcome = () => {
             
             try {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
-                console.log("Полный response в welcome.tsx: ", response.data);
                 
                 if (response.data.success && response.data.user) {
-                    console.log("response.data.user в welcome.tsx: ", response.data.user);
-                    console.log("Тип response.data.user: ", typeof response.data.user);
                     
                     // Проверяем, что user не null и не undefined
                     if (response.data.user !== null && response.data.user !== undefined) {
                         // Всегда сохраняем пользователя в localStorage, даже если fullName пустой
                         const userString = JSON.stringify(response.data.user);
-                        console.log("Сохранение user в localStorage: ", userString);
                         localStorage.setItem('user', userString);
                         
                         // Обновляем состояние в AuthContext

@@ -39,9 +39,8 @@ export const About = () => {
     }
 
     const handleSkip = () => {
-        const firstName = localStorage.getItem('firstName');
-        const lastName = localStorage.getItem('lastName');
-        if (!firstName || !lastName) {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!user.fullName || user.fullName.trim() === '') {
             navigate("/client-performance");
         } else {
             navigate("/main");
