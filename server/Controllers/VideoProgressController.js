@@ -82,13 +82,12 @@ export const saveProgress = async (req, res) => {
 // Получение прогресса просмотра
 export const getProgress = async (req, res) => {
     try {
-        const { contentType, contentId } = req.params;
-        const userId = req.userId; // Из authMiddleware
+        const { userId, contentType, contentId } = req.params;
 
         if (!userId) {
-            return res.status(401).json({
+            return res.status(400).json({
                 success: false,
-                message: 'Пользователь не авторизован'
+                message: 'Необходимо предоставить userId'
             });
         }
 
@@ -127,13 +126,12 @@ export const getProgress = async (req, res) => {
 // Получение всех прогрессов пользователя по типу контента
 export const getUserProgresses = async (req, res) => {
     try {
-        const { contentType } = req.params;
-        const userId = req.userId;
+        const { userId, contentType } = req.params;
 
         if (!userId) {
-            return res.status(401).json({
+            return res.status(400).json({
                 success: false,
-                message: 'Пользователь не авторизован'
+                message: 'Необходимо предоставить userId'
             });
         }
 
@@ -159,13 +157,7 @@ export const getUserProgresses = async (req, res) => {
 // Получение прогрессов для списка контента (для отображения в карточках)
 export const getProgressesForContents = async (req, res) => {
     try {
-        const { contentType } = req.params;
-        let userId = req.userId;
-
-        // Если нет userId из токена, пытаемся получить из query параметра (для Telegram пользователей)
-        if (!userId && req.query.userId) {
-            userId = req.query.userId;
-        }
+        const { userId, contentType } = req.params;
 
         if (!userId) {
             return res.status(200).json({

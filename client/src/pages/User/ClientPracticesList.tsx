@@ -86,7 +86,7 @@ export const ClientPracticesList = () => {
             const contentIds = practices.map((p: any) => p._id);
             if (contentIds.length === 0) return;
 
-            const response = await api.post(`/api/video-progress/batch/practice?userId=${user._id}`, {
+            const response = await api.post(`/api/video-progress/batch/${user._id}/practice`, {
                 contentIds
             });
 

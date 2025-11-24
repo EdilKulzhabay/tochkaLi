@@ -196,11 +196,11 @@ app.delete("/api/diary/:id", DiaryController.remove);
 // Сохранение прогресса (опциональная авторизация - работает и без токена)
 app.post("/api/video-progress", VideoProgressController.saveProgress);
 // Получение прогресса конкретного видео (требует авторизации)
-app.get("/api/video-progress/:contentType/:contentId", authMiddleware, VideoProgressController.getProgress);
+app.get("/api/video-progress/:userId/:contentType/:contentId", VideoProgressController.getProgress);
 // Получение всех прогрессов пользователя (требует авторизации)
-app.get("/api/video-progress/user/:contentType", authMiddleware, VideoProgressController.getUserProgresses);
+app.get("/api/video-progress/user/:userId/:contentType", VideoProgressController.getUserProgresses);
 // Получение прогрессов для списка контента (опциональная авторизация - работает и без токена)
-app.post("/api/video-progress/batch/:contentType", VideoProgressController.getProgressesForContents);
+app.post("/api/video-progress/batch/:userId/:contentType", VideoProgressController.getProgressesForContents);
 
 
 app.listen(process.env.PORT, () => {

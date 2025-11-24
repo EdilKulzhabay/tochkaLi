@@ -70,7 +70,7 @@ export const SecureKinescopePlayer = ({
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 if (!user._id) return;
 
-                const response = await api.get(`/api/video-progress/${contentType}/${contentId}`);
+                const response = await api.get(`/api/video-progress/${user._id}/${contentType}/${contentId}`);
                 if (response.data.success && response.data.data) {
                     const progress = response.data.data;
                     setSavedProgress(progress.currentTime || 0);
