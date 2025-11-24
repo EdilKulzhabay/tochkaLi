@@ -15,12 +15,19 @@ export const ClientPerfomance = () => {
     const navigate = useNavigate();
     const { updateUser } = useAuth();
     useEffect(() => {
-        setFullName(localStorage.getItem('fullName') || '');
-        setFirstName(fullName.split(' ')[1]);
-        setLastName(fullName.split(' ')[0]);
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!user.fullName || user.fullName.trim() === '') {
+            return;
+        }
+        setFullName(user.fullName);
+        setFirstName(user.fullName.split(' ')[1]);
+        setLastName(user.fullName.split(' ')[0]);
     }, []);
 
     useEffect(() => {
+        if (fullName.trim() === '') {
+            return;
+        }
         navigate(`/main`);
     }, [fullName]);
 
@@ -76,7 +83,7 @@ export const ClientPerfomance = () => {
             className='px-4 pb-6 flex flex-col justify-between'
         >
             <div className='flex-1'>
-                <div className='h-[45%]' />
+                <div className='h-[45%] shrink-1' />
                 <h1 className='text-[48px] font-semibold text-white leading-12'>Представьтесь пожалуйста</h1>
                 <div className='mt-6 space-y-3'>
                     <ClientInput
