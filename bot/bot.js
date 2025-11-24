@@ -1,5 +1,6 @@
 import { Telegraf } from 'telegraf';
 import 'dotenv/config';
+import axios from 'axios';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -13,6 +14,14 @@ bot.start(async (ctx) => {
   console.log("chatId:", chatId);
   const telegramUserName = ctx.from.username;
   console.log("telegramUserName:", telegramUserName);
+  await axios.post(`${process.env.API_URL}/api/user/create`, {
+    telegramId: telegramId,
+    telegramUserName: telegramUserName
+  }, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
   // 1. Сбрасываем глобальное меню (если есть)
   await bot.telegram.setChatMenuButton({
     menuButton: { type: "default" }
