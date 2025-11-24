@@ -21,12 +21,19 @@ export const ClientPracticesList = () => {
     const [accessType, setAccessType] = useState<string>('');
     const [userData, setUserData] = useState<any>(null);
     const [selectedPractice, setSelectedPractice] = useState<any>(null);
+    const [progresses, setProgresses] = useState<Record<string, number>>({});
 
     useEffect(() => {
         fetchPractices();
         fetchContent();
         fetchUserData();
     }, []);
+
+    useEffect(() => {
+        if (practices.length > 0 && userData?._id) {
+            fetchProgresses();
+        }
+    }, [practices, userData]);
 
     const fetchUserData = async () => {
         try {
@@ -71,8 +78,38 @@ export const ClientPracticesList = () => {
         setPractices(response.data.data);
     }
 
+    const fetchProgresses = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (!user._id) return;
+
+            const contentIds = practices.map((p: any) => p._id);
+            if (contentIds.length === 0) return;
+
+            const response = await api.post(`/api/video-progress/batch/practice?userId=${user._id}`, {
+                contentIds
+            });
+
+            if (response.data.success && response.data.data) {
+                const progressMap: Record<string, number> = {};
+                Object.keys(response.data.data).forEach((contentId) => {
+                    progressMap[contentId] = response.data.data[contentId].progress || 0;
+                });
+                setProgresses(progressMap);
+            }
+        } catch (error) {
+            console.error('Ошибка получения прогрессов:', error);
+        }
+    }
+
     const handleLockedPracticeClick = (practice: any) => {
         const accessType = practice.accessType;
+        
+        // Проверяем, есть ли уже доступ к контенту
+        if (hasAccessToContent(practice._id)) {
+            // Если есть доступ, ничего не делаем (контент уже доступен)
+            return;
+        }
         
         // Если это контент за бонусы (stars)
         if (accessType === 'stars') {
@@ -128,6 +165,14 @@ export const ClientPracticesList = () => {
         await fetchPractices();
     }
 
+    // Проверка доступа к контенту
+    const hasAccessToContent = (contentId: string): boolean => {
+        if (!userData?.products) return false;
+        return userData.products.some(
+            (product: any) => product.productId === contentId && product.type === 'one-time' && product.paymentStatus === 'paid'
+        );
+    }
+
     return (
         <div>
             <UserLayout>
@@ -148,9 +193,9 @@ export const ClientPracticesList = () => {
                                             title={practice.title} 
                                             image={practice.imageUrl} 
                                             link={`/client/practice/${practice._id}`} 
-                                            progress={0} 
-                                            accessType={practice.accessType}
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined}
+                                            progress={progresses[practice._id] || 0} 
+                                            accessType={hasAccessToContent(practice._id) ? 'free' : practice.accessType}
+                                            onLockedClick={hasAccessToContent(practice._id) ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined)}
                                             duration={practice?.duration || 0}
                                         />
                                     </div>
@@ -172,9 +217,9 @@ export const ClientPracticesList = () => {
                                             description={practice.shortDescription} 
                                             image={practice.imageUrl} 
                                             link={`/client/practice/${practice._id}`} 
-                                            accessType={practice.accessType} 
-                                            progress={0} 
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined} 
+                                            accessType={hasAccessToContent(practice._id) ? 'free' : practice.accessType} 
+                                            progress={progresses[practice._id] || 0} 
+                                            onLockedClick={hasAccessToContent(practice._id) ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined)} 
                                             starsRequired={practice?.starsRequired || 0}
                                             duration={practice?.duration || 0}
                                         />
@@ -188,9 +233,9 @@ export const ClientPracticesList = () => {
                                             description={practice.shortDescription} 
                                             image={practice.imageUrl} 
                                             link={`/client/practice/${practice._id}`} 
-                                            accessType={practice.accessType} 
-                                            progress={0} 
-                                            onLockedClick={practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined} 
+                                            accessType={hasAccessToContent(practice._id) ? 'free' : practice.accessType} 
+                                            progress={progresses[practice._id] || 0} 
+                                            onLockedClick={hasAccessToContent(practice._id) ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined)} 
                                             starsRequired={practice?.starsRequired || 0}
                                             duration={practice?.duration || 0}
                                         />

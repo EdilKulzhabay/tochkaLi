@@ -5,9 +5,9 @@ import star from '../../assets/star.png';
 
 export const VideoCard = ({ title, description, image, link, accessType, progress, onLockedClick, starsRequired, duration }: { title: string, description: string, image: string, link: string, accessType: string, progress: number, onLockedClick?: () => void, starsRequired?: number, duration?: number }) => {
     return (
-        <div className="bg-[#333333] rounded-lg flex gap-x-3">
+        <div className="bg-[#333333] rounded-lg flex gap-x-3 items-center">
             <div className="basis-[40%] relative">
-                <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="h-full rounded-lg object-cover" />
+                <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full rounded-lg object-cover" />
                 {accessType !== 'free' && (
                     <>
                         <div className="absolute inset-0 bg-black/40 rounded-lg" />

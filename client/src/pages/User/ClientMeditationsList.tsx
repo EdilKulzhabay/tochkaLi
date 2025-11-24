@@ -21,12 +21,19 @@ export const ClientMeditationsList = () => {
     const [accessType, setAccessType] = useState<string>('');
     const [userData, setUserData] = useState<any>(null);
     const [selectedMeditation, setSelectedMeditation] = useState<any>(null);
+    const [progresses, setProgresses] = useState<Record<string, number>>({});
 
     useEffect(() => {
         fetchMeditations();
         fetchContent();
         fetchUserData();
     }, []);
+
+    useEffect(() => {
+        if (meditations.length > 0 && userData?._id) {
+            fetchProgresses();
+        }
+    }, [meditations, userData]);
 
     const fetchUserData = async () => {
         try {
@@ -72,8 +79,38 @@ export const ClientMeditationsList = () => {
         setMeditations(response.data.data);
     }
 
+    const fetchProgresses = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (!user._id) return;
+
+            const contentIds = meditations.map((m: any) => m._id);
+            if (contentIds.length === 0) return;
+
+            const response = await api.post(`/api/video-progress/batch/meditation?userId=${user._id}`, {
+                contentIds
+            });
+
+            if (response.data.success && response.data.data) {
+                const progressMap: Record<string, number> = {};
+                Object.keys(response.data.data).forEach((contentId) => {
+                    progressMap[contentId] = response.data.data[contentId].progress || 0;
+                });
+                setProgresses(progressMap);
+            }
+        } catch (error) {
+            console.error('Ошибка получения прогрессов:', error);
+        }
+    }
+
     const handleLockedMeditationClick = (meditation: any) => {
         const accessType = meditation.accessType;
+        
+        // Проверяем, есть ли уже доступ к контенту
+        if (hasAccessToContent(meditation._id)) {
+            // Если есть доступ, ничего не делаем (контент уже доступен)
+            return;
+        }
         
         // Если это контент за бонусы (stars)
         if (accessType === 'stars') {
@@ -129,6 +166,14 @@ export const ClientMeditationsList = () => {
         await fetchMeditations();
     }
 
+    // Проверка доступа к контенту
+    const hasAccessToContent = (contentId: string): boolean => {
+        if (!userData?.products) return false;
+        return userData.products.some(
+            (product: any) => product.productId === contentId && product.type === 'one-time' && product.paymentStatus === 'paid'
+        );
+    }
+
     return (
         <div>
             <UserLayout>
@@ -149,9 +194,9 @@ export const ClientMeditationsList = () => {
                                             title={meditation.title} 
                                             image={meditation.imageUrl} 
                                             link={`/client/meditation/${meditation._id}`} 
-                                            progress={0} 
-                                            accessType={meditation.accessType}
-                                            onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined}
+                                            progress={progresses[meditation._id] || 0} 
+                                            accessType={hasAccessToContent(meditation._id) ? 'free' : meditation.accessType}
+                                            onLockedClick={hasAccessToContent(meditation._id) ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined)}
                                             duration={meditation?.duration || 0}
                                         />
                                     </div>
@@ -172,9 +217,9 @@ export const ClientMeditationsList = () => {
                                     description={meditation.shortDescription} 
                                     image={meditation.imageUrl} 
                                     link={`/client/meditation/${meditation._id}`} 
-                                    accessType={meditation.accessType} 
-                                    progress={0} 
-                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined} 
+                                    accessType={hasAccessToContent(meditation._id) ? 'free' : meditation.accessType} 
+                                    progress={progresses[meditation._id] || 0} 
+                                    onLockedClick={hasAccessToContent(meditation._id) ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined)} 
                                     starsRequired={meditation?.starsRequired || 0}
                                     duration={meditation?.duration || 0}
                                 />
@@ -186,9 +231,9 @@ export const ClientMeditationsList = () => {
                                     description={meditation.shortDescription} 
                                     image={meditation.imageUrl} 
                                     link={`/client/meditation/${meditation._id}`} 
-                                    accessType={meditation.accessType} 
-                                    progress={0} 
-                                    onLockedClick={meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined} 
+                                    accessType={hasAccessToContent(meditation._id) ? 'free' : meditation.accessType} 
+                                    progress={progresses[meditation._id] || 0} 
+                                    onLockedClick={hasAccessToContent(meditation._id) ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined)} 
                                     starsRequired={meditation?.starsRequired || 0}
                                     duration={meditation?.duration || 0}
                                 />

@@ -10,6 +10,7 @@ import DynamicContent from './DynamicContent.js';
 import Welcome from './Welcome.js';
 import AboutClub from './AboutClub.js';
 import Schumann from './Schumann.js';
+import VideoProgress from './VideoProgress.js';
 
 export {
     User,
@@ -23,6 +24,7 @@ export {
     DynamicContent,
     Welcome,
     AboutClub,
-    Schumann
+    Schumann,
+    VideoProgress
 };
 

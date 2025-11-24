@@ -70,11 +70,13 @@ export const About = () => {
     return (
         <UserLayout>
             <div className='relative'>
-                <img 
-                    src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
-                    alt={content?.title} 
-                    className='w-full h-auto rounded-lg object-cover z-10' 
-                />
+                {content?.image && (
+                    <img 
+                        src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
+                        alt={content?.title} 
+                        className='w-full h-auto rounded-lg object-cover z-10' 
+                    />
+                )}
                 <div 
                     className="absolute inset-0"
                     style={{

@@ -114,8 +114,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (error.response?.data?.sessionExpired) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                localStorage.removeItem("user");
-                setUser(null);
+                // Не удаляем user для Telegram пользователей (если есть telegramId, но нет токена)
+                const telegramId = localStorage.getItem("telegramId");
+                if (!telegramId) {
+                    localStorage.removeItem("user");
+                    setUser(null);
+                }
             }
             return false;
         }

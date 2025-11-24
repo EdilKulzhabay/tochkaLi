@@ -21,12 +21,19 @@ export const ClientVideoLessonsList = () => {
     const [accessType, setAccessType] = useState<string>('');
     const [userData, setUserData] = useState<any>(null);
     const [selectedVideoLesson, setSelectedVideoLesson] = useState<any>(null);
+    const [progresses, setProgresses] = useState<Record<string, number>>({});
 
     useEffect(() => {
         fetchVideoLessons();
         fetchContent();
         fetchUserData();
     }, []);
+
+    useEffect(() => {
+        if (videoLessons.length > 0 && userData?._id) {
+            fetchProgresses();
+        }
+    }, [videoLessons, userData]);
 
     const fetchUserData = async () => {
         try {
@@ -71,8 +78,38 @@ export const ClientVideoLessonsList = () => {
         setVideoLessons(response.data.data);
     }
 
+    const fetchProgresses = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (!user._id) return;
+
+            const contentIds = videoLessons.map((vl: any) => vl._id);
+            if (contentIds.length === 0) return;
+
+            const response = await api.post(`/api/video-progress/batch/videoLesson?userId=${user._id}`, {
+                contentIds
+            });
+
+            if (response.data.success && response.data.data) {
+                const progressMap: Record<string, number> = {};
+                Object.keys(response.data.data).forEach((contentId) => {
+                    progressMap[contentId] = response.data.data[contentId].progress || 0;
+                });
+                setProgresses(progressMap);
+            }
+        } catch (error) {
+            console.error('Ошибка получения прогрессов:', error);
+        }
+    }
+
     const handleLockedVideoLessonClick = (videoLesson: any) => {
         const accessType = videoLesson.accessType;
+        
+        // Проверяем, есть ли уже доступ к контенту
+        if (hasAccessToContent(videoLesson._id)) {
+            // Если есть доступ, ничего не делаем (контент уже доступен)
+            return;
+        }
         
         // Если это контент за бонусы (stars)
         if (accessType === 'stars') {
@@ -128,6 +165,14 @@ export const ClientVideoLessonsList = () => {
         await fetchVideoLessons();
     }
 
+    // Проверка доступа к контенту
+    const hasAccessToContent = (contentId: string): boolean => {
+        if (!userData?.products) return false;
+        return userData.products.some(
+            (product: any) => product.productId === contentId && product.type === 'one-time' && product.paymentStatus === 'paid'
+        );
+    }
+
     return (
         <div>
             <UserLayout>
@@ -148,9 +193,9 @@ export const ClientVideoLessonsList = () => {
                                             title={videoLesson.title} 
                                             image={videoLesson.imageUrl} 
                                             link={`/client/video-lesson/${videoLesson._id}`} 
-                                            progress={0} 
-                                            accessType={videoLesson.accessType}
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined}
+                                            progress={progresses[videoLesson._id] || 0} 
+                                            accessType={hasAccessToContent(videoLesson._id) ? 'free' : videoLesson.accessType}
+                                            onLockedClick={hasAccessToContent(videoLesson._id) ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined)}
                                             duration={videoLesson?.duration || 0}
                                         />
                                     </div>
@@ -172,9 +217,9 @@ export const ClientVideoLessonsList = () => {
                                             description={videoLesson.shortDescription} 
                                             image={videoLesson.imageUrl} 
                                             link={`/client/video-lesson/${videoLesson._id}`} 
-                                            accessType={videoLesson.accessType} 
-                                            progress={0} 
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined} 
+                                            accessType={hasAccessToContent(videoLesson._id) ? 'free' : videoLesson.accessType} 
+                                            progress={progresses[videoLesson._id] || 0} 
+                                            onLockedClick={hasAccessToContent(videoLesson._id) ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined)} 
                                             starsRequired={videoLesson?.starsRequired || 0}
                                             duration={videoLesson?.duration || 0}
                                         />
@@ -188,9 +233,9 @@ export const ClientVideoLessonsList = () => {
                                             description={videoLesson.shortDescription} 
                                             image={videoLesson.imageUrl} 
                                             link={`/client/video-lesson/${videoLesson._id}`} 
-                                            accessType={videoLesson.accessType} 
-                                            progress={0} 
-                                            onLockedClick={videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined} 
+                                            accessType={hasAccessToContent(videoLesson._id) ? 'free' : videoLesson.accessType} 
+                                            progress={progresses[videoLesson._id] || 0} 
+                                            onLockedClick={hasAccessToContent(videoLesson._id) ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined)} 
                                             starsRequired={videoLesson?.starsRequired || 0}
                                             duration={videoLesson?.duration || 0}
                                         />

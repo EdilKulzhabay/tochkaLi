@@ -8,31 +8,21 @@ import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const ClientPerfomance = () => {
+    const [fullName, setFullName] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { updateUser } = useAuth();
     useEffect(() => {
-        // Загружаем данные из localStorage если есть
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                if (user.fullName) {
-                    const nameParts = user.fullName.split(' ');
-                    if (nameParts.length >= 2) {
-                        setLastName(nameParts[0]);
-                        setFirstName(nameParts.slice(1).join(' '));
-                    } else if (nameParts.length === 1) {
-                        setFirstName(nameParts[0]);
-                    }
-                }
-            } catch (e) {
-                console.error('Ошибка парсинга пользователя:', e);
-            }
-        }
+        setFullName(localStorage.getItem('fullName') || '');
+        setFirstName(fullName.split(' ')[1]);
+        setLastName(fullName.split(' ')[0]);
     }, []);
+
+    useEffect(() => {
+        navigate(`/main`);
+    }, [fullName]);
 
     const handleContinue = async () => {
         if (firstName.trim() === '' || lastName.trim() === '') {
@@ -56,7 +46,7 @@ export const ClientPerfomance = () => {
 
             if (response.data.success && response.data.data) {
                 // Сохраняем обновленные данные пользователя в localStorage и обновляем контекст
-                console.log("response.data.data в clientPerfomance.tsx: ", response.data.data);
+                console.log("response.data.data = =", response.data.data);
                 localStorage.setItem('user', JSON.stringify(response.data.data));
                 localStorage.setItem('firstName', firstName);
                 localStorage.setItem('lastName', lastName);

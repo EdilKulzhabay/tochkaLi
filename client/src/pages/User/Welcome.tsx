@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react';
 import { UserLayout } from '../../components/User/UserLayout';
 import api from '../../api';
 import { MyLink } from '../../components/User/MyLink';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Welcome = () => {
     const [searchParams] = useSearchParams();
     const [content, setContent] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { updateUser } = useAuth();
 
     useEffect(() => {
         // Извлекаем параметры из URL
@@ -40,16 +42,17 @@ export const Welcome = () => {
                         console.log("Сохранение user в localStorage: ", userString);
                         localStorage.setItem('user', userString);
                         
+                        // Обновляем состояние в AuthContext
+                        updateUser(response.data.user);
+                        
                         // Проверяем, что данные действительно сохранились
                         const savedUser = localStorage.getItem('user');
                         console.log("Проверка сохраненного user: ", savedUser);
                         
-                        // Небольшая задержка для гарантии сохранения в localStorage
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        
                         // Переходим на главную только если есть fullName
                         if (response.data.user.fullName && response.data.user.fullName.trim() !== '') {
-                            localStorage.setItem('fullName', JSON.stringify(response.data.user.fullName));
+                            const fullName = response.data.user.fullName;
+                            localStorage.setItem('fullName', fullName);
                             navigate('/main');
                         }
                     } else {
@@ -95,11 +98,13 @@ export const Welcome = () => {
     return (
         <UserLayout>
             <div className='relative'>
-                <img 
-                    src={`${import.meta.env.VITE_API_URL}/${content?.image}`} 
-                    alt={content?.title} 
-                    className='w-full h-auto rounded-lg object-cover z-10' 
-                />
+                {content?.image && (
+                    <img 
+                        src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
+                        alt={content?.title} 
+                        className='w-full h-auto rounded-lg object-cover z-10' 
+                    />
+                )}
                 <div 
                     className="absolute inset-0"
                     style={{

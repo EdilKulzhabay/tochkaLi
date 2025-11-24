@@ -17,7 +17,7 @@ const AccordionItem = ({ title, content, isOpen, onToggle }: any) => {
                 className="w-full flex items-center justify-between py-2.5 px-4 border border-white/40 rounded-xl gap-x-2"
                 onClick={onToggle}
             >
-                <div className="text-left">{title}</div>
+                <div className="text-left" dangerouslySetInnerHTML={{ __html: title }}></div>
                 <img
                     src={arrowDown}
                     alt="arrow-down"

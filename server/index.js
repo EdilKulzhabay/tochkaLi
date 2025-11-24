@@ -20,7 +20,8 @@ import {
     BroadcastController,
     RobokassaController,
     UploadController,
-    DiaryController
+    DiaryController,
+    VideoProgressController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import { requireAdmin } from "./Middlewares/roleMiddleware.js";
@@ -190,6 +191,16 @@ app.post("/api/diary/my", DiaryController.getMyDiaries);
 app.get("/api/diary/:id", DiaryController.getById);
 app.put("/api/diary/:id", DiaryController.update);
 app.delete("/api/diary/:id", DiaryController.remove);
+
+// ==================== VideoProgress маршруты ====================
+// Сохранение прогресса (опциональная авторизация - работает и без токена)
+app.post("/api/video-progress", VideoProgressController.saveProgress);
+// Получение прогресса конкретного видео (требует авторизации)
+app.get("/api/video-progress/:contentType/:contentId", authMiddleware, VideoProgressController.getProgress);
+// Получение всех прогрессов пользователя (требует авторизации)
+app.get("/api/video-progress/user/:contentType", authMiddleware, VideoProgressController.getUserProgresses);
+// Получение прогрессов для списка контента (опциональная авторизация - работает и без токена)
+app.post("/api/video-progress/batch/:contentType", VideoProgressController.getProgressesForContents);
 
 
 app.listen(process.env.PORT, () => {
