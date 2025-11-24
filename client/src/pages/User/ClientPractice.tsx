@@ -85,6 +85,7 @@ export const ClientPractice = () => {
                                         onPosterClick={handlePosterClick}
                                         contentType="practice"
                                         contentId={id || ''}
+                                        duration={practice?.duration}
                                     />
                                 </div>
                             );

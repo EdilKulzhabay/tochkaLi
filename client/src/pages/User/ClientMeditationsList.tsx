@@ -41,7 +41,6 @@ export const ClientMeditationsList = () => {
             if (user._id) {
                 const response = await api.get(`/api/user/${user._id}`);
                 setUserData(response.data.data);
-                console.log("response.data.data.emailConfirmed = =", response.data.data.emailConfirmed);
             }
         } catch (error) {
             console.error('Ошибка получения данных пользователя:', error);

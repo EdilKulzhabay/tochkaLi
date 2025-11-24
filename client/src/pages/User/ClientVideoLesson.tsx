@@ -85,6 +85,7 @@ export const ClientVideoLesson = () => {
                                         onPosterClick={handlePosterClick}
                                         contentType="videoLesson"
                                         contentId={id || ''}
+                                        duration={videoLesson?.duration}
                                     />
                                 </div>
                             );
