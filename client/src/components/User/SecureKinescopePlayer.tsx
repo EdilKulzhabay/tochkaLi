@@ -59,7 +59,8 @@ export const SecureKinescopePlayer = ({
             autoplay: '0',
             muted: '0',
             loop: '0',
-            controls: '1'
+            controls: '1',
+            fullscreen: '1' // Включаем поддержку полноэкранного режима
         });
         
         if (startTime > 0) {
@@ -433,6 +434,7 @@ export const SecureKinescopePlayer = ({
                     src={getSecureEmbedUrl(videoId, savedProgress)}
                     title={title || 'Video player'}
                     allow="autoplay; fullscreen; picture-in-picture; encrypted-media; screen-wake-lock;"
+                    allowFullScreen
                     className="absolute top-0 left-0 w-full h-full rounded-lg"
                     style={{
                         pointerEvents: 'auto',
@@ -440,7 +442,7 @@ export const SecureKinescopePlayer = ({
                         WebkitUserSelect: 'none'
                     }}
                     onLoad={handleIframeLoad}
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-presentation"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-presentation allow-fullscreen"
                     loading="lazy"
                     // Скрываем URL от инспектора - используем data-атрибут вместо прямого отображения
                     data-video-id={videoId}
