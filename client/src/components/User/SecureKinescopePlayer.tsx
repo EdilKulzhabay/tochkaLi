@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import api from '../../api';
+import { isTelegramWebView } from '../../utils/telegramWebApp';
 
 interface SecureKinescopePlayerProps {
     videoId: string;
@@ -403,6 +404,18 @@ export const SecureKinescopePlayer = ({
         };
     }, []);
 
+    // Инициализация Telegram WebApp для полноэкранного режима (если еще не инициализирован)
+    useEffect(() => {
+        if (isTelegramWebView() && window.Telegram?.WebApp) {
+            const tg = window.Telegram.WebApp;
+            
+            // Убеждаемся, что WebApp расширен на весь экран
+            if (!tg.isExpanded) {
+                tg.expand();
+            }
+        }
+    }, []);
+
     // Обработка загрузки iframe
     const handleIframeLoad = () => {
         // Дополнительная защита после загрузки
@@ -423,6 +436,11 @@ export const SecureKinescopePlayer = ({
             } catch (e) {
                 // Игнорируем ошибки CORS (это нормально для iframe)
             }
+        }
+        
+        // Для Telegram WebView расширяем приложение на весь экран при загрузке видео
+        if (isTelegramWebView() && window.Telegram?.WebApp && !window.Telegram.WebApp.isExpanded) {
+            window.Telegram.WebApp.expand();
         }
     };
 

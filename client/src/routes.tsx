@@ -55,10 +55,16 @@ import { ClientVideoLesson } from "./pages/User/ClientVideoLesson";
 import { ClientSchedule } from "./pages/User/ClientSchedule";
 import { ClientDiary } from "./pages/User/ClientDiary";
 import { ClientProfile } from "./pages/User/ClientProfile";
+import { TelegramWebAppHandler } from "./components/TelegramWebAppHandler";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
-    return <AuthProvider>{children}</AuthProvider>;
+    return (
+        <AuthProvider>
+            <TelegramWebAppHandler />
+            {children}
+        </AuthProvider>
+    );
 };
 
 export const routes = createBrowserRouter([
