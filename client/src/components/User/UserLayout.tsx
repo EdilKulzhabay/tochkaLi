@@ -155,7 +155,7 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
                 WebkitTouchCallout: 'none'
             }}
         >
-            <div className={isIOSDevice ? 'p-10' : ''}>
+            <div className="p-10">
                 {children}
             </div>
         </div>
