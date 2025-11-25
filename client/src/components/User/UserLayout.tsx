@@ -148,10 +148,12 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
                 WebkitUserSelect: 'none',
                 MozUserSelect: 'none',
                 msUserSelect: 'none',
-                WebkitTouchCallout: 'none'
+                WebkitTouchCallout: 'none',
+                padding: 0,
+                margin: 0
             }}
         >
-            <div className="p-10">
+            <div className="pt-10">
                 {children}
             </div>
         </div>

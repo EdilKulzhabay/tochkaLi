@@ -38,8 +38,13 @@ export const TelegramWebAppHandler = () => {
         // Обрабатываем событие изменения viewport (может происходить при свайпе)
         const handleViewportChanged = () => {
             // Если приложение свернулось, расширяем его обратно
-            if (tg && !tg.isExpanded) {
-                tg.expand();
+            if (tg) {
+                // Всегда расширяем при изменении viewport для гарантии полноэкранного режима
+                setTimeout(() => {
+                    if (!tg.isExpanded) {
+                        tg.expand();
+                    }
+                }, 50);
             }
         };
 

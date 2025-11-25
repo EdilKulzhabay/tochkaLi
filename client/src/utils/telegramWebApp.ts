@@ -46,8 +46,17 @@ export const initTelegramWebApp = () => {
         tg.ready();
         
         // Расширяем на весь экран (работает и на мобильных, и на десктопе)
-        if (!tg.isExpanded) {
+        // Вызываем expand() всегда, даже если isExpanded уже true, чтобы гарантировать полноэкранный режим
+        try {
             tg.expand();
+            // Небольшая задержка и повторный вызов для надежности
+            setTimeout(() => {
+                if (!tg.isExpanded) {
+                    tg.expand();
+                }
+            }, 100);
+        } catch (error) {
+            console.warn('⚠️ Ошибка при расширении Telegram WebApp:', error);
         }
         
         // Отключаем подтверждение закрытия (будем обрабатывать через навигацию)

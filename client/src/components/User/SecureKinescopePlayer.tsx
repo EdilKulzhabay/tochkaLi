@@ -61,7 +61,8 @@ export const SecureKinescopePlayer = ({
             muted: '0',
             loop: '0',
             controls: '1',
-            fullscreen: '1' // Включаем поддержку полноэкранного режима
+            fullscreen: '1', // Включаем поддержку полноэкранного режима
+            playsinline: '0' // Отключаем inline воспроизведение для лучшей поддержки полноэкранного режима на iOS
         });
         
         if (startTime > 0) {
