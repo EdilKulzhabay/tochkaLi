@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { UserLayout } from "../../components/User/UserLayout"
 import { Link } from "react-router-dom"
+import api from "../../api"
+import { useAuth } from "../../contexts/AuthContext"
 import logo from "../../assets/logo.png"
 import users from "../../assets/users.png"
 import faq from "../../assets/faq.png"
@@ -47,34 +49,110 @@ const LargeCard = ({ title, link, image, content }: { title: string, link: strin
 
 export const Main = () => {
     const [userName, setUserName] = useState<string>("");
+    const { updateUser } = useAuth();
 
     useEffect(() => {
-        const loadUserName = () => {
+        const fetchUserData = async () => {
             try {
-                const fullNameStr = localStorage.getItem("fullName");
-                if (fullNameStr) {
-                    setUserName(fullNameStr.split(' ')[1]);
+                const userStr = localStorage.getItem('user');
+                const telegramId = localStorage.getItem('telegramId');
+                const token = localStorage.getItem('token');
+                
+                if (!userStr) {
+                    console.log('Пользователь не найден в localStorage');
+                    return;
+                }
+
+                const user = JSON.parse(userStr);
+                let updatedUser = null;
+
+                // Если есть токен, используем стандартный endpoint
+                if (token) {
+                    try {
+                        const response = await api.get('/api/user/me');
+                        if (response.data.success && response.data.user) {
+                            updatedUser = response.data.user;
+                        }
+                    } catch (error) {
+                        console.error('Ошибка получения данных пользователя через /api/user/me:', error);
+                    }
+                }
+                
+                // Если есть telegramId, используем Telegram endpoint
+                if (!updatedUser && telegramId) {
+                    try {
+                        const response = await api.get(`/api/user/telegram/${telegramId}`);
+                        if (response.data.success && response.data.user) {
+                            updatedUser = response.data.user;
+                        }
+                    } catch (error) {
+                        console.error('Ошибка получения данных пользователя через Telegram API:', error);
+                    }
+                }
+                
+                // Если есть userId, используем общий endpoint
+                if (!updatedUser && user._id) {
+                    try {
+                        const response = await api.get(`/api/user/${user._id}`);
+                        if (response.data.success && response.data.user) {
+                            updatedUser = response.data.user;
+                        }
+                    } catch (error) {
+                        console.error('Ошибка получения данных пользователя через /api/user/:id:', error);
+                    }
+                }
+
+                // Обновляем данные если получили их с сервера
+                if (updatedUser) {
+                    // Сохраняем обновленные данные в localStorage
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    
+                    // Обновляем fullName если он есть
+                    if (updatedUser.fullName) {
+                        localStorage.setItem('fullName', updatedUser.fullName);
+                        const nameParts = updatedUser.fullName.split(' ');
+                        setUserName(nameParts.length > 1 ? nameParts[1] : nameParts[0]);
+                    }
+                    
+                    // Обновляем состояние в AuthContext
+                    if (updateUser) {
+                        updateUser(updatedUser);
+                    }
+                } else {
+                    // Если не удалось получить данные с сервера, используем данные из localStorage
+                    const loadUserName = () => {
+                        try {
+                            const fullNameStr = localStorage.getItem("fullName");
+                            if (fullNameStr) {
+                                const nameParts = fullNameStr.split(' ');
+                                setUserName(nameParts.length > 1 ? nameParts[1] : nameParts[0]);
+                            } else if (user.fullName) {
+                                const nameParts = user.fullName.split(' ');
+                                setUserName(nameParts.length > 1 ? nameParts[1] : nameParts[0]);
+                            }
+                        } catch (error) {
+                            console.error('Ошибка парсинга user из localStorage:', error);
+                        }
+                    };
+                    loadUserName();
                 }
             } catch (error) {
-                console.error('Ошибка парсинга user из localStorage:', error);
+                console.error('Ошибка при обновлении данных пользователя:', error);
+                // В случае ошибки используем данные из localStorage
+                try {
+                    const fullNameStr = localStorage.getItem("fullName");
+                    if (fullNameStr) {
+                        const nameParts = fullNameStr.split(' ');
+                        setUserName(nameParts.length > 1 ? nameParts[1] : nameParts[0]);
+                    }
+                } catch (e) {
+                    console.error('Ошибка парсинга данных из localStorage:', e);
+                }
             }
         };
-        
-        loadUserName();
-        
-        // Слушаем изменения в localStorage на случай, если данные обновятся
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'user') {
-                loadUserName();
-            }
-        };
-        
-        window.addEventListener('storage', handleStorageChange);
-        
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, []);
+
+        fetchUserData();
+    }, [updateUser]);
 
     return (
         <UserLayout>
