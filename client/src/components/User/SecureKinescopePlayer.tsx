@@ -380,9 +380,14 @@ export const SecureKinescopePlayer = ({
         return false;
     };
 
-    // Защита от выделения текста через нативные события
+    // Защита от выделения текста через нативные события (только на контейнере, не на iframe)
     useEffect(() => {
         const handleSelectStart = (e: Event) => {
+            const target = e.target as HTMLElement;
+            // Разрешаем выделение внутри iframe (для полноэкранного режима)
+            if (target.tagName === 'IFRAME' || target.closest('iframe')) {
+                return;
+            }
             e.preventDefault();
             return false;
         };
@@ -425,8 +430,13 @@ export const SecureKinescopePlayer = ({
         <div 
             ref={containerRef}
             className="relative w-full rounded-lg overflow-hidden"
-            style={{ paddingBottom: '56.25%' }}
+            style={{ 
+                paddingBottom: '56.25%',
+                WebkitTouchCallout: 'default', // Разрешаем жесты для полноэкранного режима на iOS
+                touchAction: 'manipulation' // Разрешаем жесты для полноэкранного режима
+            }}
             onContextMenu={handleContextMenu}
+            data-video-id={videoId}
         >
             {!showPoster && (
                 <iframe
@@ -439,7 +449,8 @@ export const SecureKinescopePlayer = ({
                     style={{
                         pointerEvents: 'auto',
                         userSelect: 'none',
-                        WebkitUserSelect: 'none'
+                        WebkitUserSelect: 'none',
+                        touchAction: 'manipulation' // Разрешаем жесты для полноэкранного режима на мобильных
                     }}
                     onLoad={handleIframeLoad}
                     sandbox="allow-same-origin allow-scripts allow-popups allow-presentation allow-fullscreen"
@@ -448,6 +459,11 @@ export const SecureKinescopePlayer = ({
                     data-video-id={videoId}
                     // Дополнительные атрибуты безопасности
                     referrerPolicy="no-referrer"
+                    // Разрешаем контекстное меню для полноэкранного режима
+                    onContextMenu={(e) => {
+                        // Не блокируем контекстное меню на iframe, чтобы работал полноэкранный режим
+                        e.stopPropagation();
+                    }}
                 />
             )}
             {showPoster && poster && (

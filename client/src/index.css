@@ -100,3 +100,15 @@ img {
     -moz-user-drag: none;
     -o-user-drag: none;
 }
+
+/* Поддержка полноэкранного режима для видео iframe на мобильных устройствах */
+iframe[allowfullscreen],
+iframe[allow*="fullscreen"] {
+    -webkit-touch-callout: default !important;
+    touch-action: manipulation;
+}
+
+/* Разрешаем полноэкранный режим для контейнеров с видео */
+[data-video-id] {
+    -webkit-touch-callout: default !important;
+}
