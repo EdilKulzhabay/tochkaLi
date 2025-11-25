@@ -26,13 +26,18 @@ export const TelegramWebAppHandler = () => {
 
         // Обрабатываем кнопку "Назад" и свайп
         const cleanup = setupTelegramBackButton(() => {
-            // Если есть история для возврата назад, используем навигацию
-            if (window.history.length > 1) {
-                navigate(-1);
-            } else {
-                // Если истории нет, переходим на главную страницу
-                navigate('/main');
+            // Проверяем, не находимся ли мы на главной странице
+            const isMainPage = location.pathname === '/main' || 
+                              location.pathname === '/' || 
+                              location.pathname === '/welcome';
+            
+            if (isMainPage) {
+                // Если мы на главной странице, ничего не делаем (кнопка должна быть скрыта)
+                return;
             }
+            
+            // Если не на главной странице, переходим на предыдущую страницу
+            navigate(-1);
         });
 
         // Обрабатываем событие изменения viewport (может происходить при свайпе)
@@ -55,7 +60,7 @@ export const TelegramWebAppHandler = () => {
             cleanup();
             tg.offEvent('viewportChanged', handleViewportChanged);
         };
-    }, [navigate]);
+    }, [navigate, location.pathname]);
 
     // Управляем видимостью кнопки "Назад" в зависимости от текущего маршрута
     useEffect(() => {
