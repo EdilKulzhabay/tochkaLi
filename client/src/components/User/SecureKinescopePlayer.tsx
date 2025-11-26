@@ -14,9 +14,52 @@ interface SecureKinescopePlayerProps {
     onProgressUpdate?: (progress: number) => void;
 }
 
+// Типы для Kinescope IFrame API
+interface IframePlayerFactory {
+    create(elementId: string, options: {
+        url: string;
+        size?: { width?: string | number; height?: string | number };
+        autoplay?: boolean;
+        muted?: boolean;
+        loop?: boolean;
+        controls?: boolean;
+        time?: number;
+        [key: string]: any;
+    }): Promise<IframePlayerApi>;
+}
+
+interface IframePlayerApi {
+    Events: {
+        Ready: 'ready';
+        Playing: 'playing';
+        Pause: 'pause';
+        Ended: 'ended';
+        TimeUpdate: 'timeupdate';
+        DurationChange: 'durationchange';
+        FullscreenChange: 'fullscreenchange';
+        [key: string]: string;
+    };
+    on(type: string, listener: (event: any) => void): this;
+    once(type: string, listener: (event: any) => void): this;
+    off(type: string, listener: (event: any) => void): this;
+    getCurrentTime(): Promise<number>;
+    getDuration(): Promise<number>;
+    seekTo(time: number): Promise<void>;
+    play(): Promise<void>;
+    pause(): Promise<void>;
+    isPaused(): Promise<boolean>;
+    destroy(): Promise<void>;
+}
+
+declare global {
+    interface Window {
+        onKinescopeIframeAPIReady?: (playerFactory: IframePlayerFactory) => void;
+    }
+}
+
 /**
  * Безопасный компонент для встраивания Kinescope видео
- * Защищает от копирования URL и скачивания видео
+ * Использует официальный IFrame API для управления плеером и отслеживания прогресса
  */
 export const SecureKinescopePlayer = ({
     videoId,
@@ -29,108 +72,36 @@ export const SecureKinescopePlayer = ({
     duration: durationMinutes = 0,
     onProgressUpdate
 }: SecureKinescopePlayerProps) => {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const playerRef = useRef<IframePlayerApi | null>(null);
+    const playerElementIdRef = useRef<string>(`kinescope-player-${contentId}`);
     const [savedProgress, setSavedProgress] = useState<number>(0);
     
-    // Рефы для отслеживания времени просмотра
-    const videoDurationSecondsRef = useRef<number>(durationMinutes * 60 || 0); // Конвертируем минуты в секунды
-    const watchStartTimeRef = useRef<number>(0); // Время начала просмотра (timestamp)
-    const accumulatedWatchTimeRef = useRef<number>(0); // Накопленное время просмотра в секундах
-    const isWatchingRef = useRef<boolean>(false); // Флаг воспроизведения
-    const lastSaveTimeRef = useRef<number>(0); // Время последнего сохранения
-    const saveIntervalRef = useRef<number | null>(null); // Интервал для периодического сохранения
+    // Рефы для отслеживания прогресса
+    const currentTimeRef = useRef<number>(0);
+    const durationRef = useRef<number>(durationMinutes * 60 || 0);
+    const lastSaveTimeRef = useRef<number>(0);
+    const saveIntervalRef = useRef<number | null>(null);
+    const isInitializedRef = useRef<boolean>(false);
 
-    // Функция для получения безопасного embed URL
-    const getSecureEmbedUrl = (id: string, startTime: number = 0): string => {
-        // Извлекаем ID из различных форматов Kinescope URL
-        let extractedId = id;
-        
-        // Если это полный URL, извлекаем ID
+    // Функция для извлечения ID видео из различных форматов
+    const extractVideoId = (id: string): string => {
         if (id.includes('kinescope.io')) {
             const match = id.match(/kinescope\.io\/(?:embed\/|video\/)?([a-zA-Z0-9_-]+)/);
             if (match) {
-                extractedId = match[1];
+                return match[1];
             }
         }
-        
-        // Формируем embed URL с параметрами безопасности
-        // Добавляем параметр для восстановления позиции воспроизведения
-        const params = new URLSearchParams({
-            autoplay: '0',
-            muted: '0',
-            loop: '0',
-            controls: '1',
-            fullscreen: '1', // Включаем поддержку полноэкранного режима
-            playsinline: '0' // Отключаем inline воспроизведение для лучшей поддержки полноэкранного режима на iOS
-        });
-        
-        if (startTime > 0) {
-            params.set('time', startTime.toString());
-        }
-        
-        return `https://kinescope.io/embed/${extractedId}?${params.toString()}`;
+        return id;
     };
 
-    // Инициализация длительности из пропсов
-    useEffect(() => {
-        if (durationMinutes > 0) {
-            videoDurationSecondsRef.current = durationMinutes * 60;
-            console.log(`📹 Длительность видео установлена: ${durationMinutes} минут (${videoDurationSecondsRef.current} секунд)`);
-        }
-    }, [durationMinutes]);
+    // Функция для получения URL видео
+    const getVideoUrl = (id: string): string => {
+        const extractedId = extractVideoId(id);
+        return `https://kinescope.io/${extractedId}`;
+    };
 
-    // Загрузка сохраненного прогресса
-    useEffect(() => {
-        const loadProgress = async () => {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (!user._id) {
-                    console.log('⚠️ Пользователь не найден, прогресс не загружен');
-                    return;
-                }
-
-                console.log(`📥 Загрузка прогресса для ${contentType}/${contentId}, userId: ${user._id}`);
-                
-                const response = await api.get(`/api/video-progress/${user._id}/${contentType}/${contentId}`);
-                
-                if (response.data.success && response.data.data) {
-                    const progress = response.data.data;
-                    const savedTime = progress.currentTime || 0;
-                    const savedDuration = progress.duration || 0;
-                    
-                    setSavedProgress(savedTime);
-                    
-                    // Обновляем длительность, если она была сохранена
-                    if (savedDuration > 0 && videoDurationSecondsRef.current === 0) {
-                        videoDurationSecondsRef.current = savedDuration;
-                    }
-                    
-                    // Восстанавливаем накопленное время просмотра из сохраненного прогресса
-                    accumulatedWatchTimeRef.current = savedTime;
-                    console.log(`📥 Восстановлено накопленное время просмотра: ${savedTime.toFixed(1)} сек`);
-                    
-                    if (onProgressUpdate) {
-                        onProgressUpdate(progress.progress || 0);
-                    }
-                    
-                    console.log(`✅ Прогресс загружен: ${progress.progress}% (${savedTime.toFixed(1)}/${savedDuration.toFixed(1)} сек)`);
-                } else {
-                    console.log('ℹ️ Сохраненный прогресс не найден, начинаем с начала');
-                }
-            } catch (error: any) {
-                console.error('❌ Ошибка загрузки прогресса:', {
-                    message: error.message,
-                    response: error.response?.data,
-                    status: error.response?.status
-                });
-            }
-        };
-
-        loadProgress();
-    }, [contentType, contentId, onProgressUpdate]);
-
-    // Функция для сохранения прогресса на сервере (мемоизирована для использования в useEffect)
+    // Функция для сохранения прогресса на сервере
     const saveProgressToServer = useCallback(async (currentTime: number, duration: number) => {
         try {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -159,7 +130,7 @@ export const SecureKinescopePlayer = ({
             const requestData = {
                 contentType,
                 contentId,
-                currentTime: Math.round(currentTime * 100) / 100, // Округляем до 2 знаков
+                currentTime: Math.round(currentTime * 100) / 100,
                 duration: Math.round(duration * 100) / 100,
                 userId: user._id
             };
@@ -184,123 +155,329 @@ export const SecureKinescopePlayer = ({
             console.error('❌ Ошибка сохранения прогресса:', {
                 message: error.message,
                 response: error.response?.data,
-                status: error.response?.status,
-                url: error.config?.url,
-                method: error.config?.method,
-                data: error.config?.data
+                status: error.response?.status
             });
             return false;
         }
     }, [contentType, contentId, onProgressUpdate]);
 
-    // Простое отслеживание прогресса на основе событий play/pause и таймера
+    // Загрузка сохраненного прогресса
     useEffect(() => {
-        if (showPoster) return;
+        const loadProgress = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (!user._id) {
+                    console.log('⚠️ Пользователь не найден, прогресс не загружен');
+                    return;
+                }
 
-        const handleMessage = (event: MessageEvent) => {
-            // Проверяем, что сообщение от Kinescope
-            if (!event.origin.includes('kinescope.io')) {
+                console.log(`📥 Загрузка прогресса для ${contentType}/${contentId}, userId: ${user._id}`);
+                
+                const response = await api.get(`/api/video-progress/${user._id}/${contentType}/${contentId}`);
+                
+                if (response.data.success && response.data.data) {
+                    const progress = response.data.data;
+                    const savedTime = progress.currentTime || 0;
+                    const savedDuration = progress.duration || 0;
+                    
+                    setSavedProgress(savedTime);
+                    
+                    // Обновляем длительность
+                    if (savedDuration > 0) {
+                        durationRef.current = savedDuration;
+                    }
+                    
+                    currentTimeRef.current = savedTime;
+                    
+                    if (onProgressUpdate) {
+                        onProgressUpdate(progress.progress || 0);
+                    }
+                    
+                    console.log(`✅ Прогресс загружен: ${progress.progress}% (${savedTime.toFixed(1)}/${savedDuration.toFixed(1)} сек)`);
+                } else {
+                    console.log('ℹ️ Сохраненный прогресс не найден, начинаем с начала');
+                }
+            } catch (error: any) {
+                console.error('❌ Ошибка загрузки прогресса:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                });
+            }
+        };
+
+        loadProgress();
+    }, [contentType, contentId, onProgressUpdate]);
+
+    // Инициализация длительности из пропсов
+    useEffect(() => {
+        if (durationMinutes > 0) {
+            durationRef.current = durationMinutes * 60;
+            console.log(`📹 Длительность видео установлена: ${durationMinutes} минут (${durationRef.current} секунд)`);
+        }
+    }, [durationMinutes]);
+
+    // Загрузка Kinescope IFrame API и создание плеера
+    useEffect(() => {
+        if (showPoster || isInitializedRef.current) return;
+        if (!containerRef.current) return;
+
+        // Проверяем, не создан ли уже элемент
+        let playerElement = document.getElementById(playerElementIdRef.current);
+        if (!playerElement) {
+            // Создаем элемент для плеера
+            playerElement = document.createElement('div');
+            playerElement.id = playerElementIdRef.current;
+            playerElement.style.width = '100%';
+            playerElement.style.height = '100%';
+            playerElement.style.position = 'absolute';
+            playerElement.style.top = '0';
+            playerElement.style.left = '0';
+            containerRef.current.appendChild(playerElement);
+            console.log('📦 Элемент плеера создан:', playerElementIdRef.current);
+        } else {
+            console.log('📦 Элемент плеера уже существует:', playerElementIdRef.current);
+        }
+
+        // Функция инициализации плеера
+        const initializePlayer = (playerFactory: IframePlayerFactory) => {
+            if (isInitializedRef.current) {
+                console.log('⚠️ Плеер уже инициализирован, пропускаем');
                 return;
             }
+            
+            console.log('🎬 Инициализация Kinescope плеера...');
+            console.log('📹 videoId:', videoId);
+            
+            const videoUrl = getVideoUrl(videoId);
+            console.log('🔗 videoUrl:', videoUrl);
+            
+            const startTime = savedProgress > 0 ? savedProgress : 0;
+            console.log('⏱️ startTime:', startTime);
+            
+            playerFactory
+                .create(playerElementIdRef.current, {
+                    url: videoUrl,
+                    size: { width: '100%', height: '100%' },
+                    autoplay: false,
+                    muted: false,
+                    loop: false,
+                    controls: true,
+                    time: startTime > 0 ? startTime : undefined
+                })
+                .then((player: IframePlayerApi) => {
+                    console.log('✅ Kinescope плеер создан');
+                    playerRef.current = player;
+                    isInitializedRef.current = true;
 
-            try {
-                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                
-                // Обрабатываем событие play - начинаем отслеживание времени
-                if (data.type === 'KINESCOPE_PLAYER_PLAY_EVENT') {
-                    if (!isWatchingRef.current) {
-                        isWatchingRef.current = true;
-                        watchStartTimeRef.current = Date.now();
-                        console.log('▶️ Воспроизведение начато, начинаем отслеживание времени');
-                    }
-                }
-                
-                // Обрабатываем событие pause - останавливаем отслеживание и сохраняем
-                if (data.type === 'KINESCOPE_PLAYER_PAUSE_EVENT') {
-                    if (isWatchingRef.current) {
-                        // Вычисляем время просмотра с момента последнего play
-                        const watchTime = (Date.now() - watchStartTimeRef.current) / 1000;
-                        accumulatedWatchTimeRef.current += watchTime;
-                        watchStartTimeRef.current = 0;
-                        isWatchingRef.current = false;
+                    // Событие Ready - плеер готов к воспроизведению
+                    player.once(player.Events.Ready, (event: any) => {
+                        console.log('✅ Плеер готов:', event);
                         
-                        console.log(`⏸️ Воспроизведение приостановлено. Просмотрено: ${watchTime.toFixed(1)} сек, Всего: ${accumulatedWatchTimeRef.current.toFixed(1)} сек`);
+                        if (event.data?.duration) {
+                            durationRef.current = event.data.duration;
+                            console.log(`📹 Длительность видео: ${durationRef.current} сек`);
+                        }
+                        
+                        if (event.data?.currentTime !== undefined) {
+                            currentTimeRef.current = event.data.currentTime;
+                        }
+                        
+                        // Если есть сохраненный прогресс, перематываем на него
+                        if (savedProgress > 0 && durationRef.current > 0) {
+                            player.seekTo(savedProgress).catch((err) => {
+                                console.error('Ошибка перемотки на сохраненную позицию:', err);
+                            });
+                        }
+                    });
+
+                    // Событие Playing - воспроизведение началось
+                    player.on(player.Events.Playing, () => {
+                        console.log('▶️ Воспроизведение началось');
+                        
+                        // Запускаем периодическое сохранение прогресса
+                        if (!saveIntervalRef.current) {
+                            saveIntervalRef.current = window.setInterval(async () => {
+                                try {
+                                    if (playerRef.current && durationRef.current > 0) {
+                                        const currentTime = await playerRef.current.getCurrentTime();
+                                        currentTimeRef.current = currentTime;
+                                        
+                                        const progress = Math.round((currentTime / durationRef.current) * 100);
+                                        
+                                        // Обновляем прогресс в родительском компоненте
+                                        if (onProgressUpdate) {
+                                            onProgressUpdate(progress);
+                                        }
+                                        
+                                        // Сохраняем каждые 5 секунд
+                                        const now = Date.now();
+                                        if (now - lastSaveTimeRef.current > 5000) {
+                                            lastSaveTimeRef.current = now;
+                                            console.log(`💾 Автосохранение прогресса: ${progress}% (${currentTime.toFixed(1)}/${durationRef.current.toFixed(1)} сек)`);
+                                            saveProgressToServer(currentTime, durationRef.current);
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Ошибка получения текущего времени:', error);
+                                }
+                            }, 1000); // Проверяем каждую секунду
+                        }
+                    });
+
+                    // Событие Pause - пауза
+                    player.on(player.Events.Pause, async () => {
+                        console.log('⏸️ Воспроизведение приостановлено');
                         
                         // Сохраняем прогресс при паузе
-                        if (videoDurationSecondsRef.current > 0) {
-                            const currentTime = Math.min(accumulatedWatchTimeRef.current, videoDurationSecondsRef.current);
-                            saveProgressToServer(currentTime, videoDurationSecondsRef.current);
+                        if (playerRef.current && durationRef.current > 0) {
+                            try {
+                                const currentTime = await playerRef.current.getCurrentTime();
+                                currentTimeRef.current = currentTime;
+                                saveProgressToServer(currentTime, durationRef.current);
+                            } catch (error) {
+                                console.error('Ошибка сохранения прогресса при паузе:', error);
+                            }
+                        }
+                    });
+
+                    // Событие TimeUpdate - обновление времени воспроизведения
+                    player.on(player.Events.TimeUpdate, (event: any) => {
+                        if (event.data?.currentTime !== undefined) {
+                            currentTimeRef.current = event.data.currentTime;
+                            
+                            if (durationRef.current > 0 && onProgressUpdate) {
+                                const progress = Math.round((event.data.currentTime / durationRef.current) * 100);
+                                onProgressUpdate(progress);
+                            }
+                        }
+                    });
+
+                    // Событие DurationChange - изменение длительности
+                    player.on(player.Events.DurationChange, (event: any) => {
+                        if (event.data?.duration) {
+                            durationRef.current = event.data.duration;
+                            console.log(`📹 Длительность обновлена: ${durationRef.current} сек`);
+                        }
+                    });
+
+                    // Событие Ended - окончание воспроизведения
+                    player.on(player.Events.Ended, async () => {
+                        console.log('🏁 Воспроизведение завершено');
+                        
+                        // Сохраняем прогресс как завершенный
+                        if (playerRef.current && durationRef.current > 0) {
+                            try {
+                                await saveProgressToServer(durationRef.current, durationRef.current);
+                            } catch (error) {
+                                console.error('Ошибка сохранения прогресса при завершении:', error);
+                            }
+                        }
+                    });
+
+                    // Инициализация Telegram WebApp для полноэкранного режима
+                    if (isTelegramWebView() && window.Telegram?.WebApp) {
+                        const tg = window.Telegram.WebApp;
+                        if (!tg.isExpanded) {
+                            tg.expand();
                         }
                     }
-                }
-            } catch (error) {
-                // Игнорируем ошибки парсинга
-            }
+                })
+                .catch((error) => {
+                    console.error('❌ Ошибка создания плеера:', error);
+                });
         };
 
-        window.addEventListener('message', handleMessage);
+        // Устанавливаем глобальную функцию ДО загрузки скрипта
+        window.onKinescopeIframeAPIReady = initializePlayer;
 
-        // Периодическое сохранение прогресса каждые 5 секунд во время просмотра
-        saveIntervalRef.current = window.setInterval(() => {
-            if (isWatchingRef.current && videoDurationSecondsRef.current > 0) {
-                // Вычисляем текущее время просмотра
-                const currentWatchTime = watchStartTimeRef.current > 0
-                    ? accumulatedWatchTimeRef.current + (Date.now() - watchStartTimeRef.current) / 1000
-                    : accumulatedWatchTimeRef.current;
-                
-                const currentTime = Math.min(currentWatchTime, videoDurationSecondsRef.current);
-                const progress = Math.round((currentTime / videoDurationSecondsRef.current) * 100);
-                
-                // Обновляем прогресс в родительском компоненте
-                if (onProgressUpdate) {
-                    onProgressUpdate(progress);
-                }
-                
-                // Сохраняем каждые 5 секунд
-                const now = Date.now();
-                if (now - lastSaveTimeRef.current > 5000) {
-                    lastSaveTimeRef.current = now;
-                    console.log(`💾 Автосохранение прогресса: ${progress}% (${currentTime.toFixed(1)}/${videoDurationSecondsRef.current.toFixed(1)} сек)`);
-                    saveProgressToServer(currentTime, videoDurationSecondsRef.current);
-                }
+        // Проверяем, загружен ли уже скрипт API
+        const existingScript = document.querySelector('script[src*="iframe.player.js"]');
+        
+        if (existingScript) {
+            // Если скрипт уже загружен, проверяем доступность API
+            if ((window as any).KinescopeIframePlayerFactory) {
+                console.log('✅ Kinescope IFrame API уже загружен');
+                initializePlayer((window as any).KinescopeIframePlayerFactory);
+            } else {
+                // Ждем немного, возможно API еще загружается
+                setTimeout(() => {
+                    if ((window as any).KinescopeIframePlayerFactory) {
+                        initializePlayer((window as any).KinescopeIframePlayerFactory);
+                    } else {
+                        console.warn('⚠️ Kinescope IFrame API не найден, перезагружаем скрипт');
+                        // Перезагружаем скрипт
+                        existingScript.remove();
+                        loadScript();
+                    }
+                }, 100);
             }
-        }, 1000); // Проверяем каждую секунду, сохраняем каждые 5 секунд
+        } else {
+            // Загружаем скрипт API
+            loadScript();
+        }
+
+        function loadScript() {
+            const script = document.createElement('script');
+            script.src = 'https://player.kinescope.io/latest/iframe.player.js';
+            script.async = true;
+            
+            script.onload = () => {
+                console.log('✅ Kinescope IFrame API загружен');
+                // API автоматически вызовет window.onKinescopeIframeAPIReady
+            };
+            
+            script.onerror = () => {
+                console.error('❌ Ошибка загрузки Kinescope IFrame API');
+            };
+            
+            const firstScript = document.getElementsByTagName('script')[0];
+            firstScript.parentNode?.insertBefore(script, firstScript);
+        }
 
         return () => {
-            window.removeEventListener('message', handleMessage);
+            // Очистка при размонтировании
             if (saveIntervalRef.current) {
                 clearInterval(saveIntervalRef.current);
+                saveIntervalRef.current = null;
             }
-            // Сохраняем прогресс при размонтировании компонента
-            if (videoDurationSecondsRef.current > 0 && accumulatedWatchTimeRef.current > 0) {
-                const currentTime = Math.min(accumulatedWatchTimeRef.current, videoDurationSecondsRef.current);
-                saveProgressToServer(currentTime, videoDurationSecondsRef.current);
+            
+            // Сохраняем прогресс при размонтировании
+            if (playerRef.current && durationRef.current > 0 && currentTimeRef.current > 0) {
+                saveProgressToServer(currentTimeRef.current, durationRef.current).catch((err) => {
+                    console.error('Ошибка сохранения прогресса при размонтировании:', err);
+                });
             }
+            
+            // Уничтожаем плеер
+            if (playerRef.current) {
+                playerRef.current.destroy().catch((err) => {
+                    console.error('Ошибка уничтожения плеера:', err);
+                });
+                playerRef.current = null;
+            }
+            
+            // Удаляем элемент плеера из DOM
+            const playerElement = document.getElementById(playerElementIdRef.current);
+            if (playerElement && playerElement.parentNode) {
+                playerElement.parentNode.removeChild(playerElement);
+            }
+            
+            isInitializedRef.current = false;
         };
-    }, [contentType, contentId, onProgressUpdate, showPoster, saveProgressToServer]);
+    }, [videoId, showPoster, savedProgress, saveProgressToServer, onProgressUpdate]);
 
     // Сохранение прогресса при закрытии страницы
     useEffect(() => {
-        const handleBeforeUnload = () => {
-            // При закрытии страницы пытаемся сохранить прогресс
-            if (iframeRef.current?.contentWindow && !showPoster) {
+        const handleBeforeUnload = async () => {
+            if (playerRef.current && durationRef.current > 0 && currentTimeRef.current > 0) {
                 try {
-                    // Запрашиваем текущее время перед закрытием
-                    iframeRef.current.contentWindow.postMessage({
-                        type: 'getCurrentTime',
-                        method: 'getCurrentTime'
-                    }, 'https://kinescope.io');
-                    
-                    // Даем время на ответ (синхронно не получится, но попробуем)
-                    setTimeout(() => {
-                        // Если есть сохраненный прогресс, сохраняем его
-                        if (savedProgress > 0) {
-                            // Можно попробовать сохранить последний известный прогресс
-                            console.log('Попытка сохранить прогресс при закрытии страницы');
-                        }
-                    }, 100);
-                } catch (e) {
-                    // Игнорируем ошибки
+                    // Пытаемся получить актуальное время
+                    const currentTime = await playerRef.current.getCurrentTime();
+                    await saveProgressToServer(currentTime, durationRef.current);
+                } catch (error) {
+                    // Если не получилось, сохраняем последнее известное значение
+                    saveProgressToServer(currentTimeRef.current, durationRef.current);
                 }
             }
         };
@@ -312,69 +489,7 @@ export const SecureKinescopePlayer = ({
             window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('pagehide', handleBeforeUnload);
         };
-    }, [showPoster, savedProgress]);
-
-    useEffect(() => {
-        // Защита от копирования URL через DevTools
-        const preventUrlCopy = () => {
-            if (iframeRef.current) {
-                const iframe = iframeRef.current;
-                
-                // Блокируем доступ к src через консоль
-                try {
-                    Object.defineProperty(iframe, 'src', {
-                        get: () => {
-                            // Возвращаем замаскированный URL вместо реального
-                            return 'about:blank';
-                        },
-                        set: () => {
-                            // Предотвращаем изменение src
-                            return;
-                        },
-                        configurable: false,
-                        enumerable: false
-                    });
-                } catch (e) {
-                    // Игнорируем ошибки, если свойство уже определено
-                }
-
-                // Также защищаем contentWindow
-                try {
-                    Object.defineProperty(iframe, 'contentWindow', {
-                        get: () => null,
-                        configurable: false,
-                        enumerable: false
-                    });
-                } catch (e) {
-                    // Игнорируем ошибки
-                }
-            }
-        };
-
-        // Защита от инспектирования через MutationObserver
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                    // Если кто-то пытается изменить src, восстанавливаем защиту
-                    preventUrlCopy();
-                }
-            });
-        });
-
-        if (!showPoster && iframeRef.current) {
-            preventUrlCopy();
-            
-            // Наблюдаем за изменениями атрибутов
-            observer.observe(iframeRef.current, {
-                attributes: true,
-                attributeFilter: ['src']
-            });
-        }
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [showPoster]);
+    }, [saveProgressToServer]);
 
     // Защита от контекстного меню на контейнере
     const handleContextMenu = (e: React.MouseEvent) => {
@@ -382,12 +497,11 @@ export const SecureKinescopePlayer = ({
         return false;
     };
 
-    // Защита от выделения текста через нативные события (только на контейнере, не на iframe)
+    // Защита от выделения текста
     useEffect(() => {
         const handleSelectStart = (e: Event) => {
             const target = e.target as HTMLElement;
-            // Разрешаем выделение внутри iframe (для полноэкранного режима)
-            if (target.tagName === 'IFRAME' || target.closest('iframe')) {
+            if (target.tagName === 'IFRAME' || target.closest('iframe') || target.closest('[id*="kinescope"]')) {
                 return;
             }
             e.preventDefault();
@@ -405,86 +519,18 @@ export const SecureKinescopePlayer = ({
         };
     }, []);
 
-    // Инициализация Telegram WebApp для полноэкранного режима (если еще не инициализирован)
-    useEffect(() => {
-        if (isTelegramWebView() && window.Telegram?.WebApp) {
-            const tg = window.Telegram.WebApp;
-            
-            // Убеждаемся, что WebApp расширен на весь экран
-            if (!tg.isExpanded) {
-                tg.expand();
-            }
-        }
-    }, []);
-
-    // Обработка загрузки iframe
-    const handleIframeLoad = () => {
-        // Дополнительная защита после загрузки
-        if (iframeRef.current) {
-            // Блокируем доступ к различным свойствам iframe
-            try {
-                ['contentDocument', 'contentWindow'].forEach(prop => {
-                    try {
-                        Object.defineProperty(iframeRef.current!, prop, {
-                            get: () => null,
-                            configurable: false,
-                            enumerable: false
-                        });
-                    } catch (e) {
-                        // Игнорируем ошибки
-                    }
-                });
-            } catch (e) {
-                // Игнорируем ошибки CORS (это нормально для iframe)
-            }
-        }
-        
-        // Для Telegram WebView расширяем приложение на весь экран при загрузке видео
-        if (isTelegramWebView() && window.Telegram?.WebApp && !window.Telegram.WebApp.isExpanded) {
-            window.Telegram.WebApp.expand();
-        }
-    };
-
     return (
         <div 
             ref={containerRef}
             className="relative w-full rounded-lg overflow-hidden"
             style={{ 
                 paddingBottom: '56.25%',
-                WebkitTouchCallout: 'default', // Разрешаем жесты для полноэкранного режима на iOS
-                touchAction: 'manipulation' // Разрешаем жесты для полноэкранного режима
+                WebkitTouchCallout: 'default',
+                touchAction: 'manipulation'
             }}
             onContextMenu={handleContextMenu}
             data-video-id={videoId}
         >
-            {!showPoster && (
-                <iframe
-                    ref={iframeRef}
-                    src={getSecureEmbedUrl(videoId, savedProgress)}
-                    title={title || 'Video player'}
-                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; screen-wake-lock;"
-                    allowFullScreen
-                    className="absolute top-0 left-0 w-full h-full rounded-lg"
-                    style={{
-                        pointerEvents: 'auto',
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        touchAction: 'manipulation' // Разрешаем жесты для полноэкранного режима на мобильных
-                    }}
-                    onLoad={handleIframeLoad}
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-presentation allow-fullscreen"
-                    loading="lazy"
-                    // Скрываем URL от инспектора - используем data-атрибут вместо прямого отображения
-                    data-video-id={videoId}
-                    // Дополнительные атрибуты безопасности
-                    referrerPolicy="no-referrer"
-                    // Разрешаем контекстное меню для полноэкранного режима
-                    onContextMenu={(e) => {
-                        // Не блокируем контекстное меню на iframe, чтобы работал полноэкранный режим
-                        e.stopPropagation();
-                    }}
-                />
-            )}
             {showPoster && poster && (
                 <div 
                     className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
@@ -515,6 +561,3 @@ export const SecureKinescopePlayer = ({
         </div>
     );
 };
-
-
-
