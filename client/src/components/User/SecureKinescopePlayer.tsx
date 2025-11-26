@@ -233,10 +233,41 @@ export const SecureKinescopePlayer = ({
             playerElement.style.position = 'absolute';
             playerElement.style.top = '0';
             playerElement.style.left = '0';
+            playerElement.style.margin = '0';
+            playerElement.style.padding = '0';
+            playerElement.style.overflow = 'hidden';
             containerRef.current.appendChild(playerElement);
             console.log('📦 Элемент плеера создан:', playerElementIdRef.current);
         } else {
             console.log('📦 Элемент плеера уже существует:', playerElementIdRef.current);
+        }
+        
+        // Добавляем стили для iframe, который создаст Kinescope API
+        const styleId = `kinescope-player-styles-${contentId}`;
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                #${playerElementIdRef.current} iframe {
+                    width: 100% !important;
+                    height: 100% !important;
+                    position: absolute !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    border: none !important;
+                }
+                #${playerElementIdRef.current} > div {
+                    width: 100% !important;
+                    height: 100% !important;
+                    position: relative !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            console.log('📝 Стили для плеера добавлены');
         }
 
         // Функция инициализации плеера
@@ -269,6 +300,11 @@ export const SecureKinescopePlayer = ({
                     console.log('✅ Kinescope плеер создан');
                     playerRef.current = player;
                     isInitializedRef.current = true;
+                    
+                    // Убираем paddingBottom после создания плеера, чтобы не было отступа
+                    if (containerRef.current) {
+                        containerRef.current.style.paddingBottom = '0';
+                    }
 
                     // Событие Ready - плеер готов к воспроизведению
                     player.once(player.Events.Ready, (event: any) => {
@@ -463,6 +499,13 @@ export const SecureKinescopePlayer = ({
                 playerElement.parentNode.removeChild(playerElement);
             }
             
+            // Удаляем добавленные стили
+            const styleId = `kinescope-player-styles-${contentId}`;
+            const styleElement = document.getElementById(styleId);
+            if (styleElement) {
+                styleElement.remove();
+            }
+            
             isInitializedRef.current = false;
         };
     }, [videoId, showPoster, savedProgress, saveProgressToServer, onProgressUpdate]);
@@ -524,9 +567,13 @@ export const SecureKinescopePlayer = ({
             ref={containerRef}
             className="relative w-full rounded-lg overflow-hidden"
             style={{ 
-                paddingBottom: '56.25%',
+                paddingBottom: '56.25%', // Для поддержания соотношения сторон 16:9
                 WebkitTouchCallout: 'default',
-                touchAction: 'manipulation'
+                touchAction: 'manipulation',
+                margin: 0,
+                paddingTop: 0,
+                paddingLeft: 0,
+                paddingRight: 0
             }}
             onContextMenu={handleContextMenu}
             data-video-id={videoId}
