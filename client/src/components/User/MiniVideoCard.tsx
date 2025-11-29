@@ -10,11 +10,11 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                     <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-[100px] rounded-lg object-cover" />
                 </div>
 
-                <div className='p-4 pt-3 text-left flex-grow flex flex-col'>
+                <div className='w-full p-4 pt-3 text-left flex-grow flex flex-col'>
                     <p className="font-medium">{title}</p>
                     <div className="mt-auto">
                         <div className='flex items-center justify-between'>
-                            <p className='text-sm font-medium mt-2'>{progress}%</p>
+                            <p className='text-sm font-medium'>{progress}%</p>
                             <p className='text-sm font-medium'>{duration} мин.</p>
                         </div>
                         <div className='w-full h-1.5 bg-white/40 rounded-full mt-1'>
@@ -35,11 +35,11 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                     />
                 </div>
 
-                <div className='p-4 pt-3 text-left flex-grow flex flex-col'>
+                <div className='w-full p-4 pt-3 text-left flex-grow flex flex-col'>
                     <p className="font-medium">{title}</p>
                     <div className="mt-auto">
-                        <div className='flex items-center justify-between'>
-                            <p className='text-sm font-medium mt-2'>{progress}%</p>
+                        <div className='w-full flex items-center justify-between'>
+                            <p className='text-sm font-medium'>{progress}%</p>
                             <p className='text-sm font-medium'>{duration} мин.</p>
                         </div>
                         <div className='w-full h-1.5 bg-white/40 rounded-full mt-1'>

@@ -96,6 +96,15 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    invitedUser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
+    subscriptionEndDate: {
+        type: Date,
+        default: null,
+    },
 }, {
     timestamps: true
 });

@@ -86,6 +86,7 @@ export const ClientVideoLesson = () => {
                                         contentType="videoLesson"
                                         contentId={id || ''}
                                         duration={videoLesson?.duration}
+                                        accessType={videoLesson?.accessType || 'subscription'}
                                     />
                                 </div>
                             );

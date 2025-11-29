@@ -144,6 +144,48 @@ export const ClientVideoLessonsList = () => {
         }
         setIsModalOpen(true);
     }
+    const handleLockedVideoLessonClickSubscription = (videoLesson: any) => {
+        const accessType = videoLesson.accessType;
+        
+        // Проверяем, есть ли уже доступ к контенту
+        if (hasAccessToContentSubscription()) {
+            // Если есть доступ, ничего не делаем (контент уже доступен)
+            return;
+        }
+        
+        // Если это контент за бонусы (stars)
+        if (accessType === 'stars') {
+            // Проверяем, зарегистрирован ли клиент
+            if (!userData?.emailConfirmed) {
+                // Если не зарегистрирован, показываем стандартное модальное окно
+                setAccessType(accessType);
+                setContent(starsContent);
+                setIsModalOpen(true);
+                return;
+            }
+
+            // Если зарегистрирован, проверяем бонусы
+            const starsRequired = videoLesson.starsRequired || 0;
+            if (userData.bonus < starsRequired) {
+                // Недостаточно бонусов, показываем модальное окно о недостатке бонусов
+                setSelectedVideoLesson(videoLesson);
+                setIsInsufficientBonusModalOpen(true);
+                return;
+            }
+
+            // Достаточно бонусов, показываем модальное окно подтверждения покупки
+            setSelectedVideoLesson(videoLesson);
+            setIsPurchaseModalOpen(true);
+            return;
+        }
+
+        // Для subscription показываем стандартное модальное окно
+        setAccessType(accessType);
+        if (accessType === 'subscription') {
+            setContent(subscriptionContent);
+        }
+        setIsModalOpen(true);
+    }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -173,6 +215,11 @@ export const ClientVideoLessonsList = () => {
         );
     }
 
+    const hasAccessToContentSubscription = (): boolean => {
+        if (userData?.hasPaid) return true;
+        return false;
+    }
+
     return (
         <div>
             <UserLayout>
@@ -194,8 +241,8 @@ export const ClientVideoLessonsList = () => {
                                             image={videoLesson.imageUrl} 
                                             link={`/client/video-lesson/${videoLesson._id}`} 
                                             progress={progresses[videoLesson._id] || 0} 
-                                            accessType={hasAccessToContent(videoLesson._id) ? 'free' : videoLesson.accessType}
-                                            onLockedClick={hasAccessToContent(videoLesson._id) ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClick(videoLesson) : undefined)}
+                                            accessType={hasAccessToContentSubscription() ? 'free' : videoLesson.accessType}
+                                            onLockedClick={hasAccessToContentSubscription() ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClickSubscription(videoLesson) : undefined)}
                                             duration={videoLesson?.duration || 0}
                                         />
                                     </div>

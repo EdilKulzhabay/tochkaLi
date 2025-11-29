@@ -264,7 +264,7 @@ export const DateRangeCalendar = ({
                                 aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-red-500 text-white font-semibold' : ''}
-                                ${today && !selected ? 'border-2 border-red-500' : ''}
+                                ${today && !selected ? 'border-2 border-[#FFC293]' : ''}
                                 ${!selected && !today ? 'hover:bg-white/10' : ''}
                             `}
                         >

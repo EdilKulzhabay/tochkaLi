@@ -18,7 +18,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (fullName: string, email: string, phone: string, password: string, telegramId?: string) => Promise<void>;
+    register: (fullName: string, email: string, phone: string, telegramId?: string) => Promise<void>;
     logout: () => void;
     checkSession: () => Promise<boolean>;
     updateUser: (userData: User) => void;
@@ -152,12 +152,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const register = async (fullName: string, email: string, phone: string, password: string, telegramId?: string) => {
+    const register = async (fullName: string, email: string, phone: string, telegramId?: string) => {
         const response = await api.post("/api/user/register", { 
             fullName, 
             mail: email, 
             phone, 
-            password,
             ...(telegramId && { telegramId })
         });
         

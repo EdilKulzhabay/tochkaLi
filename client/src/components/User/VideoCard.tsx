@@ -1,11 +1,20 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import lock from '../../assets/lock.png';
 import arrowRight from '../../assets/arrowRight.png';
 import star from '../../assets/star.png';
 
 export const VideoCard = ({ title, description, image, link, accessType, progress, onLockedClick, starsRequired, duration }: { title: string, description: string, image: string, link: string, accessType: string, progress: number, onLockedClick?: () => void, starsRequired?: number, duration?: number }) => {
+    const navigate = useNavigate();
+    const handleClick = () => {
+        if (accessType === 'free') {
+            navigate(link);
+        } else {
+            onLockedClick?.();
+        }
+    }
+
     return (
-        <div className="bg-[#333333] rounded-lg flex gap-x-3 items-center">
+        <button onClick={handleClick} className="w-full text-left bg-[#333333] rounded-lg flex gap-x-3 items-center cursor-pointer">
             <div className="basis-[40%] relative">
                 <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full rounded-lg object-cover" />
                 {accessType !== 'free' && (
@@ -45,28 +54,28 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                     </div>
 
                     {accessType === 'free' && (
-                        <Link to={link} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full cursor-pointer">
+                        <div className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full cursor-pointer">
                             <p className="text-[12px] text-[#FFC293]">Посмотреть</p>
                             <img
                                 src={arrowRight}
                                 alt="arrow-right"
                                 className="w-[12px] h-[12px] ml-px"
                             />
-                        </Link>
+                        </div>
                     )}
                     {accessType === 'stars' && (
-                        <button onClick={onLockedClick} className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full cursor-pointer">
+                        <div className="w-[55%] flex items-center justify-center px-3 py-1.5 border border-[#FFC293] rounded-full cursor-pointer">
                             <p className="text-[12px] text-[#FFC293]">{starsRequired}</p>
                             <img
                                 src={star}
                                 alt="star"
                                 className="w-[12px] h-[12px] ml-2"
                             />
-                        </button>
+                        </div>
                     )}
                 </div>
             </div>
             
-        </div>
+        </button>
     );
 };

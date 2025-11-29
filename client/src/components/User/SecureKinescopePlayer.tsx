@@ -12,6 +12,7 @@ interface SecureKinescopePlayerProps {
     contentId: string;
     duration?: number; // Длительность в минутах из данных контента
     onProgressUpdate?: (progress: number) => void;
+    accessType?: 'free' | 'paid' | 'subscription' | 'stars'; // Тип доступа к контенту
 }
 
 // Типы для Kinescope IFrame API
@@ -70,7 +71,8 @@ export const SecureKinescopePlayer = ({
     contentType,
     contentId,
     duration: durationMinutes = 0,
-    onProgressUpdate
+    onProgressUpdate,
+    accessType = 'subscription'
 }: SecureKinescopePlayerProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<IframePlayerApi | null>(null);
@@ -328,10 +330,39 @@ export const SecureKinescopePlayer = ({
                     });
 
                     // Событие Playing - воспроизведение началось
-                    player.on(player.Events.Playing, () => {
+                    player.on(player.Events.Playing, async () => {
                         console.log('▶️ Воспроизведение началось');
                         
-                        // Запускаем периодическое сохранение прогресса
+                        // Если контент бесплатный, сразу устанавливаем прогресс в 100% и сохраняем один раз
+                        if (accessType === 'free') {
+                            console.log('🆓 Бесплатный контент: устанавливаем прогресс в 100%');
+                            
+                            // Получаем длительность для сохранения
+                            try {
+                                const duration = await playerRef.current?.getDuration() || durationRef.current;
+                                if (duration > 0) {
+                                    durationRef.current = duration;
+                                    currentTimeRef.current = duration;
+                                    
+                                    // Устанавливаем прогресс в 100%
+                                    const progress = 100;
+                                    if (onProgressUpdate) {
+                                        onProgressUpdate(progress);
+                                    }
+                                    
+                                    // Сохраняем прогресс один раз
+                                    await saveProgressToServer(duration, duration);
+                                    console.log('✅ Прогресс для бесплатного контента установлен в 100%');
+                                }
+                            } catch (error) {
+                                console.error('Ошибка установки прогресса для бесплатного контента:', error);
+                            }
+                            
+                            // Не запускаем интервал для бесплатного контента
+                            return;
+                        }
+                        
+                        // Для платного контента запускаем периодическое сохранение прогресса
                         if (!saveIntervalRef.current) {
                             saveIntervalRef.current = window.setInterval(async () => {
                                 try {
@@ -365,6 +396,11 @@ export const SecureKinescopePlayer = ({
                     player.on(player.Events.Pause, async () => {
                         console.log('⏸️ Воспроизведение приостановлено');
                         
+                        // Для бесплатного контента не сохраняем прогресс при паузе
+                        if (accessType === 'free') {
+                            return;
+                        }
+                        
                         // Сохраняем прогресс при паузе
                         if (playerRef.current && durationRef.current > 0) {
                             try {
@@ -379,6 +415,11 @@ export const SecureKinescopePlayer = ({
 
                     // Событие TimeUpdate - обновление времени воспроизведения
                     player.on(player.Events.TimeUpdate, (event: any) => {
+                        // Для бесплатного контента не обновляем прогресс
+                        if (accessType === 'free') {
+                            return;
+                        }
+                        
                         if (event.data?.currentTime !== undefined) {
                             currentTimeRef.current = event.data.currentTime;
                             
@@ -400,6 +441,11 @@ export const SecureKinescopePlayer = ({
                     // Событие Ended - окончание воспроизведения
                     player.on(player.Events.Ended, async () => {
                         console.log('🏁 Воспроизведение завершено');
+                        
+                        // Для бесплатного контента не сохраняем прогресс при завершении
+                        if (accessType === 'free') {
+                            return;
+                        }
                         
                         // Сохраняем прогресс как завершенный
                         if (playerRef.current && durationRef.current > 0) {
@@ -478,8 +524,8 @@ export const SecureKinescopePlayer = ({
                 saveIntervalRef.current = null;
             }
             
-            // Сохраняем прогресс при размонтировании
-            if (playerRef.current && durationRef.current > 0 && currentTimeRef.current > 0) {
+            // Сохраняем прогресс при размонтировании (только для платного контента)
+            if (accessType !== 'free' && playerRef.current && durationRef.current > 0 && currentTimeRef.current > 0) {
                 saveProgressToServer(currentTimeRef.current, durationRef.current).catch((err) => {
                     console.error('Ошибка сохранения прогресса при размонтировании:', err);
                 });
@@ -508,11 +554,16 @@ export const SecureKinescopePlayer = ({
             
             isInitializedRef.current = false;
         };
-    }, [videoId, showPoster, savedProgress, saveProgressToServer, onProgressUpdate]);
+    }, [videoId, showPoster, savedProgress, saveProgressToServer, onProgressUpdate, accessType]);
 
-    // Сохранение прогресса при закрытии страницы
+    // Сохранение прогресса при закрытии страницы (только для платного контента)
     useEffect(() => {
         const handleBeforeUnload = async () => {
+            // Для бесплатного контента не сохраняем прогресс при закрытии
+            if (accessType === 'free') {
+                return;
+            }
+            
             if (playerRef.current && durationRef.current > 0 && currentTimeRef.current > 0) {
                 try {
                     // Пытаемся получить актуальное время
@@ -532,7 +583,7 @@ export const SecureKinescopePlayer = ({
             window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('pagehide', handleBeforeUnload);
         };
-    }, [saveProgressToServer]);
+    }, [saveProgressToServer, accessType]);
 
     // Защита от контекстного меню на контейнере
     const handleContextMenu = (e: React.MouseEvent) => {

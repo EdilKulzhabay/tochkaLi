@@ -237,7 +237,7 @@ export const codeConfirm = async (req, res) => {
 
 export const createUser = async (req, res) => {
     try {
-        const { telegramId, telegramUserName } = req.body;
+        const { telegramId, telegramUserName, referralTelegramId } = req.body;
         const candidate = await User.findOne({ telegramId });
 
         console.log("createUser req.body: ", req.body);
@@ -249,10 +249,31 @@ export const createUser = async (req, res) => {
             });
         }
 
+        // Обработка реферальной ссылки
+        let invitedUser = null;
+        if (referralTelegramId) {
+            // Находим пользователя, который пригласил (по telegramId)
+            const inviter = await User.findOne({ telegramId: referralTelegramId });
+            
+            if (inviter) {
+                invitedUser = inviter._id;
+                
+                // Добавляем 1 бонус тому, кто пригласил
+                await User.findByIdAndUpdate(inviter._id, {
+                    $inc: { bonus: 1 }
+                });
+                
+                console.log(`✅ Пользователь ${inviter.telegramId} получил 1 бонус за приглашение пользователя ${telegramId}`);
+            } else {
+                console.log(`⚠️ Реферальный пользователь с telegramId ${referralTelegramId} не найден`);
+            }
+        }
+
         const doc = new User({
             telegramId,
             telegramUserName,
             status: 'guest',
+            invitedUser: invitedUser,
         });
 
         const user = await doc.save();
@@ -267,11 +288,11 @@ export const createUser = async (req, res) => {
 
 export const register = async (req, res) => {
     try {
-        const { fullName, mail, phone, password, telegramId } = req.body;
+        const { fullName, mail, phone, telegramId } = req.body;
 
         console.log("register req.body: ", req.body);
         
-        if (!fullName || !mail || !phone || !password) {
+        if (!fullName || !mail || !phone) {
             return res.status(400).json({
                 success: false,
                 message: "Все поля обязательны для заполнения",
@@ -287,9 +308,6 @@ export const register = async (req, res) => {
             });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-
         const telegramUser = await User.findOne({ telegramId });
 
         let user;
@@ -300,17 +318,17 @@ export const register = async (req, res) => {
                 mail: mail?.toLowerCase(),
                 phone,
                 status: 'active',
-                password: hash,
+                $inc: { bonus: 10 },
             });
             
             user = await User.findById(telegramUser._id);
         } else {
             const doc = new User({
-                password: hash,
                 fullName,
                 mail: mail?.toLowerCase(),
                 phone,
                 status: 'active',
+                bonus: 10,
             });
             user = await doc.save();
         }
@@ -564,14 +582,11 @@ export const updateUser = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        // Не позволяем обновлять пароль через этот метод (используйте changePassword)
-        if (updateData.password) {
-            const salt = await bcrypt.genSalt(10);
-            updateData.password = await bcrypt.hash(updateData.password, salt);
-        }
-        
+        // Удаляем поля, которые нельзя обновлять через этот метод
+        delete updateData.password;
         delete updateData.currentToken;
         delete updateData.refreshToken;
+        // bonus теперь можно обновлять
 
         const user = await User.findByIdAndUpdate(
             id,
@@ -596,6 +611,84 @@ export const updateUser = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка обновления пользователя",
+        });
+    }
+};
+
+// Активировать подписку пользователя
+export const activateSubscription = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { subscriptionEndDate } = req.body;
+
+        if (!subscriptionEndDate) {
+            return res.status(400).json({
+                success: false,
+                message: "Дата окончания подписки обязательна",
+            });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            { 
+                subscriptionEndDate: new Date(subscriptionEndDate),
+                hasPaid: true
+            },
+            { new: true, runValidators: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: user,
+            message: "Подписка активирована",
+        });
+    } catch (error) {
+        console.log("Ошибка в activateSubscription:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка активации подписки",
+        });
+    }
+};
+
+// Деактивировать подписку пользователя
+export const deactivateSubscription = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            { 
+                subscriptionEndDate: null,
+                hasPaid: false
+            },
+            { new: true, runValidators: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: user,
+            message: "Подписка отменена",
+        });
+    } catch (error) {
+        console.log("Ошибка в deactivateSubscription:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка отмены подписки",
         });
     }
 };
@@ -763,7 +856,9 @@ export const changePassword = async (req, res) => {
 export const getProfile = async (req, res) => {
     try {
         const { userId } = req.body;
-        const user = await User.findById(userId).select("-password -currentToken -refreshToken");
+        const user = await User.findById(userId)
+            .select("-password -currentToken -refreshToken")
+            .populate('invitedUser', 'fullName telegramUserName telegramId');
         res.json({ success: true, user });
     } catch (error) {
         console.log("Ошибка в getProfile:", error);

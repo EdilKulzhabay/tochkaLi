@@ -29,6 +29,7 @@ import { AboutClubForm } from "./pages/Admin/AboutClubForm";
 import { SchumannAdmin } from "./pages/Admin/Schumann";
 import { SchumannForm } from "./pages/Admin/SchumannForm";
 import { UsersAdmin } from "./pages/Admin/Users";
+import { UserForm } from "./pages/Admin/UserForm";
 import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
 import { RobokassaSuccess } from "./pages/Robokassa/Success";
@@ -311,6 +312,14 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/users",
         element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><UsersAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/users/create",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><UserForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/users/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><UserForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/profile",

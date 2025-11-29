@@ -85,6 +85,8 @@ app.post("/api/user/create-by-admin", UserController.createUserByAdmin);
 app.get("/api/user/all", UserController.getAllUsers);
 app.get("/api/user/:id", UserController.getUserById);
 app.put("/api/user/:id", UserController.updateUser);
+app.put("/api/user/:id/activate-subscription", UserController.activateSubscription);
+app.put("/api/user/:id/deactivate-subscription", UserController.deactivateSubscription);
 app.delete("/api/user/:id", UserController.deleteUser);
 
 // Управление профилем (для авторизованных пользователей)

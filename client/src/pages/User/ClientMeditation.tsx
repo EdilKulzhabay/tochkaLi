@@ -86,6 +86,7 @@ export const ClientMeditation = () => {
                                         contentType="meditation"
                                         contentId={id || ''}
                                         duration={meditation?.duration}
+                                        accessType={meditation?.accessType || 'subscription'}
                                     />
                                 </div>
                             );

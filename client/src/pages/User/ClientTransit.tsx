@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { UserLayout } from "../../components/User/UserLayout";
 import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
-import { formatDateRangeReadable } from "../../components/User/dateUtils";
 import { MobileAccordionList } from "../../components/User/MobileAccordionList";
 import { RedButton } from "../../components/User/RedButton";
 import { Link, useNavigate } from "react-router-dom";
@@ -50,6 +49,25 @@ export const ClientTransit = () => {
         }
     };
 
+    const formatDateRange = (startDate: string | Date, endDate: string | Date): string => {
+        const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+        const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+        
+        const year = start.getFullYear();
+        const startDay = start.getDate();
+        const endDay = end.getDate();
+        
+        const monthNames = [
+            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+        ];
+        
+        const startMonth = monthNames[start.getMonth()];
+        const endMonth = monthNames[end.getMonth()];
+        
+        return `${year}: ${startDay} ${startMonth}-${endDay} ${endMonth}`;
+    };
+
     return (
         <UserLayout>
             <div className="pb-10 min-h-screen flex flex-col justify-between">
@@ -59,10 +77,10 @@ export const ClientTransit = () => {
                         <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {transit && (
                             <div className="mt-4">
-                                <p className="text-xl font-semibold">
-                                    {formatDateRangeReadable(transit.startDate, transit.endDate)}
+                                <p className="text-sm">
+                                    {formatDateRange(transit.startDate, transit.endDate)}
                                 </p>
-                                <h2 className="text-2xl mt-3">{transit.title}</h2>
+                                <h2 className="text-xl font-medium">{transit.title}</h2>
                                 {transit.subtitle && (
                                     <h3 className="text-xl mt-2">{transit.subtitle}</h3>
                                 )}

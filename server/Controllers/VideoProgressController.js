@@ -30,6 +30,12 @@ export const saveProgress = async (req, res) => {
         const progress = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
         const completed = progress >= 90; // Считаем завершенным, если просмотрено 90% или больше
 
+        if (completed) {
+            await User.findByIdAndUpdate(userId, {
+                $inc: { bonus: 1 },
+            });
+        }
+
         // Ищем существующий прогресс или создаем новый
         const existingProgress = await VideoProgress.findOne({
             userId,
@@ -39,10 +45,10 @@ export const saveProgress = async (req, res) => {
 
         if (existingProgress) {
             // Обновляем существующий прогресс
-            existingProgress.currentTime = currentTime;
-            existingProgress.duration = duration;
-            existingProgress.progress = progress;
-            existingProgress.completed = completed;
+            existingProgress.currentTime = Math.max(currentTime, existingProgress.currentTime);
+            existingProgress.duration = Math.max(duration, existingProgress.duration);
+            existingProgress.progress = Math.max(progress, existingProgress.progress);
+            existingProgress.completed = Math.max(completed, existingProgress.completed);
             existingProgress.lastWatched = new Date();
             await existingProgress.save();
 

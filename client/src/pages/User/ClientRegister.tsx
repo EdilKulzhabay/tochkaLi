@@ -2,7 +2,7 @@ import bgGar from '../../assets/bgGar.png';
 import { ClientInput } from '../../components/User/ClientInput';
 import { useEffect, useState } from 'react';
 import { RedButton } from '../../components/User/RedButton';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,9 +16,7 @@ export const ClientRegister = () => {
     const [codeSent, setCodeSent] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sendingCode, setSendingCode] = useState(false);
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const { register, login, updateUser } = useAuth();
+    const { register } = useAuth();
     const navigate = useNavigate();
     useEffect(() => {
         // Загружаем данные из localStorage
@@ -55,17 +53,6 @@ export const ClientRegister = () => {
     }, []);
 
     const handleSendCode = async () => {
-
-        if (!password.trim()) {
-            toast.error('Пожалуйста, введите пароль');
-            return;
-        }
-
-        if (password.trim() !== confirmPassword.trim()) {
-            toast.error('Пароли не совпадают');
-            return;
-        }
-
         if (!email.trim() || !email.includes('@')) {
             toast.error('Пожалуйста, введите корректный email');
             return;
@@ -123,7 +110,6 @@ export const ClientRegister = () => {
             const updateResponse = await api.patch(`/api/users/${telegramId}`, {
                 mail: email.trim().toLowerCase(),
                 emailConfirmed: true,
-                password: password.trim(),
             });
 
             if (updateResponse.data.success && updateResponse.data.data) {
@@ -153,33 +139,14 @@ export const ClientRegister = () => {
                         fullName,
                         email.trim(),
                         userData.phone || phone,
-                        password.trim(),
                         telegramId
                     );
                     localStorage.setItem('email', email.trim());
                     toast.success('Регистрация завершена');
                 } catch (registerError: any) {
-                    // Если регистрация не удалась (пользователь уже существует с таким email), пытаемся войти
-                    if (registerError.response?.status === 409) {
-                        try {
-                            await login(
-                                email.trim(),
-                                password.trim()
-                            );
-                            localStorage.setItem('email', email.trim());
-                            toast.success('Вход выполнен');
-                        } catch (loginError: any) {
-                            // Если вход не удался, просто обновляем данные в контексте
-                            updateUser(userData);
-                            localStorage.setItem('email', email.trim());
-                            toast.success('Email подтвержден. Используйте вход для авторизации.');
-                        }
-                    } else {
-                        // Другая ошибка - просто обновляем данные
-                        updateUser(userData);
-                        localStorage.setItem('email', email.trim());
-                        toast.success('Email подтвержден');
-                    }
+                    console.error('Ошибка регистрации:', registerError);
+                    toast.error(registerError.response?.data?.message || 'Ошибка регистрации');
+                    return;
                 }
             } else {
                 toast.error('Ошибка обновления данных');
@@ -232,22 +199,6 @@ export const ClientRegister = () => {
                             disabled={codeSent}
                         />
                         <ClientInput
-                            placeholder="Пароль"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full"
-                            inputType="password"
-                            disabled={codeSent}
-                        />
-                        <ClientInput
-                            placeholder="Подтвердите пароль"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full"
-                            inputType="password"
-                            disabled={codeSent}
-                        />
-                        <ClientInput
                             placeholder="E-mail"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -255,9 +206,6 @@ export const ClientRegister = () => {
                             inputType="email"
                             disabled={codeSent}
                         />
-                        <div className='flex justify-end mt-3 pr-3'>
-                            <Link to="/client/login" className='text-sm text-white/40 underline'>Авторизация</Link>
-                        </div>
                     </div>
                 )}
                 {codeSent && (

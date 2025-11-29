@@ -14,6 +14,7 @@ import main1 from "../../assets/main1.png"
 import main2 from "../../assets/main2.png"
 import main3 from "../../assets/main3.png"
 import main4 from "../../assets/main4.png"
+import redUser from "../../assets/redUser.png"
 
 
 const SmallCard = ({ title, link, img }: { title: string, link: string, img: string }) => {
@@ -28,7 +29,7 @@ const SmallCard = ({ title, link, img }: { title: string, link: string, img: str
                 backgroundRepeat: 'no-repeat',
             }}
         >
-            <p className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: title }}></p>
+            <p className="text-xl font-medium" dangerouslySetInnerHTML={{ __html: title }}></p>
         </Link>
     )
 }
@@ -36,12 +37,12 @@ const SmallCard = ({ title, link, img }: { title: string, link: string, img: str
 const LargeCard = ({ title, link, image, content }: { title: string, link: string, image: string, content: string }) => {
     return (
         <Link to={link} className="flex items-center bg-[#333333] rounded-lg p-4 gap-x-4">
-            <div className="">
-                <p className="text-lg font-medium">{title}</p>
-                <p className="text-sm mt-1" dangerouslySetInnerHTML={{ __html: content }}></p>    
-            </div>
             <div className="w-[98px] h-[98px] flex items-center justify-center rounded-full bg-white/10 shrink-0">
                 <img src={image} alt={title} className="w-[50px] h-[50px] object-cover" />
+            </div>
+            <div className="">
+                <p className="text-xl font-medium">{title}</p>
+                <p className="text-sm mt-1" dangerouslySetInnerHTML={{ __html: content }}></p>    
             </div>
         </Link>
     )
@@ -49,6 +50,7 @@ const LargeCard = ({ title, link, image, content }: { title: string, link: strin
 
 export const Main = () => {
     const [userName, setUserName] = useState<string>("");
+    const [userData, setUserData] = useState<any>(null);
     const { updateUser } = useAuth();
 
     useEffect(() => {
@@ -106,6 +108,7 @@ export const Main = () => {
                 if (updatedUser) {
                     // Сохраняем обновленные данные в localStorage
                     localStorage.setItem('user', JSON.stringify(updatedUser));
+                    setUserData(updatedUser);
                     
                     // Обновляем fullName если он есть
                     if (updatedUser.fullName) {
@@ -162,23 +165,29 @@ export const Main = () => {
                         <img src={logo} alt="logo" className="w-6 h-6" />
                     </div>
                     <div className="flex items-center gap-6">
-                        <Link to="/about">
-                            <img src={users} alt="users" className="w-6 h-6" />
-                        </Link>
+                        {!userData?.hasPaid && (
+                            <Link to="/about">
+                                <img src={users} alt="users" className="w-6 h-6" />
+                            </Link>
+                        )}
                         <Link to="/client/faq">
                             <img src={faq} alt="faq" className="w-6 h-6" />
                         </Link>
                         <Link to="/client/profile">
-                            <img src={user} alt="user" className="w-6 h-6" />
+                            {userData?.hasPaid ? (
+                                <img src={redUser} alt="red user" className="w-6 h-6" />
+                            ) : (
+                                <img src={user} alt="user" className="w-6 h-6" />
+                            )}
                         </Link>
                     </div>
                 </div>
                 <h1 className="mt-3 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
                 <div className="grid grid-cols-2 gap-4 mt-3">
-                    <SmallCard title="Дневник ОДБ" link="/client/diary" img={main1}/>
+                    <SmallCard title="Дневник" link="/client/diary" img={main1}/>
                     <SmallCard title="Расписание" link="/client/schedule" img={main2}/>
-                    <SmallCard title={`Описание<br />транзитов`} link="/client/transit" img={main3}/>
-                    <SmallCard title={`Описание<br />гороскопов`} link="/client/horoscope" img={main4}/>
+                    <SmallCard title={`Транзиты`} link="/client/transit" img={main3}/>
+                    <SmallCard title={`Гороскоп`} link="/client/horoscope" img={main4}/>
                 </div>
                 <div className="mt-4 space-y-3">
                     <LargeCard 

@@ -4,6 +4,7 @@ import { DateRangeCalendar } from "../../components/User/DateRangeCalendar";
 import { useEffect, useState } from "react";
 import api from "../../api";
 import { Switch } from "../../components/User/Switch";
+import { Calendar, X } from 'lucide-react';
 
 export const ClientSchedule = () => {
     const [startDate, setStartDate] = useState<Date | null>(null);
@@ -11,6 +12,8 @@ export const ClientSchedule = () => {
     const [schedules, setSchedules] = useState<any>([]);
     const [eventDates, setEventDates] = useState<Date[]>([]);
     const [showAllEvents, setShowAllEvents] = useState(false);
+    const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
     const formatDate = (date: Date | null) => {
         if (!date) return '';
@@ -149,6 +152,83 @@ export const ClientSchedule = () => {
         }
     }
 
+    const handleScheduleClick = (schedule: any) => {
+        setSelectedSchedule(schedule);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedSchedule(null);
+    };
+
+    // Функция для форматирования даты в формат YYYYMMDDTHHmmss
+    const formatDateForICS = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+    };
+
+    // Функция для добавления в календарь (универсальная для всех устройств)
+    const addToCalendar = () => {
+        if (!selectedSchedule) return;
+
+        const startDate = selectedSchedule.startDate ? new Date(selectedSchedule.startDate) : new Date();
+        const endDate = selectedSchedule.endDate ? new Date(selectedSchedule.endDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+        
+        // Устанавливаем время начала на 10:00, если не указано
+        if (!selectedSchedule.startTime) {
+            startDate.setHours(10, 0, 0, 0);
+        }
+        // Устанавливаем время окончания на 11:00, если не указано
+        if (!selectedSchedule.endTime) {
+            endDate.setHours(11, 0, 0, 0);
+        }
+
+        // Генерируем .ics файл и создаем ссылку на него
+        const icsContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Tochka.li//Event//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'BEGIN:VEVENT',
+            `UID:${selectedSchedule._id}@tochka.li`,
+            `DTSTART:${formatDateForICS(startDate)}`,
+            `DTEND:${formatDateForICS(endDate)}`,
+            `SUMMARY:${selectedSchedule.eventTitle || 'Событие'}`,
+            `DESCRIPTION:${(selectedSchedule.description || '').replace(/\n/g, '\\n')}`,
+            'STATUS:CONFIRMED',
+            'SEQUENCE:0',
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+
+        // Создаем blob URL для .ics файла
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        // Создаем временную ссылку и кликаем по ней
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${selectedSchedule.eventTitle || 'event'}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Очищаем URL через небольшую задержку
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 100);
+        
+        // Закрываем модальное окно
+        closeModal();
+    };
+
     return (
         <UserLayout>
             <BackNav title="Расписание" />
@@ -173,13 +253,86 @@ export const ClientSchedule = () => {
                     {schedules.length > 0 && schedules.map((schedule: any) => (
                         <div 
                             key={schedule._id}
-                            className="bg-[#333333] rounded-lg p-4"
+                            className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
+                            onClick={() => handleScheduleClick(schedule)}
                         >
-                            <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
+                            <div className="flex items-center justify-between">
+                                <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
+                                <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />
+                            </div>
                             <p className="">{schedule?.description}</p>
                         </div>
                     ))}
                 </div>
+
+                {/* Модальное окно для добавления в календарь */}
+                {isModalOpen && selectedSchedule && (
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                            {/* Overlay с прозрачным фоном */}
+                            <div 
+                                className="fixed inset-0 bg-transparent transition-opacity"
+                                onClick={closeModal}
+                            />
+
+                            {/* Modal */}
+                            <div 
+                                className="relative inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
+                                style={{ maxWidth: '500px', width: '100%' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="bg-gray-800 px-6 py-4 border-b border-gray-600">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-xl font-semibold text-white">
+                                            {selectedSchedule.eventTitle || 'Добавить в календарь'}
+                                        </h3>
+                                        <button
+                                            onClick={closeModal}
+                                            className="text-gray-400 hover:text-gray-300"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-800 px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                                    <div className="space-y-4">
+                                        <div className="text-white/80">
+                                            <p className="mb-2">{selectedSchedule.description}</p>
+                                            {selectedSchedule.startDate && (
+                                                <p className="text-sm text-white/60">
+                                                    Дата начала: {new Date(selectedSchedule.startDate).toLocaleDateString('ru-RU', {
+                                                        day: '2-digit',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            )}
+                                            {selectedSchedule.endDate && (
+                                                <p className="text-sm text-white/60">
+                                                    Дата окончания: {new Date(selectedSchedule.endDate).toLocaleDateString('ru-RU', {
+                                                        day: '2-digit',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-4 border-t border-gray-600">
+                                            <button
+                                                onClick={addToCalendar}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                            >
+                                                <Calendar size={20} />
+                                                Добавить в календарь
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </UserLayout>
     )

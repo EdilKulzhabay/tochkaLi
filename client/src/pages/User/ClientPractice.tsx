@@ -86,6 +86,7 @@ export const ClientPractice = () => {
                                         contentType="practice"
                                         contentId={id || ''}
                                         duration={practice?.duration}
+                                        accessType={practice?.accessType || 'subscription'}
                                     />
                                 </div>
                             );

@@ -109,7 +109,7 @@ export const ClientTransitsList = () => {
         const startMonth = monthNames[start.getMonth()];
         const endMonth = monthNames[end.getMonth()];
         
-        return `${year}: ${startDay} ${startMonth} - ${endDay} ${endMonth}`;
+        return `${year}: ${startDay} ${startMonth}-${endDay} ${endMonth}`;
     };
 
     const handleTransitClick = async (transit: TransitEntity) => {

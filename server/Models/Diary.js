@@ -23,6 +23,10 @@ const DiarySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    wasUselessTaskAchieved: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

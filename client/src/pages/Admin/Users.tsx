@@ -1,26 +1,14 @@
 import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/Admin/AdminLayout';
 import { AdminTable } from '../../components/Admin/AdminTable';
-import { Modal } from '../../components/Modal';
-import { MyInput } from '../../components/Admin/MyInput';
-import { MyButton } from '../../components/Admin/MyButton';
+import { Plus } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 export const UsersAdmin = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<any>(null);
-    
-    const [formData, setFormData] = useState({
-        fullName: '',
-        mail: '',
-        phone: '',
-        password: '',
-        role: 'user',
-        status: 'active',
-    });
 
     useEffect(() => {
         fetchUsers();
@@ -35,82 +23,11 @@ export const UsersAdmin = () => {
         }
     };
 
-    const handleOpenModal = (item?: any) => {
+    const handleOpenForm = (item?: any) => {
         if (item) {
-            setEditingItem(item);
-            setFormData({
-                fullName: item.fullName || '',
-                mail: item.mail || '',
-                phone: item.phone || '',
-                password: '',
-                role: item.role || 'user',
-                status: item.status || 'active',
-            });
+            navigate(`/admin/users/edit/${item._id}`);
         } else {
-            // Создание нового пользователя
-            setEditingItem(null);
-            setFormData({
-                fullName: '',
-                mail: '',
-                phone: '',
-                password: '',
-                role: 'user',
-                status: 'active',
-            });
-        }
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setEditingItem(null);
-        setFormData({
-            fullName: '',
-            mail: '',
-            phone: '',
-            password: '',
-            role: 'user',
-            status: 'active',
-        });
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-
-        try {
-            if (editingItem) {
-                // Обновление существующего пользователя
-                const updateData: any = {
-                    fullName: formData.fullName,
-                    mail: formData.mail,
-                    phone: formData.phone,
-                    role: formData.role,
-                    status: formData.status,
-                };
-                // Если пароль указан, добавляем его
-                if (formData.password && formData.password.trim() !== '') {
-                    updateData.password = formData.password;
-                }
-                await api.put(`/api/user/${editingItem._id}`, updateData);
-                toast.success('Пользователь обновлен');
-            } else {
-                // Создание нового пользователя
-                const response = await api.post('/api/user/create-by-admin', formData);
-                if (response.data.generatedPassword) {
-                    toast.success(`Пользователь создан. Пароль: ${response.data.generatedPassword}`, {
-                        autoClose: 10000,
-                    });
-                } else {
-                    toast.success('Пользователь создан');
-                }
-            }
-            fetchUsers();
-            handleCloseModal();
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка сохранения');
-        } finally {
-            setLoading(false);
+            navigate('/admin/users/create');
         }
     };
 
@@ -167,6 +84,18 @@ export const UsersAdmin = () => {
             )
         },
         { 
+            key: 'subscriptionEndDate', 
+            label: 'Подписка до',
+            render: (value: string) => {
+                if (!value) return 'Нет подписки';
+                const date = new Date(value);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+        },
+        { 
             key: 'createdAt', 
             label: 'Дата регистрации',
             render: (value: string) => new Date(value).toLocaleDateString('ru-RU')
@@ -181,116 +110,22 @@ export const UsersAdmin = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Пользователи</h1>
                         <p className="text-gray-600 mt-1">Всего пользователей: {users.length}</p>
                     </div>
-                    <div className='max-w-max'>
-                        <MyButton
-                            text="Создать пользователя"
-                            onClick={() => handleOpenModal()}
-                        />
-                    </div>
+                    <button
+                        onClick={() => handleOpenForm()}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <Plus size={20} />
+                        Создать пользователя
+                    </button>
                 </div>
 
                 <AdminTable
                     columns={columns}
                     data={users}
-                    onEdit={handleOpenModal}
+                    onEdit={handleOpenForm}
                     onDelete={handleDelete}
                 />
             </div>
-
-            <Modal
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                title={editingItem ? "Редактировать пользователя" : "Создать пользователя"}
-            >
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <MyInput
-                        label="Полное имя"
-                        type="text"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        placeholder="Введите имя"
-                    />
-
-                    <MyInput
-                        label="Email"
-                        type="email"
-                        value={formData.mail}
-                        onChange={(e) => setFormData({ ...formData, mail: e.target.value })}
-                        placeholder="Введите email"
-                    />
-
-                    <MyInput
-                        label="Телефон"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+7 (___) ___-__-__"
-                    />
-
-                    {!editingItem && (
-                        <MyInput
-                            label="Пароль"
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            placeholder="Оставьте пустым для автоматической генерации"
-                        />
-                    )}
-
-                    {editingItem && (
-                        <MyInput
-                            label="Новый пароль (оставьте пустым, чтобы не менять)"
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            placeholder="Введите новый пароль"
-                        />
-                    )}
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Роль</label>
-                        <select
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                            className="w-full p-2 border rounded-md"
-                        >
-                            <option value="user">Пользователь</option>
-                            <option value="admin">Администратор</option>
-                            <option value="content_manager">Контент-менеджер</option>
-                            <option value="client_manager">Менеджер по клиентам</option>
-                            <option value="manager">Менеджер</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Статус</label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="w-full p-2 border rounded-md"
-                        >
-                            <option value="active">Активен</option>
-                            <option value="guest">Гость</option>
-                            <option value="registered">Зарегистрирован</option>
-                        </select>
-                    </div>
-
-                    <div className="flex gap-3 justify-end pt-4">
-                        <button
-                            type="button"
-                            onClick={handleCloseModal}
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                        >
-                            Отмена
-                        </button>
-                        <MyButton
-                            text={loading ? (editingItem ? 'Сохранение...' : 'Создание...') : (editingItem ? 'Сохранить' : 'Создать')}
-                            onClick={() => {}}
-                            disabled={loading}
-                        />
-                    </div>
-                </form>
-            </Modal>
         </AdminLayout>
     );
 };

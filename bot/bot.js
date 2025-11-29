@@ -14,9 +14,16 @@ bot.start(async (ctx) => {
   console.log("chatId:", chatId);
   const telegramUserName = ctx.from.username;
   console.log("telegramUserName:", telegramUserName);
+  
+  // Получаем реферальный ID из параметра start
+  // В Telegraf параметр start доступен через ctx.startParam
+  const startParam = ctx.startParam || (ctx.message?.text?.split(' ')[1] || null);
+  console.log("startParam (referral ID):", startParam);
+  
   await axios.post(`${process.env.API_URL}/api/user/create`, {
     telegramId: telegramId,
-    telegramUserName: telegramUserName
+    telegramUserName: telegramUserName,
+    referralTelegramId: startParam || null
   }, {
     headers: {
       'Content-Type': 'application/json'
@@ -38,7 +45,7 @@ bot.start(async (ctx) => {
     chatId,
     menuButton: {
       type: "web_app",
-      text: "testButton",
+      text: "Портал .li",
       web_app: {
         url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}&v=${Date.now()}`
       }

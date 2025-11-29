@@ -18,6 +18,12 @@ export const create = async (req, res) => {
             achievement: achievement || '',
             gratitude: gratitude || '',
             uselessTask: uselessTask || false,
+            wasUselessTaskAchieved: uselessTask,
+        });
+
+        const bonusCount = uselessTask ? 2 : 1;
+        await User.findByIdAndUpdate(userId, {
+            $inc: { bonus: bonusCount },
         });
 
         await diary.save();
@@ -138,6 +144,15 @@ export const update = async (req, res) => {
         const updateData = req.body;
 
         const diary = await Diary.findById(id);
+
+        if (updateData.uselessTask && !diary.wasUselessTaskAchieved) {
+            await User.findByIdAndUpdate(diary.user, {
+                $inc: { bonus: 1 },
+            });
+            await Diary.findByIdAndUpdate(id, {
+                wasUselessTaskAchieved: true,
+            });
+        }
 
         if (!diary) {
             return res.status(404).json({
