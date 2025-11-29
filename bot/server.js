@@ -24,14 +24,21 @@ const cleanTelegramHTML = (html) => {
     
     // Сначала сохраняем правильные <span class="tg-spoiler">, заменяя их временным маркером
     const spoilerPlaceholders = [];
-    cleaned = cleaned.replace(/<span\s+class=["']tg-spoiler["'][^>]*>(.*?)<\/span>/gi, (match, content) => {
+    // Более точное регулярное выражение для поиска spoiler тегов
+    cleaned = cleaned.replace(/<span\s+class\s*=\s*["']tg-spoiler["'][^>]*>(.*?)<\/span>/gis, (match, content) => {
         const placeholder = `__SPOILER_${spoilerPlaceholders.length}__`;
         spoilerPlaceholders.push(`<span class="tg-spoiler">${content}</span>`);
         return placeholder;
     });
     
-    // Удаляем все остальные <span> теги (без класса tg-spoiler)
-    cleaned = cleaned.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1');
+    // Удаляем ВСЕ остальные <span> теги (включая вложенные и с другими атрибутами)
+    // Используем более агрессивный подход - удаляем все <span> и </span>, кроме уже сохраненных spoiler
+    // Повторяем несколько раз для надежности (на случай вложенных тегов)
+    for (let i = 0; i < 5; i++) {
+        cleaned = cleaned.replace(/<span[^>]*>(.*?)<\/span>/gis, '$1'); // Удаляем парные <span>...</span>
+    }
+    cleaned = cleaned.replace(/<span[^>]*>/gi, ''); // Удаляем все оставшиеся открывающие <span>
+    cleaned = cleaned.replace(/<\/span>/gi, ''); // Удаляем все оставшиеся закрывающие </span>
     
     // Восстанавливаем правильные spoiler теги
     spoilerPlaceholders.forEach((spoiler, index) => {
@@ -46,6 +53,7 @@ const cleanTelegramHTML = (html) => {
         .replace(/<\/p>/gi, '\n\n') // </p> -> двойная новая строка
         .replace(/<br\s*\/?>/gi, '\n') // <br> -> новая строка
         // Удаляем все остальные недопустимые теги (кроме разрешенных Telegram)
+        // Разрешенные: b, strong, i, em, u, ins, s, strike, del, a, code, pre, span (только с class="tg-spoiler")
         .replace(/<(?!\/?(?:b|strong|i|em|u|ins|s|strike|del|a|code|pre|span)\b)[^>]+>/gi, '')
         // Нормализуем пробелы
         .replace(/&nbsp;/g, ' ') // &nbsp; -> пробел
@@ -114,6 +122,16 @@ app.post('/api/bot/broadcast', async (req, res) => {
         if (parse_mode === 'HTML' && /<[^>]+>/.test(text)) {
             // Текст содержит HTML теги, очищаем от недопустимых тегов Telegram
             messageText = cleanTelegramHTML(text);
+            
+            // Дополнительная проверка: если после очистки все еще есть <span> без tg-spoiler, удаляем их
+            // Это защита на случай, если регулярное выражение пропустило какие-то теги
+            if (/<span(?!\s+class=["']tg-spoiler["'])[^>]*>/i.test(messageText)) {
+                console.warn('Обнаружены <span> теги без tg-spoiler после очистки, выполняем дополнительную очистку');
+                messageText = messageText.replace(/<span(?!\s+class=["']tg-spoiler["'])[^>]*>/gi, '');
+                messageText = messageText.replace(/<\/span>/gi, '');
+            }
+            
+            console.log('Очищенный HTML (первые 200 символов):', messageText.substring(0, 200)); // Логируем для отладки
             finalParseMode = 'HTML';
         } else if (parse_mode === 'HTML') {
             // HTML режим, но тегов нет - используем текст
