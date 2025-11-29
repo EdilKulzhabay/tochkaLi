@@ -31,6 +31,14 @@ const sendingInProgress = new Set(); // Отслеживание отправо�
 export const sendMail = async (req, res) => {
     const { mail } = req.body;
 
+    const user = await User.findOne({ mail: mail?.toLowerCase() });
+    if (user) {
+        return res.status(400).json({
+            success: false,
+            message: "Пользователь с такой почтой уже существует",
+        });
+    }
+
     // Валидация email
     if (!mail || !mail.includes('@')) {
         return res.status(400).json({
@@ -299,15 +307,6 @@ export const register = async (req, res) => {
             });
         }
 
-        const candidate = await User.findOne({ mail: mail?.toLowerCase() });
-
-        if (candidate) {
-            return res.status(409).json({
-                success: false,
-                message: "Пользователь с такой почтой уже существует",
-            });
-        }
-
         const telegramUser = await User.findOne({ telegramId });
 
         let user;
@@ -317,7 +316,7 @@ export const register = async (req, res) => {
                 fullName,
                 mail: mail?.toLowerCase(),
                 phone,
-                status: 'active',
+                status: 'registered',
                 $inc: { bonus: 10 },
             });
             
@@ -327,7 +326,7 @@ export const register = async (req, res) => {
                 fullName,
                 mail: mail?.toLowerCase(),
                 phone,
-                status: 'active',
+                status: 'registered',
                 bonus: 10,
             });
             user = await doc.save();
@@ -547,7 +546,7 @@ export const createUserByAdmin = async (req, res) => {
             phone,
             password: hashedPassword,
             role: role || 'user',
-            status: status || 'active',
+            status: status || 'guest',
             emailConfirmed: true, // Админ создает пользователя с подтвержденным email
         });
 
