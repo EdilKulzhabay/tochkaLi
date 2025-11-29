@@ -145,6 +145,49 @@ export const ClientMeditationsList = () => {
         setIsModalOpen(true);
     }
 
+    const handleLockedMeditationClickSubscription = (meditation: any) => {
+        const accessType = meditation.accessType;
+        
+        // Проверяем, есть ли уже доступ к контенту
+        if (hasAccessToContentSubscription()) {
+            // Если есть доступ, ничего не делаем (контент уже доступен)
+            return;
+        }
+        
+        // Если это контент за бонусы (stars)
+        if (accessType === 'stars') {
+            // Проверяем, зарегистрирован ли клиент
+            if (!userData?.emailConfirmed) {
+                // Если не зарегистрирован, показываем стандартное модальное окно
+                setAccessType(accessType);
+                setContent(starsContent);
+                setIsModalOpen(true);
+                return;
+            }
+
+            // Если зарегистрирован, проверяем бонусы
+            const starsRequired = meditation.starsRequired || 0;
+            if (userData.bonus < starsRequired) {
+                // Недостаточно бонусов, показываем модальное окно о недостатке бонусов
+                setSelectedMeditation(meditation);
+                setIsInsufficientBonusModalOpen(true);
+                return;
+            }
+
+            // Достаточно бонусов, показываем модальное окно подтверждения покупки
+            setSelectedMeditation(meditation);
+            setIsPurchaseModalOpen(true);
+            return;
+        }
+
+        // Для subscription показываем стандартное модальное окно
+        setAccessType(accessType);
+        if (accessType === 'subscription') {
+            setContent(subscriptionContent);
+        }
+        setIsModalOpen(true);
+    }
+
     const handleCloseModal = () => {
         setIsModalOpen(false);
     }
@@ -173,6 +216,11 @@ export const ClientMeditationsList = () => {
         );
     }
 
+    const hasAccessToContentSubscription = (): boolean => {
+        if (userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date()) return true;
+        return false;
+    }
+
     return (
         <div>
             <UserLayout>
@@ -194,8 +242,8 @@ export const ClientMeditationsList = () => {
                                             image={meditation.imageUrl} 
                                             link={`/client/meditation/${meditation._id}`} 
                                             progress={progresses[meditation._id] || 0} 
-                                            accessType={hasAccessToContent(meditation._id) ? 'free' : meditation.accessType}
-                                            onLockedClick={hasAccessToContent(meditation._id) ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClick(meditation) : undefined)}
+                                            accessType={hasAccessToContentSubscription() ? 'free' : meditation.accessType}
+                                            onLockedClick={hasAccessToContentSubscription() ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClickSubscription(meditation) : undefined)}
                                             duration={meditation?.duration || 0}
                                         />
                                     </div>

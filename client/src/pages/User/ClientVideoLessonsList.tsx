@@ -216,7 +216,7 @@ export const ClientVideoLessonsList = () => {
     }
 
     const hasAccessToContentSubscription = (): boolean => {
-        if (userData?.hasPaid) return true;
+        if (userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date()) return true;
         return false;
     }
 

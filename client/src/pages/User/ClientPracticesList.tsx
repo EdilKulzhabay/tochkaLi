@@ -144,6 +144,49 @@ export const ClientPracticesList = () => {
         }
         setIsModalOpen(true);
     }
+    
+    const handleLockedPracticeClickSubscription = (practice: any) => {
+        const accessType = practice.accessType;
+        
+        // Проверяем, есть ли уже доступ к контенту
+        if (hasAccessToContentSubscription()) {
+            // Если есть доступ, ничего не делаем (контент уже доступен)
+            return;
+        }
+        
+        // Если это контент за бонусы (stars)
+        if (accessType === 'stars') {
+            // Проверяем, зарегистрирован ли клиент
+            if (!userData?.emailConfirmed) {
+                // Если не зарегистрирован, показываем стандартное модальное окно
+                setAccessType(accessType);
+                setContent(starsContent);
+                setIsModalOpen(true);
+                return;
+            }
+
+            // Если зарегистрирован, проверяем бонусы
+            const starsRequired = practice.starsRequired || 0;
+            if (userData.bonus < starsRequired) {
+                // Недостаточно бонусов, показываем модальное окно о недостатке бонусов
+                setSelectedPractice(practice);
+                setIsInsufficientBonusModalOpen(true);
+                return;
+            }
+
+            // Достаточно бонусов, показываем модальное окно подтверждения покупки
+            setSelectedPractice(practice);
+            setIsPurchaseModalOpen(true);
+            return;
+        }
+
+        // Для subscription показываем стандартное модальное окно
+        setAccessType(accessType);
+        if (accessType === 'subscription') {
+            setContent(subscriptionContent);
+        }
+        setIsModalOpen(true);
+    }
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -173,6 +216,11 @@ export const ClientPracticesList = () => {
         );
     }
 
+    const hasAccessToContentSubscription = (): boolean => {
+        if (userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date()) return true;
+        return false;
+    }
+
     return (
         <div>
             <UserLayout>
@@ -194,8 +242,8 @@ export const ClientPracticesList = () => {
                                             image={practice.imageUrl} 
                                             link={`/client/practice/${practice._id}`} 
                                             progress={progresses[practice._id] || 0} 
-                                            accessType={hasAccessToContent(practice._id) ? 'free' : practice.accessType}
-                                            onLockedClick={hasAccessToContent(practice._id) ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClick(practice) : undefined)}
+                                            accessType={hasAccessToContentSubscription() ? 'free' : practice.accessType}
+                                            onLockedClick={hasAccessToContentSubscription() ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClickSubscription(practice) : undefined)}
                                             duration={practice?.duration || 0}
                                         />
                                     </div>
