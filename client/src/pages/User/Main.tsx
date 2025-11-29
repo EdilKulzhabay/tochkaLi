@@ -165,7 +165,9 @@ export const Main = () => {
                         <img src={logo} alt="logo" className="w-6 h-6" />
                     </div>
                     <div className="flex items-center gap-6">
-                        {!userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() && (
+                        {userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() ? (
+                                <></>
+                        ) : (
                             <Link to="/about">
                                 <img src={users} alt="users" className="w-6 h-6" />
                             </Link>
@@ -206,7 +208,7 @@ export const Main = () => {
                         title="Медитации" 
                         link="/client/meditations" 
                         image={mainMeditation} 
-                        content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск процессов изменений"
+                        content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск изменений"
                     />
                 </div>
             </div>
