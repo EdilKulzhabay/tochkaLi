@@ -4,7 +4,6 @@ import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
 import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
 
 interface HoroscopeEntity {
     _id: string;
@@ -23,7 +22,6 @@ export const ClientHoroscopesList = () => {
     const [showModal, setShowModal] = useState(false);
     const [userHasPaid, setUserHasPaid] = useState(false);
     const navigate = useNavigate();
-    const { user } = useAuth();
     const [content, setContent] = useState<string>('');
 
     useEffect(() => {
@@ -45,13 +43,9 @@ export const ClientHoroscopesList = () => {
                 if (userData._id) {
                     const response = await api.post('/api/user/profile', { userId: userData._id });
                     if (response.data && response.data.success && response.data.user) {
-                        setUserHasPaid(response.data.user.hasPaid || false);
+                        setUserHasPaid(response.data.user.hasPaid && response.data.user.subscriptionEndDate && new Date(response.data.user.subscriptionEndDate) > new Date());
                     }
                 }
-            }
-            // Также проверяем из AuthContext
-            if (user?.hasPaid !== undefined) {
-                setUserHasPaid(user.hasPaid);
             }
         } catch (error) {
             console.error('Ошибка загрузки статуса оплаты:', error);
@@ -113,27 +107,8 @@ export const ClientHoroscopesList = () => {
             // Если гороскоп активен, показываем его сразу
             navigate(`/client/horoscope/${horoscope._id}`);
         } else {
-            // Если гороскоп не активен (startDate > currentDate или endDate < currentDate), проверяем подписку
-            let hasPaid = false;
             
-            // Обновляем статус оплаты перед проверкой
-            try {
-                const userStr = localStorage.getItem('user');
-                if (userStr) {
-                    const userData = JSON.parse(userStr);
-                    if (userData._id) {
-                        const response = await api.post('/api/user/profile', { userId: userData._id });
-                        if (response.data && response.data.success && response.data.user) {
-                            hasPaid = response.data.user.hasPaid && response.data.user.subscriptionEndDate && new Date(response.data.user.subscriptionEndDate) > new Date();
-                            setUserHasPaid(hasPaid);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Ошибка проверки статуса оплаты:', error);
-            }
-            
-            if (!hasPaid) {
+            if (!userHasPaid) {
                 // Показываем модальное окно подписки
                 setShowModal(true);
             } else {
