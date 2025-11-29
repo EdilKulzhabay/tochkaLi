@@ -15,6 +15,46 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // Telegram позволяет до 30 сообщений/сек, но лучше быть консервативнее
 const DELAY_BETWEEN_MESSAGES = 50;
 
+// Функция для очистки HTML от недопустимых тегов Telegram
+// Telegram поддерживает только: <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <del>, <a>, <code>, <pre>, <span class="tg-spoiler">
+const cleanTelegramHTML = (html) => {
+    if (!html) return '';
+    
+    let cleaned = html;
+    
+    // Сначала сохраняем правильные <span class="tg-spoiler">, заменяя их временным маркером
+    const spoilerPlaceholders = [];
+    cleaned = cleaned.replace(/<span\s+class=["']tg-spoiler["'][^>]*>(.*?)<\/span>/gi, (match, content) => {
+        const placeholder = `__SPOILER_${spoilerPlaceholders.length}__`;
+        spoilerPlaceholders.push(`<span class="tg-spoiler">${content}</span>`);
+        return placeholder;
+    });
+    
+    // Удаляем все остальные <span> теги (без класса tg-spoiler)
+    cleaned = cleaned.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1');
+    
+    // Восстанавливаем правильные spoiler теги
+    spoilerPlaceholders.forEach((spoiler, index) => {
+        cleaned = cleaned.replace(`__SPOILER_${index}__`, spoiler);
+    });
+    
+    // Удаляем другие недопустимые теги
+    cleaned = cleaned
+        .replace(/<div[^>]*>/gi, '') // <div> -> удаляем
+        .replace(/<\/div>/gi, '\n') // </div> -> новая строка
+        .replace(/<p[^>]*>/gi, '') // <p> -> удаляем
+        .replace(/<\/p>/gi, '\n\n') // </p> -> двойная новая строка
+        .replace(/<br\s*\/?>/gi, '\n') // <br> -> новая строка
+        // Удаляем все остальные недопустимые теги (кроме разрешенных Telegram)
+        .replace(/<(?!\/?(?:b|strong|i|em|u|ins|s|strike|del|a|code|pre|span)\b)[^>]+>/gi, '')
+        // Нормализуем пробелы
+        .replace(/&nbsp;/g, ' ') // &nbsp; -> пробел
+        .replace(/\n\s*\n\s*\n/g, '\n\n') // Убираем лишние пустые строки
+        .trim();
+    
+    return cleaned;
+};
+
 // Функция для конвертации HTML в текст для Telegram
 const htmlToTelegramText = (html) => {
     if (!html) return '';
@@ -26,6 +66,7 @@ const htmlToTelegramText = (html) => {
         .replace(/<p>/gi, '') // <p> -> удаляем
         .replace(/<\/div>/gi, '\n') // </div> -> новая строка
         .replace(/<div[^>]*>/gi, '') // <div> -> удаляем
+        .replace(/<span[^>]*>(.*?)<\/span>/gi, '$1') // <span> -> удаляем, оставляем содержимое
         .replace(/<strong>(.*?)<\/strong>/gi, '*$1*') // <strong> -> жирный текст
         .replace(/<b>(.*?)<\/b>/gi, '*$1*') // <b> -> жирный текст
         .replace(/<em>(.*?)<\/em>/gi, '_$1_') // <em> -> курсив
@@ -71,7 +112,8 @@ app.post('/api/bot/broadcast', async (req, res) => {
         let finalParseMode = parse_mode;
         
         if (parse_mode === 'HTML' && /<[^>]+>/.test(text)) {
-            // Текст содержит HTML теги, используем HTML парсинг
+            // Текст содержит HTML теги, очищаем от недопустимых тегов Telegram
+            messageText = cleanTelegramHTML(text);
             finalParseMode = 'HTML';
         } else if (parse_mode === 'HTML') {
             // HTML режим, но тегов нет - используем текст
