@@ -87,20 +87,7 @@ export const ClientProfile = () => {
                         {userData?.hasPaid ? (
                             <div>
                                 Ваша подписка действует до{' '}
-                                {userData?.paymentDate
-                                    ? (() => {
-                                        const paymentDate = new Date(userData.paymentDate);
-                                        const nextMonthDate = new Date(paymentDate);
-                                        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-                                        // Handle cases like Jan 31 +1m → Mar 3, normalize to last day of next month
-                                        // (native setMonth will roll over extra days). We'll clamp days to the end of next month.
-                                        if (nextMonthDate.getDate() !== paymentDate.getDate()) {
-                                            // Go to last day of previous month if day has rolled
-                                            nextMonthDate.setDate(0);
-                                        }
-                                        return nextMonthDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                                    })()
-                                    : ''}
+                                {userData?.subscriptionEndDate ? new Date(userData.subscriptionEndDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
                             </div>
                         ) : (
                             <div>У вас нет подписки на клуб .li</div>
