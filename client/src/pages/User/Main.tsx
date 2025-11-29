@@ -165,7 +165,7 @@ export const Main = () => {
                         <img src={logo} alt="logo" className="w-6 h-6" />
                     </div>
                     <div className="flex items-center gap-6">
-                        {!userData?.hasPaid && (
+                        {!userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() && (
                             <Link to="/about">
                                 <img src={users} alt="users" className="w-6 h-6" />
                             </Link>
@@ -174,7 +174,7 @@ export const Main = () => {
                             <img src={faq} alt="faq" className="w-6 h-6" />
                         </Link>
                         <Link to="/client/profile">
-                            {userData?.hasPaid ? (
+                            {userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() ? (
                                 <img src={redUser} alt="red user" className="w-6 h-6" />
                             ) : (
                                 <img src={user} alt="user" className="w-6 h-6" />

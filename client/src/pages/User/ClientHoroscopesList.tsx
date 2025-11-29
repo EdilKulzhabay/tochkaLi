@@ -114,7 +114,7 @@ export const ClientHoroscopesList = () => {
             navigate(`/client/horoscope/${horoscope._id}`);
         } else {
             // Если гороскоп не активен (startDate > currentDate или endDate < currentDate), проверяем подписку
-            let hasPaid = userHasPaid;
+            let hasPaid = false;
             
             // Обновляем статус оплаты перед проверкой
             try {
@@ -124,7 +124,7 @@ export const ClientHoroscopesList = () => {
                     if (userData._id) {
                         const response = await api.post('/api/user/profile', { userId: userData._id });
                         if (response.data && response.data.success && response.data.user) {
-                            hasPaid = response.data.user.hasPaid || false;
+                            hasPaid = response.data.user.hasPaid && response.data.user.subscriptionEndDate && new Date(response.data.user.subscriptionEndDate) > new Date();
                             setUserHasPaid(hasPaid);
                         }
                     }

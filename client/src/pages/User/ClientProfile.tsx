@@ -84,7 +84,7 @@ export const ClientProfile = () => {
 
                     <div className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2">
                         <div className="text-xl font-medium">Статус подписки на клуб .li</div>
-                        {userData?.hasPaid ? (
+                        {userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() ? (
                             <div>
                                 Ваша подписка действует до{' '}
                                 {userData?.subscriptionEndDate ? new Date(userData.subscriptionEndDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}

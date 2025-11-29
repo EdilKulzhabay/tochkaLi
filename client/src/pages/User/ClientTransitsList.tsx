@@ -120,10 +120,7 @@ export const ClientTransitsList = () => {
             // Если транзит активен, показываем его сразу
             navigate(`/client/transit/${transit._id}`);
         } else {
-            // Если транзит не активен (startDate > currentDate или endDate < currentDate), проверяем подписку
-            let hasPaid = userHasPaid;
-            
-            // Обновляем статус оплаты перед проверкой
+            let hasPaid = false;
             try {
                 const userStr = localStorage.getItem('user');
                 if (userStr) {
@@ -131,7 +128,7 @@ export const ClientTransitsList = () => {
                     if (userData._id) {
                         const response = await api.post('/api/user/profile', { userId: userData._id });
                         if (response.data && response.data.success && response.data.user) {
-                            hasPaid = response.data.user.hasPaid || false;
+                            hasPaid = response.data.user.hasPaid && response.data.user.subscriptionEndDate && new Date(response.data.user.subscriptionEndDate) > new Date();
                             setUserHasPaid(hasPaid);
                         }
                     }
