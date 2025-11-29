@@ -161,7 +161,14 @@ export const remove = async (req, res) => {
 // Получить текущий гороскоп
 export const getCurrent = async (req, res) => {
     try {
-        const horoscope = await Horoscope.getCurrent();
+        const startDate = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date();
+        endDate.setHours(23, 59, 59, 999);
+        const horoscope = await Horoscope.findOne({
+            startDate: { $lte: startDate },
+            endDate: { $gte: endDate }
+        }).sort({ createdAt: -1 });
 
         if (!horoscope) {
             return res.status(404).json({
@@ -172,7 +179,7 @@ export const getCurrent = async (req, res) => {
 
         res.json({
             success: true,
-            data: horoscope,
+            data: horoscope.toObject(),
         });
     } catch (error) {
         console.log("Ошибка в HoroscopeController.getCurrent:", error);
