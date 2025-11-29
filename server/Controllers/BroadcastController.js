@@ -142,8 +142,21 @@ export const sendBroadcast = async (req, res) => {
         console.log(`Начинаем рассылку для ${telegramIds.length} пользователей через бот сервер`);
 
         // Отправляем запрос на бот сервер для рассылки
+        // Nginx конфигурация: location /bot/ проксирует на http://78.40.109.31:5011
+        // Nginx убирает /bot/ из пути при проксировании
+        // Поэтому если BOT_SERVER_URL = https://api.kulzhabay.kz, то путь должен быть:
+        // https://api.kulzhabay.kz/bot/api/bot/broadcast
+        // Nginx уберет /bot/ и проксирует на бот-сервер как /api/bot/broadcast
         try {
-            const response = await axios.post(`${BOT_SERVER_URL}/api/bot/broadcast`, {
+            // Убираем trailing slash из BOT_SERVER_URL
+            let botServerUrl = BOT_SERVER_URL.replace(/\/$/, '');
+            
+            // Формируем путь: /bot/api/bot/broadcast
+            // Nginx уберет /bot/ и проксирует на бот-сервер как /api/bot/broadcast
+            const broadcastUrl = `${botServerUrl}/bot/api/bot/broadcast`;
+            console.log(`Отправка запроса на бот-сервер: ${broadcastUrl}`);
+            
+            const response = await axios.post(broadcastUrl, {
                 text: message,
                 telegramIds: telegramIds,
             }, {
