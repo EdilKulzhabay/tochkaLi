@@ -1,4 +1,5 @@
 // Утилита для работы с Telegram WebApp API
+import { useEffect } from 'react';
 
 // Типы для Telegram WebApp API
 declare global {
@@ -16,6 +17,14 @@ declare global {
                 offEvent: (eventType: string, eventHandler: () => void) => void;
                 version: string;
                 platform: string;
+                viewport?: {
+                    safeArea?: {
+                        top?: number;
+                        bottom?: number;
+                        left?: number;
+                        right?: number;
+                    };
+                };
                 initData?: string;
                 initDataUnsafe?: {
                     user?: {
@@ -169,5 +178,36 @@ export const showTelegramBackButton = () => {
  */
 export const isTelegramWebView = (): boolean => {
     return window.Telegram?.WebApp !== undefined;
+};
+
+/**
+ * React хук для настройки Telegram WebApp fullscreen режима
+ * Заполняет CSS переменные --tg-safe-* из Telegram API viewport.safeArea
+ * Должен использоваться в корневом компоненте App
+ */
+export const useTelegramFullscreen = () => {
+    useEffect(() => {
+        const tg = window.Telegram?.WebApp;
+        if (!tg) return;
+
+        tg.ready();
+        tg.expand();
+
+        const apply = () => {
+            const safe = tg.viewport?.safeArea || {};
+            document.documentElement.style.setProperty("--tg-safe-top", `${safe.top || 0}px`);
+            document.documentElement.style.setProperty("--tg-safe-bottom", `${safe.bottom || 0}px`);
+            document.documentElement.style.setProperty("--tg-safe-left", `${safe.left || 0}px`);
+            document.documentElement.style.setProperty("--tg-safe-right", `${safe.right || 0}px`);
+        };
+
+        apply();
+
+        tg.onEvent?.("viewportChanged", apply);
+
+        return () => {
+            tg.offEvent?.("viewportChanged", apply);
+        };
+    }, []);
 };
 

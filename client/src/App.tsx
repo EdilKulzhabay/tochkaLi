@@ -3,9 +3,14 @@ import { routes } from "./routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect } from "react";
+import { useTelegramFullscreen } from "./utils/telegramWebApp";
 
 function App() {
-    // Инициализация Telegram WebApp при монтировании компонента
+    // Используем хук для настройки Telegram WebApp fullscreen режима
+    // Это заполняет CSS переменные --tg-safe-* из Telegram API viewport.safeArea
+    useTelegramFullscreen();
+    
+    // Дополнительная инициализация Telegram WebApp при монтировании компонента
     // Это дополнительная гарантия для случаев, когда main.tsx не успел выполниться
     useEffect(() => {
         const tg = window.Telegram?.WebApp;

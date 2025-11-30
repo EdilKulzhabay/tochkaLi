@@ -153,8 +153,7 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
                 margin: 0
             }}
         >
-            <div className="md:pt-0">
-                <div className="h-[75px] md:hidden" />
+            <div className="">
                 {children}
             </div>
         </div>
