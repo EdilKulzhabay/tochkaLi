@@ -36,7 +36,7 @@ export const ClientHoroscope = () => {
 
     return (
         <UserLayout>
-            <div className="pb-10 min-h-screen flex flex-col justify-between">
+            <div className="pb-10 min-h-screen flex flex-col justify-between bg-[#161616]">
                 <div>
                     <BackNav title="Антисоциумный гороскоп" />
                     <div className="px-4 mt-2">

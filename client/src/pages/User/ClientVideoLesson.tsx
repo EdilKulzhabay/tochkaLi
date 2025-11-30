@@ -87,7 +87,7 @@ export const ClientVideoLesson = () => {
         <div>
             <UserLayout>
                 <BackNav title={videoLesson?.title} />
-                <div className="px-4 mt-4 pb-10">
+                <div className="px-4 mt-4 pb-10 bg-[#161616]">
                     <p className="" dangerouslySetInnerHTML={{ __html: videoLesson?.shortDescription }}></p>
                     {videoLesson?.videoUrl && (() => {
                         const videoInfo = getVideoInfo(videoLesson.videoUrl);

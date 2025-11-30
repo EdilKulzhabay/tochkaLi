@@ -87,7 +87,7 @@ export const ClientMeditation = () => {
         <div>
             <UserLayout>
                 <BackNav title={meditation?.title} />
-                <div className="px-4 mt-4 pb-10">
+                <div className="px-4 mt-4 pb-10 bg-[#161616]">
                     <p className="" dangerouslySetInnerHTML={{ __html: meditation?.shortDescription }}></p>
                     {meditation?.videoUrl && (() => {
                         const videoInfo = getVideoInfo(meditation.videoUrl);

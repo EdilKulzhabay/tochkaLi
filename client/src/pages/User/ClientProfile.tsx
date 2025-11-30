@@ -50,7 +50,7 @@ export const ClientProfile = () => {
         <div>
             <UserLayout>
                 <BackNav title="Профиль" />
-                <div className="px-4 mt-8 pb-10">
+                <div className="px-4 mt-8 pb-10 bg-[#161616]">
                     <div className="flex items-center gap-x-4">
                         <div className="w-[60px] h-[60px] bg-[#333333] rounded-full flex items-center justify-center">
                             <img src={profile} alt="profile" className="w-[30px] h-[30px] object-cover rounded-full" />

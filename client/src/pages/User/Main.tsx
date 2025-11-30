@@ -159,7 +159,7 @@ export const Main = () => {
 
     return (
         <UserLayout>
-            <div className="px-4 pb-10">
+            <div className="px-4 pb-10 bg-[#161616]">
                 <div className="flex items-center justify-between pt-5 pb-4">
                     <div className="">
                         <img src={logo} alt="logo" className="w-6 h-6" />

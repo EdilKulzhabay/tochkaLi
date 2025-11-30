@@ -18,9 +18,9 @@ export const ClientFAQ = () => {
     }
     return (
         <UserLayout>
-            <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col min-h-screen bg-[#161616]">
                 <BackNav title="Часто задаваемые вопросы" />
-                <div className="flex flex-col justify-between pt-8 px-4 pb-10 flex-1">
+                <div className="flex flex-col justify-between pt-8 px-4 pb-10 flex-1 bg-[#161616]">
                     <div className="">
                         {faqs && faqs.length > 0 && (
                             <div className="">

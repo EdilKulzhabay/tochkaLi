@@ -70,7 +70,7 @@ export const ClientTransit = () => {
 
     return (
         <UserLayout>
-            <div className="pb-10 min-h-screen flex flex-col justify-between">
+            <div className="pb-10 min-h-screen flex flex-col justify-between bg-[#161616]">
                 <div>
                     <BackNav title="Описание транзитов" />
                     <div className="px-4 mt-2">

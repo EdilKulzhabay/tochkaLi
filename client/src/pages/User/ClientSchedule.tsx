@@ -303,7 +303,7 @@ export const ClientSchedule = () => {
     return (
         <UserLayout>
             <BackNav title="Расписание" />
-            <div className="px-4 mt-4 pb-10">
+            <div className="px-4 mt-4 pb-10 bg-[#161616]">
                 <DateRangeCalendar 
                     onDateRangeSelect={handleDateRangeSelect}
                     selectedStartDate={startDate}

@@ -130,7 +130,7 @@ export const Welcome = () => {
                     }}
                 />
             </div>
-            <div className='px-4 pb-10'>
+            <div className='px-4 pb-10 bg-[#161616]'>
                 <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>
                 <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
                 <MyLink to="/about" text="Далее" className='w-full mt-4' color='red'/>

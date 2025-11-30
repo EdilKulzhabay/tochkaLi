@@ -29,7 +29,7 @@ export const ClientContactUs = () => {
         <div>
             <UserLayout>
                 <BackNav title="Связаться с нами" />
-                <div className='px-4 mt-8 pb-5 flex flex-col justify-between min-h-screen'>
+                <div className='px-4 mt-8 pb-5 flex flex-col justify-between min-h-screen bg-[#161616]'>
                     <div>
                         <div className="space-y-3">
                             <ContactUsBlock title="E-mail" content="support@tochka.li" isLink={true} link="mailto:support@tochka.li" />

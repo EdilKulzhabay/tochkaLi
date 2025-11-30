@@ -134,7 +134,7 @@ export const ClientDiary = () => {
         <div>
             <UserLayout>
                 <BackNav title="Дневник ОДБ" />
-                <div className="px-4 mt-8 pb-10">
+                <div className="px-4 mt-8 pb-10 bg-[#161616]">
                     <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }}>
                     </p>
 

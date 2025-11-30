@@ -24,7 +24,7 @@ export const ClientSchumann = () => {
     return (
         <UserLayout>
             <BackNav title="Частота Шумана" />
-            <div className='px-4 mt-8 pb-10'>
+            <div className='px-4 mt-8 pb-10 bg-[#161616]'>
                 <p className='' dangerouslySetInnerHTML={{ __html: content?.content }}>
                 </p>
                 <div className='mt-4 space-y-4'>
