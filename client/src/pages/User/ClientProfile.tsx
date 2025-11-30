@@ -121,7 +121,7 @@ export const ClientProfile = () => {
                             title="Нажмите, чтобы скопировать"
                         >
                             {userData?.telegramId 
-                                ? `t.me/@io_tochkali_bot?start=${userData.telegramId}`
+                                ? `t.me/io_tochkali_bot?start=${userData.telegramId}`
                                 : 'Загрузка...'
                             }
                         </div>

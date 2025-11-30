@@ -37,15 +37,16 @@ declare global {
 
 /**
  * Инициализирует Telegram WebApp и расширяет его на весь экран
+ * Гарантирует полную высоту на всех платформах (Android, iOS, Desktop, Web)
  */
 export const initTelegramWebApp = () => {
     if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
         
-        // Инициализируем WebApp
+        // 1. Вызываем ready() - обязательный вызов для инициализации WebApp
         tg.ready();
         
-        // Расширяем на весь экран СРАЗУ после ready()
+        // 2. Расширяем на весь экран СРАЗУ после ready()
         // Это критично для автоматического открытия на весь экран при запуске через web_app кнопку
         try {
             // Вызываем expand() немедленно
@@ -54,7 +55,9 @@ export const initTelegramWebApp = () => {
             // Множественные вызовы для гарантии полноэкранного режима
             // Telegram иногда требует несколько попыток для корректного расширения
             setTimeout(() => {
-                tg.expand();
+                if (!tg.isExpanded) {
+                    tg.expand();
+                }
             }, 50);
             
             setTimeout(() => {
@@ -68,11 +71,26 @@ export const initTelegramWebApp = () => {
                     tg.expand();
                 }
             }, 300);
+            
+            // Дополнительная проверка через 500ms
+            setTimeout(() => {
+                if (!tg.isExpanded) {
+                    tg.expand();
+                }
+            }, 500);
         } catch (error) {
             console.warn('⚠️ Ошибка при расширении Telegram WebApp:', error);
         }
         
-        // Отключаем подтверждение закрытия (будем обрабатывать через навигацию)
+        // 3. Обрабатываем событие viewportChanged для поддержания полной высоты
+        // Это важно для случаев, когда размер viewport изменяется
+        tg.onEvent('viewportChanged', () => {
+            if (!tg.isExpanded) {
+                tg.expand();
+            }
+        });
+        
+        // 4. Отключаем подтверждение закрытия (будем обрабатывать через навигацию)
         tg.disableClosingConfirmation();
         
         console.log('✅ Telegram WebApp инициализирован:', {
