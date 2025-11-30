@@ -29,6 +29,11 @@ bot.start(async (ctx) => {
       'Content-Type': 'application/json'
     }
   });
+  
+  // Получаем информацию о боте для получения username
+  const botInfo = await bot.telegram.getMe();
+  const botUsername = botInfo.username;
+  
   // 1. Сбрасываем глобальное меню (если есть)
   await bot.telegram.setChatMenuButton({
     menuButton: { type: "default" }
@@ -40,14 +45,23 @@ bot.start(async (ctx) => {
     menuButton: { type: "default" }
   });
 
-  // 3. Устанавливаем новую кнопку (обновление через параметр v)
+  // 3. Устанавливаем новую кнопку используя формат t.me/... с параметром startapp
+  // Формируем параметры для передачи в веб-приложение
+  const appParams = new URLSearchParams({
+    telegramId: telegramId.toString(),
+    telegramUserName: telegramUserName || '',
+    v: Date.now().toString()
+  });
+  
+  // Используем формат deep link через бота: t.me/bot_username?startapp=params
+  // Параметры будут доступны в веб-приложении через window.Telegram.WebApp.initDataUnsafe.start_param
   await bot.telegram.setChatMenuButton({
     chatId,
     menuButton: {
       type: "web_app",
       text: "Портал .li",
       web_app: {
-        url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}&v=${Date.now()}`
+        url: `https://t.me/${botUsername}?startapp=${encodeURIComponent(appParams.toString())}`
       },
     }
   });
