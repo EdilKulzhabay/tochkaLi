@@ -1,19 +1,10 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { MyInput } from "../components/Admin/MyInput";
 import { toast } from "react-toastify";
 import { MyButton } from "../components/Admin/MyButton";
 import { useAuth } from "../contexts/AuthContext";
 
 export const Login = () => {
-    const [telegramId, setTelegramId] = useState("");
-    const [telegramUserName, setTelegramUserName] = useState("");
-
-    useEffect(() => {
-        setTelegramId(localStorage.getItem("telegramId") || "");
-        setTelegramUserName(localStorage.getItem("telegramUserName") || "");
-    }, []);
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
