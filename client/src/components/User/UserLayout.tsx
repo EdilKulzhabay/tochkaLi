@@ -149,8 +149,13 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
                 MozUserSelect: 'none',
                 msUserSelect: 'none',
                 WebkitTouchCallout: 'none',
-                padding: 0,
-                margin: 0
+                margin: 0,
+                // Используем CSS переменные для safe-area от Telegram WebApp API
+                // Эти значения устанавливаются через useTelegramFullscreen() в App.tsx
+                paddingTop: 'var(--tg-safe-top, 0px)',
+                paddingBottom: 'var(--tg-safe-bottom, 0px)',
+                paddingLeft: 'var(--tg-safe-left, 0px)',
+                paddingRight: 'var(--tg-safe-right, 0px)',
             }}
         >
             <div className="">
