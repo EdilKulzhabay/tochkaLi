@@ -60,8 +60,27 @@ export const ClientMeditation = () => {
         setMeditation(response.data.data);
     }
 
-    const handlePosterClick = () => {
+    const handlePosterClick = async () => {
         setShowPoster(false);
+        
+        // Если это бесплатный контент, устанавливаем прогресс в 100%
+        if (meditation?.accessType === 'free' && id) {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user._id) {
+                    const duration = meditation?.duration || 100; // Используем длительность из данных или дефолтное значение
+                    await api.post('/api/video-progress', {
+                        contentType: 'meditation',
+                        contentId: id,
+                        currentTime: duration, // Устанавливаем текущее время равным длительности
+                        duration: duration,
+                        userId: user._id
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка при установке прогресса:', error);
+            }
+        }
     }
 
     return (

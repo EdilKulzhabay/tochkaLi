@@ -49,7 +49,7 @@ export const About = () => {
 
     useEffect(() => {
         setLoading(true);
-        const fetchUser = async () => {
+        const fetchContent = async () => {
             try {
                 const response = await api.get(`/api/about-club`);
                 setContent(response.data.data[0]);
@@ -59,7 +59,7 @@ export const About = () => {
                 setLoading(false);
             }
         }
-        fetchUser();
+        fetchContent();
     }, []);
 
     if (loading) {
@@ -99,12 +99,12 @@ export const About = () => {
                     </div>
                 )}
                 <button 
-                    className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4'
+                    className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4 cursor-pointer'
                     onClick={handleSkip}
                 >
                     Пропустить
                 </button>
-                <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4'/>
+                <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4 cursor-pointer'/>
             </div>
         </UserLayout>
     )

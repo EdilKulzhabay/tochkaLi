@@ -57,6 +57,15 @@ export const Welcome = () => {
                             const fullName = response.data.user.fullName;
                             localStorage.setItem('fullName', fullName);
                             navigate('/main');
+                        } else {
+                            // Оставляем только 'telegramId', 'telegramUserName' и 'user' в localStorage
+                            const telegramIdValue = localStorage.getItem("telegramId");
+                            const telegramUserNameValue = localStorage.getItem("telegramUserName");
+                            const userValue = localStorage.getItem("user");
+                            localStorage.clear();
+                            if (telegramIdValue) localStorage.setItem("telegramId", telegramIdValue);
+                            if (telegramUserNameValue) localStorage.setItem("telegramUserName", telegramUserNameValue);
+                            if (userValue) localStorage.setItem("user", userValue);
                         }
                     } else {
                         console.error('response.data.user равен null или undefined');

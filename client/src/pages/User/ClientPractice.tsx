@@ -60,8 +60,27 @@ export const ClientPractice = () => {
         setPractice(response.data.data);
     }
 
-    const handlePosterClick = () => {
+    const handlePosterClick = async () => {
         setShowPoster(false);
+        
+        // Если это бесплатный контент, устанавливаем прогресс в 100%
+        if (practice?.accessType === 'free' && id) {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user._id) {
+                    const duration = practice?.duration || 100; // Используем длительность из данных или дефолтное значение
+                    await api.post('/api/video-progress', {
+                        contentType: 'practice',
+                        contentId: id,
+                        currentTime: duration, // Устанавливаем текущее время равным длительности
+                        duration: duration,
+                        userId: user._id
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка при установке прогресса:', error);
+            }
+        }
     }
 
     return (
