@@ -10,6 +10,8 @@ declare global {
                 isExpanded: boolean;
                 enableClosingConfirmation: () => void;
                 disableClosingConfirmation: () => void;
+                enableVerticalSwipes: () => void;
+                disableVerticalSwipes: () => void;
                 onEvent: (eventType: string, eventHandler: () => void) => void;
                 offEvent: (eventType: string, eventHandler: () => void) => void;
                 version: string;
@@ -82,7 +84,18 @@ export const initTelegramWebApp = () => {
             console.warn('⚠️ Ошибка при расширении Telegram WebApp:', error);
         }
         
-        // 3. Обрабатываем событие viewportChanged для поддержания полной высоты
+        // 3. Отключаем вертикальные свайпы для предотвращения случайного закрытия приложения
+        // Это критично для приложений с длинным контентом и прокруткой
+        // Без этого пользователи могут случайно закрыть приложение при прокрутке вниз
+        try {
+            if (tg.disableVerticalSwipes) {
+                tg.disableVerticalSwipes();
+            }
+        } catch (error) {
+            console.warn('⚠️ Ошибка при отключении вертикальных свайпов:', error);
+        }
+        
+        // 4. Обрабатываем событие viewportChanged для поддержания полной высоты
         // Это важно для случаев, когда размер viewport изменяется
         tg.onEvent('viewportChanged', () => {
             if (!tg.isExpanded) {
@@ -90,7 +103,7 @@ export const initTelegramWebApp = () => {
             }
         });
         
-        // 4. Отключаем подтверждение закрытия (будем обрабатывать через навигацию)
+        // 5. Отключаем подтверждение закрытия (будем обрабатывать через навигацию)
         tg.disableClosingConfirmation();
         
         console.log('✅ Telegram WebApp инициализирован:', {
