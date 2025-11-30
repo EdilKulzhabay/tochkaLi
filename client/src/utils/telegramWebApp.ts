@@ -25,6 +25,19 @@ declare global {
                         right?: number;
                     };
                 };
+                // Новые API для safe area (Android)
+                contentSafeAreaInset?: {
+                    top?: number;
+                    bottom?: number;
+                    left?: number;
+                    right?: number;
+                };
+                safeAreaInset?: {
+                    top?: number;
+                    bottom?: number;
+                    left?: number;
+                    right?: number;
+                };
                 initData?: string;
                 initDataUnsafe?: {
                     user?: {
@@ -208,19 +221,48 @@ export const useTelegramFullscreen = () => {
         tg.expand();
 
         const apply = () => {
-            const safe = tg.viewport?.safeArea || {};
-            document.documentElement.style.setProperty("--tg-safe-top", `${safe.top || 0}px`);
-            document.documentElement.style.setProperty("--tg-safe-bottom", `${safe.bottom || 0}px`);
-            document.documentElement.style.setProperty("--tg-safe-left", `${safe.left || 0}px`);
-            document.documentElement.style.setProperty("--tg-safe-right", `${safe.right || 0}px`);
+            // Для Android используем contentSafeAreaInset (новый API) или safeAreaInset (старый API)
+            const safeAreaInset = tg.contentSafeAreaInset || tg.safeAreaInset;
+            const viewportSafe = tg.viewport?.safeArea;
+            
+            let top = 0, bottom = 0, left = 0, right = 0;
+            
+            if (safeAreaInset) {
+                // Новый API для safe area (работает лучше на Android)
+                top = safeAreaInset.top || 0;
+                bottom = safeAreaInset.bottom || 0;
+                left = safeAreaInset.left || 0;
+                right = safeAreaInset.right || 0;
+            } else if (viewportSafe) {
+                // Старый API через viewport
+                top = viewportSafe.top || 0;
+                bottom = viewportSafe.bottom || 0;
+                left = viewportSafe.left || 0;
+                right = viewportSafe.right || 0;
+            }
+            
+            console.log('Safe area:', { top, bottom, left, right });
+            
+            document.documentElement.style.setProperty("--tg-safe-top", `${top}px`);
+            document.documentElement.style.setProperty("--tg-safe-bottom", `${bottom}px`);
+            document.documentElement.style.setProperty("--tg-safe-left", `${left}px`);
+            document.documentElement.style.setProperty("--tg-safe-right", `${right}px`);
         };
 
+        // Применяем сразу
         apply();
+        
+        // Применяем с задержкой для Android (иногда данные приходят позже)
+        setTimeout(apply, 100);
+        setTimeout(apply, 300);
+        setTimeout(apply, 500);
 
         tg.onEvent?.("viewportChanged", apply);
+        tg.onEvent?.("safeAreaChanged", apply);
 
         return () => {
             tg.offEvent?.("viewportChanged", apply);
+            tg.offEvent?.("safeAreaChanged", apply);
         };
     }, []);
 };

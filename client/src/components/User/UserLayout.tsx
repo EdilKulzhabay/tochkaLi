@@ -1,19 +1,14 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
+import { useTelegramFullscreen } from '../../utils/telegramWebApp';
 
 interface UserLayoutProps {
     children: ReactNode;
 }
 
 export const UserLayout = ({ children }: UserLayoutProps) => {
-
-    useEffect(() => {
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-    }, []);
+    // Используем хук для safe area и fullscreen режима
+    useTelegramFullscreen();
 
     // Защита от копирования текста
     useEffect(() => {
@@ -158,10 +153,11 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
                 msUserSelect: 'none',
                 WebkitTouchCallout: 'none',
                 margin: 0,
-                paddingTop: "var(--safe-top)",
-                paddingBottom: "var(--safe-bottom)",
-                paddingLeft: "var(--safe-left)",
-                paddingRight: "var(--safe-right)"
+                // CSS переменные устанавливаются через useTelegramFullscreen()
+                paddingTop: 'var(--tg-safe-top, 0px)',
+                paddingBottom: 'var(--tg-safe-bottom, 0px)',
+                paddingLeft: 'var(--tg-safe-left, 0px)',
+                paddingRight: 'var(--tg-safe-right, 0px)'
             }}
         >
             <div className="">
