@@ -115,6 +115,11 @@ export const initTelegramWebApp = () => {
         // 5. Отключаем подтверждение закрытия (будем обрабатывать через навигацию)
         tg.disableClosingConfirmation();
         
+        // 6. Скрываем кнопку "Назад" по умолчанию (будет показываться при необходимости через навигацию)
+        if (tg.BackButton) {
+            tg.BackButton.hide();
+        }
+        
         console.log('✅ Telegram WebApp инициализирован:', {
             version: tg.version,
             platform: tg.platform,

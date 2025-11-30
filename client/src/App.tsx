@@ -19,6 +19,11 @@ function App() {
             tg.ready();
             tg.expand();
             
+            // Скрываем кнопку "Назад" по умолчанию
+            if (tg.BackButton) {
+                tg.BackButton.hide();
+            }
+            
             // Дополнительная проверка через небольшую задержку
             setTimeout(() => {
                 if (!tg.isExpanded) {
