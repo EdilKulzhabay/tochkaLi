@@ -48,7 +48,7 @@ bot.start(async (ctx) => {
       text: "Портал .li",
       web_app: {
         url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}&v=${Date.now()}`
-      }
+      },
     }
   });
 
