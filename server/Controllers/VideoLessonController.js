@@ -3,7 +3,7 @@ import VideoLesson from "../Models/VideoLesson.js";
 // Создать новый видео урок
 export const create = async (req, res) => {
     try {
-        const { title, shortDescription, fullDescription, imageUrl, videoUrl, accessType, duration, order } = req.body;
+        const { title, shortDescription, fullDescription, imageUrl, videoUrl, ruTubeUrl, accessType, duration, order } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
         //     return res.status(400).json({
@@ -18,6 +18,7 @@ export const create = async (req, res) => {
             fullDescription,
             imageUrl,
             videoUrl,
+            ruTubeUrl,
             accessType: accessType || 'free',
             duration,
             order: order || 0,

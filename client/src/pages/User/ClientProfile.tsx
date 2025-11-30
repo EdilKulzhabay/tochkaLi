@@ -13,7 +13,8 @@ import { Switch } from "../../components/User/Switch";
 
 export const ClientProfile = () => {
     const [userData, setUserData] = useState<any>(null);
-    const [notifications, setNotifications] = useState(false);
+    const [notifications, setNotifications] = useState(true);
+    const [locatedInRussia, setLocatedInRussia] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
     const navigate = useNavigate();
 
@@ -30,6 +31,8 @@ export const ClientProfile = () => {
         });
         if (response.data.success) {
             setUserData(response.data.user);
+            setNotifications(response.data.user.notifyPermission);
+            setLocatedInRussia(response.data.user.locatedInRussia);
         }
     }
 
@@ -46,6 +49,13 @@ export const ClientProfile = () => {
         }
     }
 
+    const updateUserData = async (field: string, value: boolean) => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await api.patch(`/api/user/${user._id}`, { [field]: value });
+        if (response.data.success) {
+            setUserData(response.data.user);
+        }
+    }
     return (
         <div>
             <UserLayout>
@@ -152,8 +162,13 @@ export const ClientProfile = () => {
                     </div>
 
                     <div className="mt-4 flex items-center justify-between">
+                        <div>Просмотр видео в РФ без VPN</div>
+                        <Switch checked={locatedInRussia} onChange={() => updateUserData('locatedInRussia', !locatedInRussia)} />
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between">
                         <div>Разрешить уведомления</div>
-                        <Switch checked={notifications} onChange={() => setNotifications(!notifications)} />
+                        <Switch checked={notifications} onChange={() => updateUserData('notifyPermission', !notifications)} />
                     </div>
 
                     <MyLink to="/client/contactus" text="Связаться с нами" className='w-full mt-4' color='red'/>

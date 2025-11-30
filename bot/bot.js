@@ -29,30 +29,23 @@ bot.start(async (ctx) => {
       'Content-Type': 'application/json'
     }
   });
-  // 1. Сбрасываем глобальное меню (если есть)
-  await bot.telegram.setChatMenuButton({
-    menuButton: { type: "default" }
-  });
 
-  // 2. Сбрасываем локальное меню
-  await bot.telegram.setChatMenuButton({
-    chatId,
-    menuButton: { type: "default" }
-  });
-
-  // 3. Устанавливаем новую кнопку (обновление через параметр v)
-  await bot.telegram.setChatMenuButton({
-    chatId,
-    menuButton: {
-      type: "web_app",
-      text: "Портал .li",
-      web_app: {
-        url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}&v=${Date.now()}`
-      },
+  // Отправляем сообщение с inline кнопкой для запуска WebApp
+  await ctx.reply(
+    `Портал .li активирован.\nЖми кнопку запуска👇`,
+    {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: '🚀 Открыть Портал .li',
+            web_app: {
+              url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
+            }
+          }
+        ]]
+      }
     }
-  });
-
-  await ctx.reply(`Портал .li активирован.\nЖми кнопку запуска👇`);
+  );
 });
 
 // Бот запускается из server.js, поэтому здесь не запускаем

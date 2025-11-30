@@ -7,6 +7,14 @@ interface UserLayoutProps {
 
 export const UserLayout = ({ children }: UserLayoutProps) => {
 
+    useEffect(() => {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+    }, []);
+
     // Защита от копирования текста
     useEffect(() => {
         // Функция для проверки, является ли элемент полем ввода или находится внутри него
@@ -150,12 +158,10 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
                 msUserSelect: 'none',
                 WebkitTouchCallout: 'none',
                 margin: 0,
-                // Используем CSS переменные для safe-area от Telegram WebApp API
-                // Эти значения устанавливаются через useTelegramFullscreen() в App.tsx
-                paddingTop: 'var(--tg-safe-top, 0px)',
-                paddingBottom: 'var(--tg-safe-bottom, 0px)',
-                paddingLeft: 'var(--tg-safe-left, 0px)',
-                paddingRight: 'var(--tg-safe-right, 0px)',
+                paddingTop: "var(--safe-top)",
+                paddingBottom: "var(--safe-bottom)",
+                paddingLeft: "var(--safe-left)",
+                paddingRight: "var(--safe-right)"
             }}
         >
             <div className="">

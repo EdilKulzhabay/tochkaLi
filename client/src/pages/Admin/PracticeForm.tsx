@@ -21,6 +21,7 @@ export const PracticeForm = () => {
         fullDescription: '',
         imageUrl: '',
         videoUrl: '',
+        ruTubeUrl: '',
         duration: '',
         order: 0,
         accessType: 'free',
@@ -175,6 +176,14 @@ export const PracticeForm = () => {
                             value={formData.videoUrl}
                             onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                             placeholder="https://example.com/video.mp4"
+                        />
+
+                        <MyInput
+                            label="RuTube URL"
+                            type="text"
+                            value={formData.ruTubeUrl}
+                            onChange={(e) => setFormData({ ...formData, ruTubeUrl: e.target.value })}
+                            placeholder="https://rutube.ru/video/..."
                         />
 
                         <div>

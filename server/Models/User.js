@@ -105,6 +105,14 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    locatedInRussia: {
+        type: Boolean,
+        default: false,
+    },
+    notifyPermission: {
+        type: Boolean,
+        default: true,
+    },
 }, {
     timestamps: true
 });

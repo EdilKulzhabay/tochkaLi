@@ -20,6 +20,10 @@ const MeditationSchema = new mongoose.Schema(
     videoUrl: {
       type: String,
     },
+    ruTubeUrl: {
+      type: String,
+      default: null,
+    },
     accessType: {
       type: String,
       enum: ['free', 'paid', 'subscription', 'stars'],

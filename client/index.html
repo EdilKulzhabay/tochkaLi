@@ -13,6 +13,7 @@
     <!-- Максимально раннее расширение для menuButton -->
     <script>
       if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         console.log('🚀 Первичное расширение WebApp (HTML)');
       }

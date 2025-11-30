@@ -39,16 +39,15 @@ export const ClientLogin = () => {
     return (
         <div 
             style={{
-                height: '100vh',
                 backgroundImage: `url(${bgGar})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
             }}
-            className='px-4 pb-6 flex flex-col justify-between'
+            className='min-h-screen px-4 pb-6 flex flex-col justify-between'
         >
+            <div className='h-[200px]'></div>
             <div className='flex-1'>
-                <div className='h-[45%]' />
                 <h1 className='text-[48px] font-semibold text-white leading-12'>Авторизация пользователя</h1>
                 <div className='mt-6 space-y-3'>
                     <ClientInput
