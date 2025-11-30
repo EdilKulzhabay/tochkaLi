@@ -126,13 +126,13 @@ export const ClientProfile = () => {
                             }
                         </div>
                         {linkCopied && (
-                            <div className="text-sm text-green-400 mt-1">Ссылка скопирована!</div>
+                            <div className="text-sm text-[#EC1313] mt-1">Ссылка скопирована!</div>
                         )}
                     </div>
 
                     <div className="mt-4 flex items-center gap-x-2">
                         <a
-                            href={``}
+                            href="https://t.me/tochka_li"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="basis-1/2 bg-[#333333] rounded-lg p-4 flex items-center gap-x-2.5"
@@ -141,7 +141,7 @@ export const ClientProfile = () => {
                             <img src={linkArrow} alt="linkArrow" className="w-5 h-5 object-cover shrink-0" />
                         </a>
                         <a
-                            href={``}
+                            href="https://t.me/tochka_li"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="basis-1/2 bg-[#333333] rounded-lg p-4 flex items-center gap-x-2.5"

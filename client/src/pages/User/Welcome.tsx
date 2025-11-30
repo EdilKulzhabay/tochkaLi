@@ -29,6 +29,13 @@ export const Welcome = () => {
             
             try {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
+
+                if (!response.data.success) {
+                    localStorage.clear();
+                    if (telegramId) localStorage.setItem("telegramId", telegramId);
+                    if (telegramUserName) localStorage.setItem("telegramUserName", telegramUserName);
+                    return;
+                }
                 
                 if (response.data.success && response.data.user) {
                     

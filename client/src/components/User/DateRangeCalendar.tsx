@@ -236,7 +236,7 @@ export const DateRangeCalendar = ({
                             className={`
                                 aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
-                                ${selected ? 'bg-red-500 text-white font-semibold' : 'text-white/40'}
+                                ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
                                 hover:bg-white/10
                             `}
                         >
@@ -263,7 +263,7 @@ export const DateRangeCalendar = ({
                             className={`
                                 aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
-                                ${selected ? 'bg-red-500 text-white font-semibold' : ''}
+                                ${selected ? 'bg-white/40 text-white font-semibold' : ''}
                                 ${today && !selected ? 'border-2 border-[#FFC293]' : ''}
                                 ${!selected && !today ? 'hover:bg-white/10' : ''}
                             `}
@@ -290,7 +290,7 @@ export const DateRangeCalendar = ({
                             className={`
                                 aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
-                                ${selected ? 'bg-red-500 text-white font-semibold' : 'text-white/40'}
+                                ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
                                 hover:bg-white/10
                             `}
                         >

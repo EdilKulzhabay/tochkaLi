@@ -57,3 +57,17 @@ export const formatDateRangeReadableWithYear = (startDate?: string | Date, endDa
     return `${startDay} ${startMonthName} ${start.getFullYear()} - ${endDay} ${endMonthName} ${end.getFullYear()}`;
 };
 
+export const formatDateRangeDDMM = (startDate?: string | Date, endDate?: string | Date) => {
+    if (!startDate || !endDate) return "";
+
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+
+    const startMonth = String(start.getMonth() + 1).padStart(2, '0');
+    const startDay = String(start.getDate()).padStart(2, '0');
+    const endMonth = String(end.getMonth() + 1).padStart(2, '0');
+    const endDay = String(end.getDate()).padStart(2, '0');
+
+    return `${startDay}.${startMonth}-${endDay}.${endMonth}`;
+};
+

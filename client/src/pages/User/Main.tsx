@@ -184,8 +184,8 @@ export const Main = () => {
                         </Link>
                     </div>
                 </div>
-                <h1 className="mt-3 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
-                <div className="grid grid-cols-2 gap-4 mt-3">
+                <h1 className="mt-1 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
+                <div className="grid grid-cols-2 gap-4 mt-5">
                     <SmallCard title="Дневник" link="/client/diary" img={main1}/>
                     <SmallCard title="Расписание" link="/client/schedule" img={main2}/>
                     <SmallCard title={`Транзиты`} link="/client/transit" img={main3}/>
@@ -196,19 +196,19 @@ export const Main = () => {
                         title="Видео" 
                         link="/client/video-lessons" 
                         image={mainVideo} 
-                        content="Популярные видео проекта .li, которые содержат эксклюзивный контент и знакомят с Точкой"
+                        content="Популярные видео и эксклюзивный контент от экспертов, которые знакомят с Проектом «Точки»"
                     />
                     <LargeCard 
                         title="Практики" 
                         link="/client/practices" 
                         image={mainPractice} 
-                        content="Самые действенные и простые инструменты управления подсознанием на каждый день"
+                        content="Эффективные инструменты управления энергией и подсознанием на каждый день"
                     />
                     <LargeCard 
                         title="Медитации" 
                         link="/client/meditations" 
                         image={mainMeditation} 
-                        content="Эффективная проработка внутренних конфликтов, соединение со своей энергией и запуск изменений"
+                        content="Разрешение внутренних конфликтов, соединение со своей энергией и запуск процессов изменений"
                     />
                 </div>
             </div>

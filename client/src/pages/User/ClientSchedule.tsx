@@ -348,11 +348,11 @@ export const ClientSchedule = () => {
 
                             {/* Modal */}
                             <div 
-                                className="relative inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
+                                className="relative inline-block align-bottom bg-black/20 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
                                 style={{ maxWidth: '500px', width: '100%' }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="bg-gray-800 px-6 py-4 border-b border-gray-600">
+                                <div className="bg-white/40 px-6 py-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-semibold text-white">
                                             {selectedSchedule.eventTitle || 'Добавить в календарь'}
@@ -365,7 +365,7 @@ export const ClientSchedule = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="bg-gray-800 px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                                <div className="bg-white/40 px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                     <div className="space-y-4">
                                         <div className="text-white/80">
                                             <p className="mb-2">{selectedSchedule.description}</p>
@@ -393,7 +393,7 @@ export const ClientSchedule = () => {
                                             <button
                                                 onClick={addToCalendar}
                                                 disabled={isAddingToCalendar}
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#EC1313] hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Calendar size={20} />
                                                 {isAddingToCalendar ? 'Добавление...' : 'Добавить в календарь'}

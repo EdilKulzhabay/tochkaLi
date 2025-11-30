@@ -2,7 +2,7 @@ import { UserLayout } from "../../components/User/UserLayout"
 import { BackNav } from "../../components/User/BackNav"
 import { useState, useEffect } from "react"
 import api from "../../api"
-import { formatDateRangeReadable } from "../../components/User/dateUtils"
+import { formatDateRangeDDMM } from "../../components/User/dateUtils"
 import { MobileAccordionList } from "../../components/User/MobileAccordionList"
 import { RedButton } from "../../components/User/RedButton"
 import { useNavigate } from "react-router-dom"
@@ -45,7 +45,7 @@ export const ClientHoroscope = () => {
                             <div className="mt-4">
                                 <h2 className="text-xl font-medium">{horoscope.title}</h2>
                                 <p className="text-sm">
-                                    {formatDateRangeReadable(horoscope.startDate, horoscope.endDate)}
+                                    {formatDateRangeDDMM(horoscope.startDate, horoscope.endDate)}
                                 </p>
                             </div>
                         )}

@@ -187,7 +187,7 @@ export const UserForm = () => {
                         />
 
                         <MyInput
-                            label="Бонусы (Звезды)"
+                            label="Количество бонусов (Звезды)"
                             type="number"
                             value={formData.bonus.toString()}
                             onChange={(e) => {
