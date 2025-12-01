@@ -185,7 +185,6 @@ export const Main = () => {
                     </div>
                 </div>
                 <h1 className="mt-1 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
-                <div>{`var(--tg-safe-top, 0px)`}</div>
                 <div className="grid grid-cols-2 gap-4 mt-5">
                     <SmallCard title="Дневник" link="/client/diary" img={main1}/>
                     <SmallCard title="Расписание" link="/client/schedule" img={main2}/>
