@@ -241,7 +241,7 @@ export const useTelegramFullscreen = () => {
                 right = viewportSafe.right || 0;
             }
 
-            const addPadding = top > 0 ? 20 : 0;
+            const addPadding = top > 0 ? 100 : 0;
             
             console.log('Safe area:', { top, bottom, left, right });
             
