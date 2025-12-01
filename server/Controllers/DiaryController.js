@@ -1,4 +1,5 @@
 import Diary from "../Models/Diary.js";
+import User from "../Models/User.js";
 
 // Создать новую запись дневника
 export const create = async (req, res) => {
