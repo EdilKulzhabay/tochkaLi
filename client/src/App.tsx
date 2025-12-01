@@ -45,6 +45,7 @@ function App() {
             <RouterProvider router={routes} />
             <ToastContainer 
                 position="top-right"
+                style={{ paddingTop: 'var(--tg-safe-top, 0px)' }}
                 autoClose={3000}
                 hideProgressBar={false}
                 newestOnTop={false}
