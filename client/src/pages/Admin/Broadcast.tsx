@@ -64,7 +64,6 @@ export const BroadcastAdmin = () => {
                 }
             });
             setFoundUsers(response.data.data || []);
-            setSelectedUsers(new Set());
             if (response.data.data.length === 0) {
                 toast.info('Пользователи не найдены');
             } else {

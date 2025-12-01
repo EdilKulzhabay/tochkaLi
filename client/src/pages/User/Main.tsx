@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UserLayout } from "../../components/User/UserLayout"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import api from "../../api"
 import { useAuth } from "../../contexts/AuthContext"
 import logo from "../../assets/logo.png"
@@ -52,6 +52,7 @@ export const Main = () => {
     const [userName, setUserName] = useState<string>("");
     const [userData, setUserData] = useState<any>(null);
     const { updateUser } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -62,6 +63,7 @@ export const Main = () => {
                 
                 if (!userStr) {
                     console.log('Пользователь не найден в localStorage');
+                    navigate('/');
                     return;
                 }
 
@@ -86,6 +88,8 @@ export const Main = () => {
                         const response = await api.get(`/api/user/telegram/${telegramId}`);
                         if (response.data.success && response.data.user) {
                             updatedUser = response.data.user;
+                        } else {
+                            navigate('/');
                         }
                     } catch (error) {
                         console.error('Ошибка получения данных пользователя через Telegram API:', error);
@@ -98,6 +102,8 @@ export const Main = () => {
                         const response = await api.get(`/api/user/${user._id}`);
                         if (response.data.success && response.data.user) {
                             updatedUser = response.data.user;
+                        } else {
+                            navigate('/');
                         }
                     } catch (error) {
                         console.error('Ошибка получения данных пользователя через /api/user/:id:', error);

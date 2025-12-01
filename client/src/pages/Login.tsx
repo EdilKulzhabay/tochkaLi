@@ -29,7 +29,7 @@ export const Login = () => {
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-            <div className="flex flex-col items-center bg-white p-10 rounded-lg shadow-md">
+            <div className="flex flex-col items-center bg-white p-10 rounded-lg shadow-md min-w-[400px]">
                 <h1 className="text-2xl font-bold">Авторизация</h1>
                 <MyInput 
                     label="Email" 

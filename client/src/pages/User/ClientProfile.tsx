@@ -163,12 +163,18 @@ export const ClientProfile = () => {
 
                     <div className="mt-4 flex items-center justify-between">
                         <div>Просмотр видео в РФ без VPN</div>
-                        <Switch checked={locatedInRussia} onChange={() => updateUserData('locatedInRussia', !locatedInRussia)} />
+                        <Switch checked={locatedInRussia} onChange={() => {
+                            updateUserData('locatedInRussia', !locatedInRussia);
+                            setLocatedInRussia(!locatedInRussia);
+                        }} />
                     </div>
 
                     <div className="mt-4 flex items-center justify-between">
                         <div>Разрешить уведомления</div>
-                        <Switch checked={notifications} onChange={() => updateUserData('notifyPermission', !notifications)} />
+                        <Switch checked={notifications} onChange={() => {
+                            updateUserData('notifyPermission', !notifications);
+                            setNotifications(!notifications);
+                        }} />
                     </div>
 
                     <MyLink to="/client/contactus" text="Связаться с нами" className='w-full mt-4' color='red'/>

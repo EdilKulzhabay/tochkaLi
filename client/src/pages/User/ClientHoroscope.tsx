@@ -36,7 +36,7 @@ export const ClientHoroscope = () => {
 
     return (
         <UserLayout>
-            <div className="pb-10 min-h-screen flex flex-col justify-between bg-[#161616]">
+            <div className="min-h-screen flex flex-col justify-between bg-[#161616]">
                 <div>
                     <BackNav title="Антисоциумный гороскоп" />
                     <div className="px-4 mt-2">
@@ -82,7 +82,7 @@ export const ClientHoroscope = () => {
                     )}
                 </div>
 
-                <div className="px-4 mt-auto pt-8 space-y-3">
+                <div className="px-4 mt-auto pt-8 space-y-3 pb-10">
                     <a
                         href="https://tochka.li/signs"
                         target="_blank"

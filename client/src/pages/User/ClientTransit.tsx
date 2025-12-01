@@ -70,7 +70,7 @@ export const ClientTransit = () => {
 
     return (
         <UserLayout>
-            <div className="pb-10 min-h-screen flex flex-col justify-between bg-[#161616]">
+            <div className="min-h-screen flex flex-col justify-between bg-[#161616]">
                 <div>
                     <BackNav title="Описание транзитов" />
                     <div className="px-4 mt-2">
@@ -112,7 +112,7 @@ export const ClientTransit = () => {
                     )}
                 </div>
 
-                <div className="px-4 pt-8">
+                <div className="px-4 pt-8 pb-10">
                     <Link 
                         to="/client/schumann"
                         className="w-full block border border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"

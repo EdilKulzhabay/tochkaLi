@@ -26,7 +26,9 @@ export const getFilteredUsers = async (req, res) => {
     try {
         const { status, search } = req.query;
 
-        let filter = {};
+        let filter = {
+            notifyPermission: true,
+        };
         
         // Фильтр по статусу (если указан)
         if (status && status !== 'all') {

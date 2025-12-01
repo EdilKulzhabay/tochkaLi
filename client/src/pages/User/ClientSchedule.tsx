@@ -348,11 +348,11 @@ export const ClientSchedule = () => {
 
                             {/* Modal */}
                             <div 
-                                className="relative inline-block align-bottom bg-black/20 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
+                                className="relative inline-block align-bottom bg-[#858585] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
                                 style={{ maxWidth: '500px', width: '100%' }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="bg-white/40 px-6 py-4">
+                                <div className="bg-[#858585] px-6 py-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-semibold text-white">
                                             {selectedSchedule.eventTitle || 'Добавить в календарь'}
@@ -365,7 +365,7 @@ export const ClientSchedule = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="bg-white/40 px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                                <div className="bg-[#858585] px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                     <div className="space-y-4">
                                         <div className="text-white/80">
                                             <p className="mb-2">{selectedSchedule.description}</p>
