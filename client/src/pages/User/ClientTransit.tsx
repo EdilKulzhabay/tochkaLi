@@ -4,7 +4,7 @@ import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
 import { MobileAccordionList } from "../../components/User/MobileAccordionList";
 import { RedButton } from "../../components/User/RedButton";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface TransitLine {
     title: string;
