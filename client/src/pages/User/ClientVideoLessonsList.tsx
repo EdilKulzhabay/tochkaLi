@@ -225,7 +225,7 @@ export const ClientVideoLessonsList = () => {
             <UserLayout>
                 <BackNav title="Видео уроки" />
 
-                <div className="px-4 mt-8 pb-10 bg-[#161616]">
+                <div className="px-4 mt-2 pb-10 bg-[#161616]">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {videoLessons.length > 0 ? (
                             videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'subscription').map((videoLesson: any) => (

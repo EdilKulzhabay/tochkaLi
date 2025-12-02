@@ -28,6 +28,8 @@ import { requireAdmin } from "./Middlewares/roleMiddleware.js";
 import User from "./Models/User.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +54,13 @@ app.use(
 
 // Статическая раздача файлов из папки uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Swagger документация
+const swaggerDocument = YAML.load(path.join(__dirname, 'swagger.yaml'));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: "TochkaLi API Documentation"
+}));
 
 // Публичные маршруты
 app.post("/api/user/create", UserController.createUser);

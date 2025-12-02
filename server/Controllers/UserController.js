@@ -268,9 +268,9 @@ export const createUser = async (req, res) => {
                 
                 // Добавляем 1 бонус тому, кто пригласил
                 await User.findByIdAndUpdate(inviter._id, {
-                    $inc: { bonus: 1 }
+                    $inc: { bonus: 1, inviteesCount: 1 }
                 });
-                
+
                 console.log(`✅ Пользователь ${inviter.telegramId} получил 1 бонус за приглашение пользователя ${telegramId}`);
             } else {
                 console.log(`⚠️ Реферальный пользователь с telegramId ${referralTelegramId} не найден`);
@@ -348,9 +348,8 @@ export const register = async (req, res) => {
             }
         );
 
-        // Сохраняем текущий токен (одна сессия)
+        // Сохраняем refresh токен
         await User.findByIdAndUpdate(user._id, {
-            currentToken: accessToken,
             refreshToken: refreshToken,
         });
 
@@ -439,13 +438,12 @@ export const login = async (req, res) => {
             }
         );
 
-        // Обновляем токен в БД - старая сессия станет невалидной
+        // Сохраняем refresh токен
         await User.findByIdAndUpdate(candidate._id, {
-            currentToken: accessToken,
             refreshToken: refreshToken,
         });
 
-        console.log("login successful, new session created");
+        console.log("login successful");
 
         res.json({ success: true, accessToken, refreshToken, userData });
     } catch (error) {

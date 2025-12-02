@@ -1,0 +1,2946 @@
+openapi: 3.0.3
+info:
+  title: TochkaLi API
+  description: API документация для приложения TochkaLi
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: /api
+    description: API сервер
+
+tags:
+  - name: User
+    description: Управление пользователями
+  - name: Auth
+    description: Авторизация и регистрация
+  - name: FAQ
+    description: Часто задаваемые вопросы
+  - name: Horoscope
+    description: Гороскопы
+  - name: Meditation
+    description: Медитации
+  - name: Practice
+    description: Практики
+  - name: VideoLesson
+    description: Видео уроки
+  - name: Schedule
+    description: Расписание событий
+  - name: Transit
+    description: Транзиты
+  - name: DynamicContent
+    description: Динамический контент
+  - name: Welcome
+    description: Контент приветствия
+  - name: AboutClub
+    description: Информация о клубе
+  - name: Schumann
+    description: Частота Шумана
+  - name: Broadcast
+    description: Рассылки
+  - name: Robokassa
+    description: Оплата через Robokassa
+  - name: Upload
+    description: Загрузка файлов
+  - name: Diary
+    description: Дневник пользователя
+  - name: VideoProgress
+    description: Прогресс просмотра видео
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ==================== Общие схемы ====================
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+
+    # ==================== User схемы ====================
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        telegramId:
+          type: string
+          example: "123456789"
+        telegramUserName:
+          type: string
+          example: "username"
+        mail:
+          type: string
+          format: email
+          example: "user@example.com"
+        fullName:
+          type: string
+          example: "Иван Иванов"
+        userName:
+          type: string
+        phone:
+          type: string
+          example: "+7 999 999 99 99"
+        role:
+          type: string
+          enum: [user, admin, content_manager, client_manager, manager]
+          example: "user"
+        status:
+          type: string
+          enum: [guest, registered, active, client]
+          example: "active"
+        bonus:
+          type: number
+          example: 10
+        hasPaid:
+          type: boolean
+          example: false
+        subscriptionEndDate:
+          type: string
+          format: date-time
+          nullable: true
+        locatedInRussia:
+          type: boolean
+          example: false
+        notifyPermission:
+          type: boolean
+          example: true
+        emailConfirmed:
+          type: boolean
+          example: false
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserProduct'
+        invitedUser:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserProduct:
+      type: object
+      properties:
+        productId:
+          type: string
+        type:
+          type: string
+          enum: [subscription, one-time, free]
+        paymentDate:
+          type: string
+          format: date-time
+          nullable: true
+        paymentAmount:
+          type: number
+        invoiceId:
+          type: string
+          nullable: true
+        paymentStatus:
+          type: string
+          enum: [pending, paid, failed]
+
+    CreateUserRequest:
+      type: object
+      required:
+        - telegramId
+      properties:
+        telegramId:
+          type: string
+          example: "123456789"
+        telegramUserName:
+          type: string
+          example: "username"
+        referralTelegramId:
+          type: string
+          description: Telegram ID пользователя, который пригласил
+
+    RegisterRequest:
+      type: object
+      required:
+        - fullName
+        - mail
+        - phone
+      properties:
+        fullName:
+          type: string
+          example: "Иван Иванов"
+        mail:
+          type: string
+          format: email
+          example: "user@example.com"
+        phone:
+          type: string
+          example: "+7 999 999 99 99"
+        telegramId:
+          type: string
+          example: "123456789"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          example: "password123"
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        userData:
+          $ref: '#/components/schemas/User'
+
+    SendMailRequest:
+      type: object
+      required:
+        - mail
+      properties:
+        mail:
+          type: string
+          format: email
+          example: "user@example.com"
+
+    CodeConfirmRequest:
+      type: object
+      required:
+        - mail
+        - code
+      properties:
+        mail:
+          type: string
+          format: email
+          example: "user@example.com"
+        code:
+          type: string
+          example: "123456"
+
+    CreateUserByAdminRequest:
+      type: object
+      required:
+        - fullName
+        - mail
+        - phone
+      properties:
+        fullName:
+          type: string
+          example: "Иван Иванов"
+        mail:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          description: Если не указан, будет сгенерирован автоматически
+        role:
+          type: string
+          enum: [user, admin, content_manager, client_manager, manager]
+        status:
+          type: string
+          enum: [guest, registered, active, client]
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 6
+
+    ActivateSubscriptionRequest:
+      type: object
+      required:
+        - subscriptionEndDate
+      properties:
+        subscriptionEndDate:
+          type: string
+          format: date-time
+
+    PurchaseContentRequest:
+      type: object
+      required:
+        - userId
+        - contentId
+        - contentType
+      properties:
+        userId:
+          type: string
+        contentId:
+          type: string
+        contentType:
+          type: string
+          enum: [practice, meditation, video-lesson]
+
+    # ==================== FAQ схемы ====================
+    FAQ:
+      type: object
+      properties:
+        _id:
+          type: string
+        question:
+          type: string
+          example: "Как начать медитацию?"
+        answer:
+          type: string
+          example: "Найдите тихое место и закройте глаза..."
+        order:
+          type: number
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFAQRequest:
+      type: object
+      required:
+        - question
+        - answer
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+        order:
+          type: number
+
+    # ==================== Horoscope схемы ====================
+    HoroscopeLine:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    Horoscope:
+      type: object
+      properties:
+        _id:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        title:
+          type: string
+          example: "Гороскоп на неделю"
+        subtitle:
+          type: string
+        image:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoroscopeLine'
+        accessType:
+          type: string
+          enum: [free, paid, subscription]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateHoroscopeRequest:
+      type: object
+      required:
+        - startDate
+        - endDate
+        - title
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        title:
+          type: string
+        subtitle:
+          type: string
+        image:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoroscopeLine'
+        accessType:
+          type: string
+          enum: [free, paid, subscription]
+
+    # ==================== Meditation/Practice/VideoLesson схемы ====================
+    ContentItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+          example: "Утренняя медитация"
+        shortDescription:
+          type: string
+        fullDescription:
+          type: string
+        imageUrl:
+          type: string
+        videoUrl:
+          type: string
+        ruTubeUrl:
+          type: string
+          description: URL для RuTube (для пользователей из России)
+        accessType:
+          type: string
+          enum: [free, paid, subscription, stars]
+        duration:
+          type: number
+          description: Продолжительность в минутах
+        order:
+          type: number
+        starsRequired:
+          type: number
+          description: Количество бонусов для покупки
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateContentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        shortDescription:
+          type: string
+        fullDescription:
+          type: string
+        imageUrl:
+          type: string
+        videoUrl:
+          type: string
+        ruTubeUrl:
+          type: string
+        accessType:
+          type: string
+          enum: [free, paid, subscription, stars]
+        duration:
+          type: number
+        order:
+          type: number
+
+    # ==================== Schedule схемы ====================
+    Schedule:
+      type: object
+      properties:
+        _id:
+          type: string
+        eventTitle:
+          type: string
+          example: "Вебинар по медитации"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        eventLink:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateScheduleRequest:
+      type: object
+      properties:
+        eventTitle:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        eventLink:
+          type: string
+        description:
+          type: string
+
+    # ==================== Transit схемы ====================
+    Transit:
+      type: object
+      properties:
+        _id:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        title:
+          type: string
+        subtitle:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoroscopeLine'
+        accessType:
+          type: string
+          enum: [free, paid, subscription]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTransitRequest:
+      type: object
+      required:
+        - startDate
+        - endDate
+        - title
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        title:
+          type: string
+        subtitle:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/HoroscopeLine'
+        accessType:
+          type: string
+          enum: [free, paid, subscription]
+
+    # ==================== DynamicContent схемы ====================
+    DynamicContent:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          example: "main_banner"
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDynamicContentRequest:
+      type: object
+      required:
+        - name
+        - content
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+
+    # ==================== Welcome схемы ====================
+    Welcome:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        image:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateWelcomeRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        image:
+          type: string
+        content:
+          type: string
+
+    # ==================== AboutClub схемы ====================
+    AboutClub:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        image:
+          type: string
+        content:
+          type: string
+        list:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateAboutClubRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        image:
+          type: string
+        content:
+          type: string
+        list:
+          type: array
+          items:
+            type: string
+
+    # ==================== Schumann схемы ====================
+    Schumann:
+      type: object
+      properties:
+        _id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        image:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateSchumannRequest:
+      type: object
+      required:
+        - date
+        - image
+      properties:
+        date:
+          type: string
+          format: date-time
+        image:
+          type: string
+
+    # ==================== Broadcast схемы ====================
+    BroadcastRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Текст сообщения для рассылки (HTML)
+        status:
+          type: string
+          enum: [all, guest, registered, active, client]
+          description: Фильтр по статусу пользователей
+        search:
+          type: string
+          description: Поиск по имени/телефону
+        userIds:
+          type: array
+          items:
+            type: string
+          description: Конкретные ID пользователей для выборочной отправки
+
+    BroadcastResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        sent:
+          type: number
+        failed:
+          type: number
+        total:
+          type: number
+        failedUsers:
+          type: array
+          items:
+            type: object
+            properties:
+              telegramId:
+                type: string
+              error:
+                type: string
+
+    # ==================== Diary схемы ====================
+    Diary:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        discovery:
+          type: string
+          description: Открытие дня
+        achievement:
+          type: string
+          description: Достижение дня
+        gratitude:
+          type: string
+          description: Благодарность дня
+        uselessTask:
+          type: boolean
+          description: Бесполезное задание выполнено
+        wasUselessTaskAchieved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDiaryRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+        discovery:
+          type: string
+        achievement:
+          type: string
+        gratitude:
+          type: string
+        uselessTask:
+          type: boolean
+
+    # ==================== VideoProgress схемы ====================
+    VideoProgress:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        contentType:
+          type: string
+          enum: [meditation, practice, videoLesson]
+        contentId:
+          type: string
+        currentTime:
+          type: number
+          description: Текущая позиция в секундах
+        duration:
+          type: number
+          description: Общая длительность в секундах
+        progress:
+          type: number
+          description: Прогресс в процентах (0-100)
+        completed:
+          type: boolean
+        lastWatched:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SaveVideoProgressRequest:
+      type: object
+      required:
+        - contentType
+        - contentId
+        - currentTime
+        - duration
+      properties:
+        contentType:
+          type: string
+          enum: [meditation, practice, videoLesson]
+        contentId:
+          type: string
+        currentTime:
+          type: number
+        duration:
+          type: number
+        userId:
+          type: string
+          description: Для Telegram пользователей без токена
+
+    GetProgressesBatchRequest:
+      type: object
+      required:
+        - contentIds
+      properties:
+        contentIds:
+          type: array
+          items:
+            type: string
+
+paths:
+  # ==================== User Routes ====================
+  /user/create:
+    post:
+      tags: [Auth]
+      summary: Создать пользователя (Telegram)
+      description: Создает нового пользователя при первом входе через Telegram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: Пользователь создан или уже существует
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/register:
+    post:
+      tags: [Auth]
+      summary: Регистрация пользователя
+      description: Регистрация пользователя с указанием ФИО, email и телефона
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Не все поля заполнены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+
+  /user/login:
+    post:
+      tags: [Auth]
+      summary: Авторизация
+      description: Вход по email и паролю
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Email и пароль обязательны
+        '404':
+          description: Неверный логин или пароль
+        '500':
+          description: Ошибка авторизации
+
+  /user/send-mail:
+    post:
+      tags: [Auth]
+      summary: Отправить код подтверждения
+      description: Отправляет 6-значный код на email для подтверждения
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMailRequest'
+      responses:
+        '200':
+          description: Письмо отправлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Пользователь с такой почтой уже существует или некорректный email
+        '429':
+          description: Слишком частые запросы
+        '500':
+          description: Ошибка отправки
+
+  /user/code-confirm:
+    post:
+      tags: [Auth]
+      summary: Подтвердить код
+      description: Проверка кода подтверждения email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeConfirmRequest'
+      responses:
+        '200':
+          description: Код подтвержден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Неверный код
+
+  /user/send-mail-recovery:
+    post:
+      tags: [Auth]
+      summary: Отправить код для восстановления пароля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMailRequest'
+      responses:
+        '200':
+          description: Письмо отправлено
+        '400':
+          description: Некорректный email
+        '429':
+          description: Слишком частые запросы
+
+  /user/me:
+    get:
+      tags: [User]
+      summary: Получить текущего пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Не авторизован
+
+  /user/check-session:
+    get:
+      tags: [Auth]
+      summary: Проверить валидность сессии
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Сессия валидна
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  valid:
+                    type: boolean
+
+  /user/profile:
+    post:
+      tags: [User]
+      summary: Получить профиль пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+      responses:
+        '200':
+          description: Профиль пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /user/telegram/{telegramId}:
+    get:
+      tags: [User]
+      summary: Получить пользователя по Telegram ID
+      parameters:
+        - name: telegramId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: Пользователь не найден
+
+  /users/{telegramId}:
+    patch:
+      tags: [User]
+      summary: Обновить пользователя по Telegram ID
+      parameters:
+        - name: telegramId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                phone:
+                  type: string
+                locatedInRussia:
+                  type: boolean
+                notifyPermission:
+                  type: boolean
+      responses:
+        '200':
+          description: Пользователь обновлен
+        '404':
+          description: Пользователь не найден
+
+  /user/all:
+    get:
+      tags: [User]
+      summary: Получить всех пользователей
+      description: Только для администраторов
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  count:
+                    type: number
+
+  /user/{id}:
+    get:
+      tags: [User]
+      summary: Получить пользователя по ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: Пользователь не найден
+
+    put:
+      tags: [User]
+      summary: Обновить пользователя
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                phone:
+                  type: string
+                role:
+                  type: string
+                status:
+                  type: string
+                bonus:
+                  type: number
+      responses:
+        '200':
+          description: Пользователь обновлен
+        '404':
+          description: Пользователь не найден
+
+    delete:
+      tags: [User]
+      summary: Удалить пользователя
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Пользователь удален
+        '404':
+          description: Пользователь не найден
+
+  /user/create-by-admin:
+    post:
+      tags: [User]
+      summary: Создать пользователя (админ)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserByAdminRequest'
+      responses:
+        '200':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+                  generatedPassword:
+                    type: string
+                    description: Возвращается если пароль был сгенерирован автоматически
+        '409':
+          description: Пользователь с такой почтой уже существует
+
+  /user/{id}/activate-subscription:
+    put:
+      tags: [User]
+      summary: Активировать подписку
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivateSubscriptionRequest'
+      responses:
+        '200':
+          description: Подписка активирована
+        '400':
+          description: Дата окончания подписки обязательна
+        '404':
+          description: Пользователь не найден
+
+  /user/{id}/deactivate-subscription:
+    put:
+      tags: [User]
+      summary: Деактивировать подписку
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Подписка отменена
+        '404':
+          description: Пользователь не найден
+
+  /user/profile/update:
+    put:
+      tags: [User]
+      summary: Обновить профиль
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Профиль обновлен
+
+  /user/profile/change-password:
+    put:
+      tags: [User]
+      summary: Изменить пароль
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Пароль изменен
+        '400':
+          description: Неверный текущий пароль или новый пароль слишком короткий
+
+  /user/purchase-content:
+    post:
+      tags: [User]
+      summary: Купить контент за бонусы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseContentRequest'
+      responses:
+        '200':
+          description: Контент приобретен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      bonus:
+                        type: number
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserProduct'
+        '400':
+          description: Недостаточно бонусов или контент нельзя купить
+
+  # ==================== FAQ Routes ====================
+  /faq:
+    get:
+      tags: [FAQ]
+      summary: Получить все FAQ
+      responses:
+        '200':
+          description: Список FAQ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  list:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FAQ'
+                  count:
+                    type: number
+
+    post:
+      tags: [FAQ]
+      summary: Создать FAQ
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFAQRequest'
+      responses:
+        '201':
+          description: FAQ создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/FAQ'
+                  message:
+                    type: string
+        '400':
+          description: Вопрос и ответ обязательны
+
+  /faq/{id}:
+    get:
+      tags: [FAQ]
+      summary: Получить FAQ по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: FAQ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/FAQ'
+        '404':
+          description: FAQ не найден
+
+    put:
+      tags: [FAQ]
+      summary: Обновить FAQ
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFAQRequest'
+      responses:
+        '200':
+          description: FAQ обновлен
+        '404':
+          description: FAQ не найден
+
+    delete:
+      tags: [FAQ]
+      summary: Удалить FAQ
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: FAQ удален
+        '404':
+          description: FAQ не найден
+
+  # ==================== Horoscope Routes ====================
+  /horoscope:
+    get:
+      tags: [Horoscope]
+      summary: Получить все гороскопы
+      responses:
+        '200':
+          description: Список гороскопов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Horoscope'
+                  count:
+                    type: number
+
+    post:
+      tags: [Horoscope]
+      summary: Создать гороскоп
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHoroscopeRequest'
+      responses:
+        '201':
+          description: Гороскоп создан
+        '400':
+          description: Обязательные поля не заполнены
+
+  /horoscope/current:
+    get:
+      tags: [Horoscope]
+      summary: Получить текущий гороскоп
+      responses:
+        '200':
+          description: Текущий гороскоп
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Horoscope'
+        '404':
+          description: Текущий гороскоп не найден
+
+  /horoscope/{id}:
+    get:
+      tags: [Horoscope]
+      summary: Получить гороскоп по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Гороскоп
+        '404':
+          description: Гороскоп не найден
+
+    put:
+      tags: [Horoscope]
+      summary: Обновить гороскоп
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHoroscopeRequest'
+      responses:
+        '200':
+          description: Гороскоп обновлен
+        '404':
+          description: Гороскоп не найден
+
+    delete:
+      tags: [Horoscope]
+      summary: Удалить гороскоп
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Гороскоп удален
+        '404':
+          description: Гороскоп не найден
+
+  # ==================== Meditation Routes ====================
+  /meditation:
+    get:
+      tags: [Meditation]
+      summary: Получить все медитации
+      parameters:
+        - name: accessType
+          in: query
+          schema:
+            type: string
+            enum: [free, paid, subscription, stars]
+      responses:
+        '200':
+          description: Список медитаций
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContentItem'
+                  count:
+                    type: number
+
+    post:
+      tags: [Meditation]
+      summary: Создать медитацию
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '201':
+          description: Медитация создана
+
+  /meditation/{id}:
+    get:
+      tags: [Meditation]
+      summary: Получить медитацию по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Медитация
+        '404':
+          description: Медитация не найдена
+
+    put:
+      tags: [Meditation]
+      summary: Обновить медитацию
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '200':
+          description: Медитация обновлена
+        '404':
+          description: Медитация не найдена
+
+    delete:
+      tags: [Meditation]
+      summary: Удалить медитацию
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Медитация удалена
+        '404':
+          description: Медитация не найдена
+
+  # ==================== Practice Routes ====================
+  /practice:
+    get:
+      tags: [Practice]
+      summary: Получить все практики
+      parameters:
+        - name: accessType
+          in: query
+          schema:
+            type: string
+            enum: [free, paid, subscription, stars]
+      responses:
+        '200':
+          description: Список практик
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContentItem'
+                  count:
+                    type: number
+
+    post:
+      tags: [Practice]
+      summary: Создать практику
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '201':
+          description: Практика создана
+
+  /practice/{id}:
+    get:
+      tags: [Practice]
+      summary: Получить практику по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Практика
+        '404':
+          description: Практика не найдена
+
+    put:
+      tags: [Practice]
+      summary: Обновить практику
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '200':
+          description: Практика обновлена
+        '404':
+          description: Практика не найдена
+
+    delete:
+      tags: [Practice]
+      summary: Удалить практику
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Практика удалена
+        '404':
+          description: Практика не найдена
+
+  # ==================== VideoLesson Routes ====================
+  /video-lesson:
+    get:
+      tags: [VideoLesson]
+      summary: Получить все видео уроки
+      parameters:
+        - name: accessType
+          in: query
+          schema:
+            type: string
+            enum: [free, paid, subscription, stars]
+      responses:
+        '200':
+          description: Список видео уроков
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContentItem'
+                  count:
+                    type: number
+
+    post:
+      tags: [VideoLesson]
+      summary: Создать видео урок
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '201':
+          description: Видео урок создан
+
+  /video-lesson/{id}:
+    get:
+      tags: [VideoLesson]
+      summary: Получить видео урок по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Видео урок
+        '404':
+          description: Видео урок не найден
+
+    put:
+      tags: [VideoLesson]
+      summary: Обновить видео урок
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '200':
+          description: Видео урок обновлен
+        '404':
+          description: Видео урок не найден
+
+    delete:
+      tags: [VideoLesson]
+      summary: Удалить видео урок
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Видео урок удален
+        '404':
+          description: Видео урок не найден
+
+  # ==================== Schedule Routes ====================
+  /schedule:
+    get:
+      tags: [Schedule]
+      summary: Получить все события
+      parameters:
+        - name: startDate
+          in: query
+          description: Начальная дата фильтра (DD.MM.YYYY)
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          description: Конечная дата фильтра (DD.MM.YYYY)
+          schema:
+            type: string
+        - name: upcoming
+          in: query
+          description: Только предстоящие события
+          schema:
+            type: string
+            enum: ['true', 'false']
+      responses:
+        '200':
+          description: Список событий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Schedule'
+                  count:
+                    type: number
+
+    post:
+      tags: [Schedule]
+      summary: Создать событие
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+      responses:
+        '201':
+          description: Событие создано
+
+  /schedule/{id}:
+    get:
+      tags: [Schedule]
+      summary: Получить событие по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Событие
+        '404':
+          description: Событие не найдено
+
+    put:
+      tags: [Schedule]
+      summary: Обновить событие
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+      responses:
+        '200':
+          description: Событие обновлено
+        '404':
+          description: Событие не найдено
+
+    delete:
+      tags: [Schedule]
+      summary: Удалить событие
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Событие удалено
+        '404':
+          description: Событие не найдено
+
+  # ==================== Transit Routes ====================
+  /transit:
+    get:
+      tags: [Transit]
+      summary: Получить все транзиты
+      responses:
+        '200':
+          description: Список транзитов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transit'
+                  count:
+                    type: number
+
+    post:
+      tags: [Transit]
+      summary: Создать транзит
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransitRequest'
+      responses:
+        '201':
+          description: Транзит создан
+
+  /transit/current:
+    get:
+      tags: [Transit]
+      summary: Получить текущий транзит
+      responses:
+        '200':
+          description: Текущий транзит
+        '404':
+          description: Текущий транзит не найден
+
+  /transit/{id}:
+    get:
+      tags: [Transit]
+      summary: Получить транзит по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Транзит
+        '404':
+          description: Транзит не найден
+
+    put:
+      tags: [Transit]
+      summary: Обновить транзит
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransitRequest'
+      responses:
+        '200':
+          description: Транзит обновлен
+        '404':
+          description: Транзит не найден
+
+    delete:
+      tags: [Transit]
+      summary: Удалить транзит
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Транзит удален
+        '404':
+          description: Транзит не найден
+
+  # ==================== DynamicContent Routes ====================
+  /dynamic-content:
+    get:
+      tags: [DynamicContent]
+      summary: Получить весь динамический контент
+      responses:
+        '200':
+          description: Список динамического контента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DynamicContent'
+                  count:
+                    type: number
+
+    post:
+      tags: [DynamicContent]
+      summary: Создать динамический контент
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDynamicContentRequest'
+      responses:
+        '201':
+          description: Динамический контент создан
+
+  /dynamic-content/name/{name}:
+    get:
+      tags: [DynamicContent]
+      summary: Получить динамический контент по имени
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Динамический контент
+
+  /dynamic-content/{id}:
+    get:
+      tags: [DynamicContent]
+      summary: Получить динамический контент по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Динамический контент
+        '404':
+          description: Контент не найден
+
+    put:
+      tags: [DynamicContent]
+      summary: Обновить динамический контент
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDynamicContentRequest'
+      responses:
+        '200':
+          description: Контент обновлен
+        '404':
+          description: Контент не найден
+
+    delete:
+      tags: [DynamicContent]
+      summary: Удалить динамический контент
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Контент удален
+        '404':
+          description: Контент не найден
+
+  # ==================== Welcome Routes ====================
+  /welcome:
+    get:
+      tags: [Welcome]
+      summary: Получить весь контент приветствия
+      responses:
+        '200':
+          description: Список контента приветствия
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Welcome'
+                  count:
+                    type: number
+
+    post:
+      tags: [Welcome]
+      summary: Создать контент приветствия
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWelcomeRequest'
+      responses:
+        '201':
+          description: Контент создан
+
+  /welcome/{id}:
+    get:
+      tags: [Welcome]
+      summary: Получить контент приветствия по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Контент приветствия
+        '404':
+          description: Контент не найден
+
+    put:
+      tags: [Welcome]
+      summary: Обновить контент приветствия
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWelcomeRequest'
+      responses:
+        '200':
+          description: Контент обновлен
+        '404':
+          description: Контент не найден
+
+    delete:
+      tags: [Welcome]
+      summary: Удалить контент приветствия
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Контент удален
+        '404':
+          description: Контент не найден
+
+  # ==================== AboutClub Routes ====================
+  /about-club:
+    get:
+      tags: [AboutClub]
+      summary: Получить весь контент о клубе
+      responses:
+        '200':
+          description: Список контента о клубе
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AboutClub'
+                  count:
+                    type: number
+
+    post:
+      tags: [AboutClub]
+      summary: Создать контент о клубе
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAboutClubRequest'
+      responses:
+        '201':
+          description: Контент создан
+
+  /about-club/{id}:
+    get:
+      tags: [AboutClub]
+      summary: Получить контент о клубе по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Контент о клубе
+        '404':
+          description: Контент не найден
+
+    put:
+      tags: [AboutClub]
+      summary: Обновить контент о клубе
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAboutClubRequest'
+      responses:
+        '200':
+          description: Контент обновлен
+        '404':
+          description: Контент не найден
+
+    delete:
+      tags: [AboutClub]
+      summary: Удалить контент о клубе
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Контент удален
+        '404':
+          description: Контент не найден
+
+  # ==================== Schumann Routes ====================
+  /schumann:
+    get:
+      tags: [Schumann]
+      summary: Получить все записи о частоте Шумана
+      responses:
+        '200':
+          description: Список записей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Schumann'
+                  count:
+                    type: number
+
+    post:
+      tags: [Schumann]
+      summary: Создать запись о частоте Шумана
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSchumannRequest'
+      responses:
+        '201':
+          description: Запись создана
+
+  /schumann/{id}:
+    get:
+      tags: [Schumann]
+      summary: Получить запись о частоте Шумана по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запись
+        '404':
+          description: Запись не найдена
+
+    put:
+      tags: [Schumann]
+      summary: Обновить запись о частоте Шумана
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSchumannRequest'
+      responses:
+        '200':
+          description: Запись обновлена
+        '404':
+          description: Запись не найдена
+
+    delete:
+      tags: [Schumann]
+      summary: Удалить запись о частоте Шумана
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запись удалена
+        '404':
+          description: Запись не найдена
+
+  # ==================== Broadcast Routes ====================
+  /broadcast/users:
+    get:
+      tags: [Broadcast]
+      summary: Получить пользователей для рассылки
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, guest, registered, active, client]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        telegramId:
+                          type: string
+                        telegramUserName:
+                          type: string
+                        userName:
+                          type: string
+                        fullName:
+                          type: string
+                        phone:
+                          type: string
+                        status:
+                          type: string
+                  count:
+                    type: number
+
+  /broadcast/send:
+    post:
+      tags: [Broadcast]
+      summary: Отправить рассылку
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastRequest'
+      responses:
+        '200':
+          description: Рассылка завершена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BroadcastResponse'
+
+  /broadcast/test:
+    post:
+      tags: [Broadcast]
+      summary: Отправить тестовое сообщение
+      description: Отправляет сообщение только текущему администратору
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Тестовое сообщение отправлено
+        '400':
+          description: У вас не привязан Telegram аккаунт
+
+  # ==================== Robokassa Routes ====================
+  /robres:
+    post:
+      tags: [Robokassa]
+      summary: Обработка результата оплаты
+      description: Callback URL для Robokassa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Результат обработан
+
+  # ==================== Upload Routes ====================
+  /upload/image:
+    post:
+      tags: [Upload]
+      summary: Загрузить изображение
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Изображение загружено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  imageUrl:
+                    type: string
+                  filename:
+                    type: string
+        '400':
+          description: Файл не был загружен
+
+  /upload/delete:
+    post:
+      tags: [Upload]
+      summary: Удалить изображение
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - filename
+              properties:
+                filename:
+                  type: string
+      responses:
+        '200':
+          description: Изображение удалено
+        '400':
+          description: Не указано имя файла
+        '404':
+          description: Файл не найден
+
+  # ==================== Diary Routes ====================
+  /diary:
+    get:
+      tags: [Diary]
+      summary: Получить все записи дневника
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список записей дневника
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Diary'
+                  count:
+                    type: number
+
+    post:
+      tags: [Diary]
+      summary: Создать запись дневника
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDiaryRequest'
+      responses:
+        '201':
+          description: Запись создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Diary'
+                  message:
+                    type: string
+        '401':
+          description: Необходима авторизация
+
+  /diary/my:
+    post:
+      tags: [Diary]
+      summary: Получить записи дневника текущего пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+      responses:
+        '200':
+          description: Записи дневника пользователя
+
+  /diary/{id}:
+    get:
+      tags: [Diary]
+      summary: Получить запись дневника по ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запись дневника
+        '403':
+          description: Нет доступа к этой записи
+        '404':
+          description: Запись не найдена
+
+    put:
+      tags: [Diary]
+      summary: Обновить запись дневника
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                discovery:
+                  type: string
+                achievement:
+                  type: string
+                gratitude:
+                  type: string
+                uselessTask:
+                  type: boolean
+      responses:
+        '200':
+          description: Запись обновлена
+        '404':
+          description: Запись не найдена
+
+    delete:
+      tags: [Diary]
+      summary: Удалить запись дневника
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запись удалена
+        '403':
+          description: Нет доступа к этой записи
+        '404':
+          description: Запись не найдена
+
+  # ==================== VideoProgress Routes ====================
+  /video-progress:
+    post:
+      tags: [VideoProgress]
+      summary: Сохранить прогресс просмотра
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveVideoProgressRequest'
+      responses:
+        '200':
+          description: Прогресс обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/VideoProgress'
+        '201':
+          description: Прогресс создан
+        '400':
+          description: Не все параметры предоставлены
+        '401':
+          description: Пользователь не авторизован
+
+  /video-progress/{userId}/{contentType}/{contentId}:
+    get:
+      tags: [VideoProgress]
+      summary: Получить прогресс просмотра
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contentType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [meditation, practice, videoLesson]
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Прогресс просмотра
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/VideoProgress'
+
+  /video-progress/user/{userId}/{contentType}:
+    get:
+      tags: [VideoProgress]
+      summary: Получить все прогрессы пользователя по типу контента
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contentType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [meditation, practice, videoLesson]
+      responses:
+        '200':
+          description: Список прогрессов
+
+  /video-progress/batch/{userId}/{contentType}:
+    post:
+      tags: [VideoProgress]
+      summary: Получить прогрессы для списка контента
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contentType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [meditation, practice, videoLesson]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProgressesBatchRequest'
+      responses:
+        '200':
+          description: Прогрессы в формате объекта {contentId: progress}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        progress:
+                          type: number
+                        currentTime:
+                          type: number
+                        duration:
+                          type: number
+                        completed:
+                          type: boolean
+

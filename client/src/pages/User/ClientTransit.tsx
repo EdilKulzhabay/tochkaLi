@@ -113,12 +113,12 @@ export const ClientTransit = () => {
                 </div>
 
                 <div className="px-4 pt-8 pb-10">
-                    <Link 
+                    {/* <Link 
                         to="/client/schumann"
                         className="w-full block border border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
                     >
                         Посмотреть частоту Шумана
-                    </Link>
+                    </Link> */}
                     <RedButton
                         text="Посмотреть все транзиты"
                         onClick={() => navigate('/client/transits')}

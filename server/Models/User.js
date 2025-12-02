@@ -101,6 +101,10 @@ const UserSchema = new mongoose.Schema({
         ref: 'User',
         default: null,
     },
+    inviteesCount: {
+        type: Number,
+        default: 0,
+    },
     subscriptionEndDate: {
         type: Date,
         default: null,

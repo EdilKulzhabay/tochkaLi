@@ -121,7 +121,7 @@ export const ClientHoroscopesList = () => {
     return (
         <UserLayout>
             <BackNav title="Все гороскопы" />
-            <div className="px-4 mt-4 pb-10 bg-[#161616]">
+            <div className="px-4 mt-2 pb-10 bg-[#161616]">
                 {loading ? (
                     <div className="text-center py-8">
                         <p className="text-white/60">Загрузка...</p>

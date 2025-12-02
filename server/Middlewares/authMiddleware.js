@@ -25,17 +25,6 @@ export const authMiddleware = async (req, res, next) => {
             });
         }
 
-        // Проверяем, что токен совпадает с текущим токеном пользователя
-        // Это обеспечивает одну сессию - если пользователь залогинился с другого устройства,
-        // старый токен станет невалидным
-        if (user.currentToken !== token) {
-            return res.status(403).json({
-                success: false,
-                message: "Сессия завершена. Войдите снова",
-                sessionExpired: true,
-            });
-        }
-
         // Админы и менеджеры могут иметь доступ даже если статус не "active"
         // Для обычных пользователей проверяем статус
         if (user.status !== "active" && !['admin', 'manager', 'content_manager', 'client_manager'].includes(user.role)) {
