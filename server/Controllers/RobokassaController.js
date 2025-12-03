@@ -42,25 +42,25 @@ export const handleResult = async (req, res) => {
         console.log("Подпись верна!");
         
         // Обновляем пользователя в базе данных
-        // if (Shp_userId) {
-        //     const user = await User.findById(Shp_userId);
-        //     if (user) {
-        //         // Устанавливаем подписку на 30 дней
-        //         const subscriptionEndDate = new Date();
-        //         subscriptionEndDate.setDate(subscriptionEndDate.getDate() + 30);
+        if (Shp_userId) {
+            const user = await User.findById(Shp_userId);
+            if (user) {
+                // Устанавливаем подписку на 30 дней
+                const subscriptionEndDate = new Date();
+                subscriptionEndDate.setDate(subscriptionEndDate.getDate() + 30);
                 
-        //         user.hasPaid = true;
-        //         user.paymentDate = new Date();
-        //         user.paymentAmount = parseFloat(OutSum);
-        //         user.invoiceId = InvId;
-        //         user.subscriptionEndDate = subscriptionEndDate;
+                user.hasPaid = true;
+                user.paymentDate = new Date();
+                user.paymentAmount = parseFloat(OutSum);
+                user.invoiceId = InvId;
+                user.subscriptionEndDate = subscriptionEndDate;
                 
-        //         await user.save();
-        //         console.log(`Пользователь ${Shp_userId} успешно обновлён. Подписка до: ${subscriptionEndDate}`);
-        //     } else {
-        //         console.log(`Пользователь ${Shp_userId} не найден`);
-        //     }
-        // }
+                await user.save();
+                console.log(`Пользователь ${Shp_userId} успешно обновлён. Подписка до: ${subscriptionEndDate}`);
+            } else {
+                console.log(`Пользователь ${Shp_userId} не найден`);
+            }
+        }
         
         // Robokassa ожидает ответ в формате OK{InvId}
         res.send(`OK${InvId}`);
