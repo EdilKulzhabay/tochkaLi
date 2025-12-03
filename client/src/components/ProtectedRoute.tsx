@@ -24,7 +24,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         
         if (!user?.role || !allowedRoles.includes(user.role as Role)) {
             // Если требуется определенная роль и у пользователя её нет - редирект
-            return <Navigate to="/" replace />;
+            // return <Navigate to="/" replace />;
         }
     }
 
