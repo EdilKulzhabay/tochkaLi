@@ -5,6 +5,7 @@ import { MobileAccordionList } from '../../components/User/MobileAccordionList';
 import { RedButton } from '../../components/User/RedButton';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import CryptoJS from 'crypto-js';
 
 export const About = () => {
     const [content, setContent] = useState<any>(null);
@@ -25,9 +26,43 @@ export const About = () => {
                     if (!response.data.user.emailConfirmed) {
                         navigate('/client/register');
                     } else {
-                        // Если email подтвержден, редиректим пользователя на страницу оплаты Робокассы
-                        // Примерная ссылка на оплату (замените на свою реальную страницу/endpoint)
-                        window.location.href = "https://auth.robokassa.ru/Merchant/Index.aspx?MerchantLogin=YOUR_MERCHANT_LOGIN&OutSum=1000&InvId=12345&Description=Оплата+клуба+li&SignatureValue=YOUR_SIGNATURE";
+                        const user = response.data.user;
+                        const merchantLogin = import.meta.env.VITE_ROBOKASSA_MERCHANT_LOGIN;
+                        const password1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1;
+                        const isTestMode = import.meta.env.VITE_ROBOKASSA_TEST_MODE === '1';
+                        
+                        // Генерируем уникальный ID счета
+                        const invoiceId = Date.now();
+                        const outSum = '10.00';
+                        const description = 'Оплата клуба лицензии';
+
+                        // Формируем строку для подписи: MerchantLogin:OutSum:InvoiceID:Password1[:Shp_userId=value]
+                        let signatureString = `${merchantLogin}:${outSum}:${invoiceId}:${password1}`;
+                        if (user._id) {
+                            signatureString += `:Shp_userId=${user._id}`;
+                        }
+                        
+                        // Генерируем MD5 хеш для подписи
+                        const signature = CryptoJS.MD5(signatureString).toString();
+
+                        // Формируем URL для оплаты
+                        const baseUrl = 'https://auth.robokassa.ru/Merchant/Index.aspx';
+                        
+                        const params: Record<string, string> = {
+                            MerchantLogin: merchantLogin,
+                            OutSum: outSum,
+                            InvoiceID: invoiceId.toString(),
+                            Description: description,
+                            SignatureValue: signature,
+                            IsTest: isTestMode ? '1' : '0',
+                        };
+
+                        if (user._id) {
+                            params.Shp_userId = user._id;
+                        }
+
+                        const searchParams = new URLSearchParams(params);
+                        window.location.href = `${baseUrl}?${searchParams.toString()}`;
                     }
                 }
             } catch (error) {

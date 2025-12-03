@@ -45,6 +45,7 @@ mongoose
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Для Robokassa (отправляет данные в urlencoded формате)
 app.use(express.text());
 app.use(
     cors({

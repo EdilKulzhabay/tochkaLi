@@ -4,16 +4,70 @@ import User from '../Models/User.js';
 export const handleResult = async (req, res) => {
     try {
         console.log("handleResult req.body:", req.body);
-        res.status(200).json({
-            success: true,
-            message: "Результат оплаты обработан успешно",
-        });
+        
+        const { OutSum, InvId, SignatureValue, Shp_userId } = req.body;
+        
+        if (!OutSum || !InvId || !SignatureValue) {
+            console.log("Отсутствуют обязательные параметры");
+            return res.status(400).send("ERROR: Missing required parameters");
+        }
+
+        // Проверяем подпись с Password2
+        // Формат: MD5(OutSum:InvId:Password2[:Shp_param=value])
+        const password2 = process.env.ROBOKASSA_PASSWORD2;
+        
+        let signatureString = `${OutSum}:${InvId}:${password2}`;
+        if (Shp_userId) {
+            signatureString += `:Shp_userId=${Shp_userId}`;
+        }
+        
+        const expectedSignature = crypto
+            .createHash('md5')
+            .update(signatureString)
+            .digest('hex')
+            .toUpperCase();
+        
+        const receivedSignature = SignatureValue.toUpperCase();
+        
+        console.log("Проверка подписи:");
+        console.log("  Строка для хеша:", signatureString);
+        console.log("  Ожидаемая подпись:", expectedSignature);
+        console.log("  Полученная подпись:", receivedSignature);
+        
+        if (expectedSignature !== receivedSignature) {
+            console.log("Подпись не совпадает!");
+            return res.status(400).send("ERROR: Invalid signature");
+        }
+        
+        console.log("Подпись верна!");
+        
+        // Обновляем пользователя в базе данных
+        // if (Shp_userId) {
+        //     const user = await User.findById(Shp_userId);
+        //     if (user) {
+        //         // Устанавливаем подписку на 30 дней
+        //         const subscriptionEndDate = new Date();
+        //         subscriptionEndDate.setDate(subscriptionEndDate.getDate() + 30);
+                
+        //         user.hasPaid = true;
+        //         user.paymentDate = new Date();
+        //         user.paymentAmount = parseFloat(OutSum);
+        //         user.invoiceId = InvId;
+        //         user.subscriptionEndDate = subscriptionEndDate;
+                
+        //         await user.save();
+        //         console.log(`Пользователь ${Shp_userId} успешно обновлён. Подписка до: ${subscriptionEndDate}`);
+        //     } else {
+        //         console.log(`Пользователь ${Shp_userId} не найден`);
+        //     }
+        // }
+        
+        // Robokassa ожидает ответ в формате OK{InvId}
+        res.send(`OK${InvId}`);
+        
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            success: false,
-            message: "Не удалось обработать результат оплаты",
-        });
+        console.log("Ошибка обработки платежа:", error);
+        res.status(500).send("ERROR: Internal server error");
     }
 }
 
