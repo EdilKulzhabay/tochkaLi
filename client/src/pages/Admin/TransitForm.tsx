@@ -240,7 +240,7 @@ export const TransitForm = () => {
                         </button>
                         <MyButton
                             text={loading ? 'Сохранение...' : 'Сохранить'}
-                            onClick={() => {}}
+                            type="submit"
                             disabled={loading}
                         />
                     </div>

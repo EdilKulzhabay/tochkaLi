@@ -9,8 +9,29 @@ export const Welcome = () => {
     const [searchParams] = useSearchParams();
     const [content, setContent] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [screenHeight, setScreenHeight] = useState<number>(0);
     const navigate = useNavigate();
     const { updateUser } = useAuth();
+
+    // Получаем высоту экрана в пикселях
+    useEffect(() => {
+        const updateScreenHeight = () => {
+            // window.innerHeight - высота окна браузера в пикселях (это то же самое, что h-screen)
+            const height = window.innerHeight;
+            setScreenHeight(height);
+            console.log('Высота экрана (h-screen):', height, 'px');
+        };
+
+        // Получаем высоту при монтировании компонента
+        updateScreenHeight();
+
+        // Обновляем при изменении размера окна
+        window.addEventListener('resize', updateScreenHeight);
+
+        return () => {
+            window.removeEventListener('resize', updateScreenHeight);
+        };
+    }, []);
 
     useEffect(() => {
         // Извлекаем параметры из URL
@@ -106,7 +127,7 @@ export const Welcome = () => {
     if (loading) {
         return <div>Loading...</div>;
     }
-    
+
     return (
         <UserLayout>
             <div className='relative'>
@@ -114,26 +135,33 @@ export const Welcome = () => {
                     <img 
                         src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
                         alt={content?.title} 
-                        className='w-full h-auto rounded-lg object-cover z-10' 
+                        className='w-full h-auto lg:h-screen rounded-lg object-top z-10' 
                     />
                 )}
                 <div 
                     className="absolute inset-0"
                     style={{
-                        background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
+                        background: 'linear-gradient(to top, #000000 0%, #00000000 70%)',
                     }}
                 />
                 <div 
-                    className="absolute inset-0"
+                    className="absolute inset-0 lg:bg-none"
                     style={{
                         background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
                     }}
                 />
             </div>
-            <div className='px-4 pb-10 bg-[#161616]'>
-                <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>
-                <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
-                <MyLink to="/about" text="Далее" className='w-full mt-4' color='red'/>
+            <div className='px-4 pt-4 pb-10 bg-[#161616]'>
+                <div 
+                    className={`relative lg:w-[700px] lg:mx-auto z-20`}
+                    style={{
+                        marginTop: window.innerWidth >= 1024 ? `-${screenHeight / 2}px` : 0
+                    }}    
+                >
+                    <h1 className="text-2xl font-bold">{content?.title}</h1>
+                    <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
+                    <MyLink to="/about" text="Далее" className='w-full mt-4' color='red'/>
+                </div>
             </div>
         </UserLayout>
     )

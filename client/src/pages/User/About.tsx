@@ -23,6 +23,10 @@ export const About = () => {
             try {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
                 if (response.data.success && response.data.user) {
+                    if (response.data.user.status === 'blocked') {
+                        navigate('/client/blocked-user');
+                        return;
+                    }
                     if (!response.data.user.emailConfirmed) {
                         navigate('/client/register');
                     } else {
@@ -75,8 +79,8 @@ export const About = () => {
 
     const handleSkip = () => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!user.fullName || user.fullName.trim() === '') {
-            navigate("/client-performance");
+        if (!user ||!user.fullName || user.fullName.trim() === '') {
+            navigate("/client/ease-launch");
         } else {
             navigate("/main");
         }
@@ -124,22 +128,24 @@ export const About = () => {
                     }}
                 />
             </div>
-            <div className='px-4 pb-10 bg-[#161616]'>
-                <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>
-                <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
-                <h2 className="text-xl font-medium mt-8">Что входит в подписку</h2>
-                {content?.list.length > 0 && (
-                    <div className='mt-4'>
-                        <MobileAccordionList items={content?.list} />
-                    </div>
-                )}
-                <button 
-                    className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4 cursor-pointer'
-                    onClick={handleSkip}
-                >
-                    Пропустить
-                </button>
-                <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4 cursor-pointer'/>
+            <div className='px-4 pb-10 bg-[#161616] z-20'>
+                <div className='relative lg:w-[700px] lg:mx-auto lg:-mt-[120px] z-20'>
+                    <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>
+                    <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
+                    <h2 className="text-xl font-medium mt-8">Что входит в подписку</h2>
+                    {content?.list.length > 0 && (
+                        <div className='mt-4'>
+                            <MobileAccordionList items={content?.list} />
+                        </div>
+                    )}
+                    <button 
+                        className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4 cursor-pointer'
+                        onClick={handleSkip}
+                    >
+                        Пропустить
+                    </button>
+                    <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4 cursor-pointer'/>
+                </div>
             </div>
         </UserLayout>
     )

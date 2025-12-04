@@ -138,7 +138,7 @@ export const ProfileAdmin = () => {
                         <div className="flex justify-end pt-2">
                             <MyButton
                                 text={loading ? 'Сохранение...' : 'Сохранить изменения'}
-                                onClick={() => {}}
+                                type="submit"
                                 disabled={loading}
                             />
                         </div>
@@ -179,7 +179,7 @@ export const ProfileAdmin = () => {
                         <div className="flex justify-end pt-2">
                             <MyButton
                                 text={loadingPassword ? 'Изменение...' : 'Изменить пароль'}
-                                onClick={() => {}}
+                                type="submit"
                                 disabled={loadingPassword}
                             />
                         </div>

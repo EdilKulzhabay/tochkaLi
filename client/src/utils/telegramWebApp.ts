@@ -243,8 +243,6 @@ export const useTelegramFullscreen = () => {
 
             const addPadding = top > 0 ? 40 : 0;
             
-            console.log('Safe area:', { top, bottom, left, right });
-            
             document.documentElement.style.setProperty("--tg-safe-top", `${top + addPadding}px`);
             document.documentElement.style.setProperty("--tg-safe-bottom", `${bottom}px`);
             document.documentElement.style.setProperty("--tg-safe-left", `${left}px`);

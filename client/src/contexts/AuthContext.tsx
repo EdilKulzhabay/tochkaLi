@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (userFromStorage && userFromStorage !== null && Object.keys(userFromStorage).length > 0) {
                     setUser(userFromStorage);
                     // Проверка на блокировку пользователя
-                    if (userFromStorage.status === 'blocked' && userFromStorage.role !== 'admin') {
+                    if (userFromStorage && userFromStorage.status && userFromStorage.status === 'blocked' && userFromStorage.role !== 'admin') {
                         navigate('/client/blocked-user');
                     }
                 }

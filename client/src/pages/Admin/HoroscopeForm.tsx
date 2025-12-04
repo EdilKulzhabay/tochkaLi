@@ -250,7 +250,7 @@ export const HoroscopeForm = () => {
                         </button>
                         <MyButton
                             text={loading ? 'Сохранение...' : 'Сохранить'}
-                            onClick={() => {}}
+                            type="submit"
                             disabled={loading}
                         />
                     </div>

@@ -113,7 +113,7 @@ export const SchumannForm = () => {
                             </button>
                             <MyButton
                                 text={loading ? 'Сохранение...' : 'Сохранить'}
-                                onClick={() => {}}
+                                type="submit"
                                 disabled={loading}
                             />
                         </div>

@@ -13,19 +13,33 @@ export const ClientPerfomance = () => {
     const [lastName, setLastName] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { updateUser } = useAuth();
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!user.fullName || user.fullName.trim() === '') {
-            return;
-        }
-        setFullName(user.fullName);
-        setFirstName(user.fullName.split(' ')[1]);
-        setLastName(user.fullName.split(' ')[0]);
-    }, []);
+    const { updateUser, user } = useAuth();
+    const [screenHeight, setScreenHeight] = useState<number>(0);
 
     useEffect(() => {
-        if (fullName.trim() === '') {
+        // Используем user из контекста, если он есть, иначе пытаемся получить из localStorage
+        const currentUser = user || (() => {
+            try {
+                const userStr = localStorage.getItem('user');
+                return userStr ? JSON.parse(userStr) : null;
+            } catch (error) {
+                console.error('Ошибка парсинга user из localStorage:', error);
+                return null;
+            }
+        })();
+
+        if (!currentUser || !currentUser.fullName || currentUser.fullName.trim() === '') {
+            return;
+        }
+
+        setFullName(currentUser.fullName);
+        const nameParts = currentUser.fullName.split(' ');
+        setFirstName(nameParts[1] || '');
+        setLastName(nameParts[0] || '');
+    }, [user]);
+
+    useEffect(() => {
+        if (!fullName || fullName.trim() === '') {
             return;
         }
         navigate(`/main`);
@@ -45,10 +59,10 @@ export const ClientPerfomance = () => {
 
         setLoading(true);
         try {
-            const fullName = `${lastName.trim()} ${firstName.trim()}`.trim();
+            const fullNameToUpdate = `${lastName.trim()} ${firstName.trim()}`.trim();
             
             const response = await api.patch(`/api/users/${telegramId}`, {
-                fullName,
+                fullName: fullNameToUpdate,
             });
 
             if (response.data.success && response.data.data) {
@@ -71,6 +85,24 @@ export const ClientPerfomance = () => {
         }
     }
 
+    useEffect(() => {
+        const updateScreenHeight = () => {
+            // window.innerHeight - высота окна браузера в пикселях (это то же самое, что h-screen)
+            const height = window.innerHeight;
+            setScreenHeight(height);
+            console.log('Высота экрана (h-screen):', height, 'px');
+        };
+
+        // Получаем высоту при монтировании компонента
+        updateScreenHeight();
+
+        // Обновляем при изменении размера окна
+        window.addEventListener('resize', updateScreenHeight);
+
+        return () => {
+            window.removeEventListener('resize', updateScreenHeight);
+        };
+    }, []);
     return (
         <div 
             style={{
@@ -79,12 +111,12 @@ export const ClientPerfomance = () => {
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
             }}
-            className='min-h-screen px-4 pb-6 flex flex-col justify-between'
+            className='min-h-screen px-4 pb-6 flex flex-col justify-between lg:justify-start'
         >
-            <div className='h-[200px]'></div>
-            <div className='flex-1'>
+            <div style={{ height: `${screenHeight/3}px` }}></div>
+            <div className='flex-1 lg:flex-0 lg:w-[700px] lg:mx-auto'>
                 <h1 className='text-[48px] font-semibold text-white leading-12'>Представьтесь пожалуйста</h1>
-                <div className='mt-6 space-y-3'>
+                <div className='mt-6 lg:mt-10 space-y-3'>
                     <ClientInput
                         placeholder="Фамилия"
                         onChange={(e) => setLastName(e.target.value)}
@@ -100,10 +132,10 @@ export const ClientPerfomance = () => {
                 </div>
             </div>
 
-            <div>
+            <div className='lg:w-[700px] lg:mx-auto'>
                 <button 
                     onClick={() => navigate(-1)}
-                    className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
+                    className='w-full mt-4 lg:mt-10 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
                 >Назад</button>
                 <RedButton 
                     text={loading ? 'Сохранение...' : 'Продолжить'} 

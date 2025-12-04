@@ -143,7 +143,7 @@ export const ScheduleForm = () => {
                             </button>
                             <MyButton
                                 text={loading ? 'Сохранение...' : 'Сохранить'}
-                                onClick={() => {}}
+                                type="submit"
                                 disabled={loading}
                             />
                         </div>

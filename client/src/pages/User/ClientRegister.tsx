@@ -18,6 +18,7 @@ export const ClientRegister = () => {
     const [sendingCode, setSendingCode] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
+    const [screenHeight, setScreenHeight] = useState<number>(0);
     useEffect(() => {
         // Загружаем данные из localStorage
         const userStr = localStorage.getItem('user');
@@ -159,6 +160,17 @@ export const ClientRegister = () => {
         }
     };
 
+    useEffect(() => {
+        const updateScreenHeight = () => {
+            const height = window.innerHeight;
+            setScreenHeight(height);
+        }
+        updateScreenHeight();
+        window.addEventListener('resize', updateScreenHeight);
+        return () => {
+            window.removeEventListener('resize', updateScreenHeight);
+        };
+    }, []);
     return (
         <div 
             style={{
@@ -167,10 +179,10 @@ export const ClientRegister = () => {
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
             }}
-            className='min-h-screen px-4 pb-6 flex flex-col justify-between'
+            className='min-h-screen px-4 pb-6 flex flex-col justify-between lg:justify-start'
         >
-            <div className='h-[200px]'></div>
-            <div className='flex-1'>
+            <div style={{ height: `${screenHeight/3}px` }}></div>
+            <div className='flex-1 lg:flex-0 lg:w-[700px] lg:mx-auto'>
                 <h1 className='text-[48px] font-semibold text-white leading-12'>Регистрация пользователя</h1>
                 {!codeSent && (
                     <div className='mt-6 space-y-3'>
@@ -222,10 +234,10 @@ export const ClientRegister = () => {
                 )}
             </div>
 
-            <div>
+            <div className='lg:w-[700px] lg:mx-auto'>
                 <button 
                     onClick={() => navigate(-1)}
-                    className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
+                    className='w-full mt-4 lg:mt-10 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
                 >Назад</button>
                 {codeSent ? (
                     <RedButton
