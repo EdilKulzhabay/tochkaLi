@@ -46,7 +46,7 @@ export const EaseLaunch = () => {
                 </div>
             </div>
             
-            <div>
+            <div className='bg-[#161616]'>
                 <button 
                     onClick={() => navigate(-1)}
                     className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'

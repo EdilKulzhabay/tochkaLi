@@ -40,7 +40,7 @@ export const BlockedUser = () => {
                 <p className='text-white'>Администратор заблокировал Вам доступ к приложению за нарушение правил пользования</p>
             </div>
 
-            <div>
+            <div className='bg-[#161616]'>
                 <Link
                     to="/client/contactus"
                     className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
