@@ -76,6 +76,10 @@ export const Main = () => {
                         const response = await api.get('/api/user/me');
                         if (response.data.success && response.data.user) {
                             updatedUser = response.data.user;
+                            if (!updatedUser.fullName || updatedUser.fullName.trim() === '') {
+                                navigate('/');
+                                return;
+                            }
                         }
                     } catch (error) {
                         console.error('Ошибка получения данных пользователя через /api/user/me:', error);
@@ -88,6 +92,10 @@ export const Main = () => {
                         const response = await api.get(`/api/user/telegram/${telegramId}`);
                         if (response.data.success && response.data.user) {
                             updatedUser = response.data.user;
+                            if (!updatedUser.fullName || updatedUser.fullName.trim() === '') {
+                                navigate('/');
+                                return;
+                            }
                         } else {
                             navigate('/');
                         }
@@ -102,6 +110,10 @@ export const Main = () => {
                         const response = await api.get(`/api/user/${user._id}`);
                         if (response.data.success && response.data.user) {
                             updatedUser = response.data.user;
+                            if (!updatedUser.fullName || updatedUser.fullName.trim() === '') {
+                                navigate('/');
+                                return;
+                            }
                         } else {
                             navigate('/');
                         }
@@ -115,6 +127,11 @@ export const Main = () => {
                     // Сохраняем обновленные данные в localStorage
                     localStorage.setItem('user', JSON.stringify(updatedUser));
                     setUserData(updatedUser);
+
+                    if (!updatedUser.fullName || updatedUser.fullName.trim() === '') {
+                        navigate('/');
+                        return;
+                    }
                     
                     // Обновляем fullName если он есть
                     if (updatedUser.fullName) {
