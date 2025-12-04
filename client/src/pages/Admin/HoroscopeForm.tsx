@@ -45,29 +45,13 @@ export const HoroscopeForm = () => {
         }
     }, [id]);
 
-    const dateToMonthDay = (dateString: string): string => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${month}-${day}`;
-    };
-
-    const monthDayToDate = (monthDay: string): string => {
-        if (!monthDay || !monthDay.includes('-')) return '';
-        const [month, day] = monthDay.split('-');
-        const year = new Date().getFullYear();
-        const date = new Date(year, parseInt(month) - 1, parseInt(day));
-        return date.toISOString().split('T')[0];
-    };
-
     const fetchHoroscope = async () => {
         try {
             const response = await api.get(`/api/horoscope/${id}`);
             const data = response.data.data;
             setFormData({
-                startDate: data.startDate ? dateToMonthDay(data.startDate) : '',
-                endDate: data.endDate ? dateToMonthDay(data.endDate) : '',
+                startDate: data.startDate || '',
+                endDate: data.endDate || '',
                 title: data.title || '',
                 subtitle: data.subtitle || '',
                 image: data.image || '',
@@ -111,17 +95,11 @@ export const HoroscopeForm = () => {
         setLoading(true);
 
         try {
-            const submitData = {
-                ...formData,
-                startDate: monthDayToDate(formData.startDate),
-                endDate: monthDayToDate(formData.endDate),
-            };
-
             if (id) {
-                await api.put(`/api/horoscope/${id}`, submitData);
+                await api.put(`/api/horoscope/${id}`, formData);
                 toast.success('Гороскоп обновлен');
             } else {
-                await api.post('/api/horoscope', submitData);
+                await api.post('/api/horoscope', formData);
                 toast.success('Гороскоп создан');
             }
             navigate('/admin/horoscope');

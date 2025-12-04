@@ -107,6 +107,7 @@ app.get("/api/horoscope/current", HoroscopeController.getCurrent);
 app.get("/api/horoscope/:id", HoroscopeController.getById);
 app.put("/api/horoscope/:id", HoroscopeController.update);
 app.delete("/api/horoscope/:id", HoroscopeController.remove);
+app.post("/api/horoscope/correct-dates", HoroscopeController.correctHoroscopeDates);
 
 // ==================== Meditation маршруты ====================
 app.post("/api/meditation", MeditationController.create);

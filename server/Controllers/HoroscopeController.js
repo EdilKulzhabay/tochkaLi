@@ -1,5 +1,14 @@
 import Horoscope from "../Models/Horoscope.js";
 
+// Вспомогательная функция для конвертации даты в формат MM-DD
+const dateToMMDD = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}-${day}`;
+};
+
 // Создать новый гороскоп
 export const create = async (req, res) => {
     try {
@@ -12,9 +21,20 @@ export const create = async (req, res) => {
             });
         }
 
+        // Конвертируем даты в формат MM-DD, если они пришли в полном формате
+        let formattedStartDate = startDate;
+        let formattedEndDate = endDate;
+        
+        if (startDate.includes('-') && startDate.length > 5) {
+            formattedStartDate = dateToMMDD(startDate);
+        }
+        if (endDate.includes('-') && endDate.length > 5) {
+            formattedEndDate = dateToMMDD(endDate);
+        }
+
         const horoscope = new Horoscope({
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
             title,
             subtitle: subtitle || '',
             image: image || '',
@@ -94,12 +114,12 @@ export const update = async (req, res) => {
         const { id } = req.params;
         const updateData = { ...req.body };
 
-        // Преобразуем даты в объекты Date, если они присутствуют
-        if (updateData.startDate) {
-            updateData.startDate = new Date(updateData.startDate);
+        // Конвертируем даты в формат MM-DD, если они пришли в полном формате
+        if (updateData.startDate && updateData.startDate.includes('-') && updateData.startDate.length > 5) {
+            updateData.startDate = dateToMMDD(updateData.startDate);
         }
-        if (updateData.endDate) {
-            updateData.endDate = new Date(updateData.endDate);
+        if (updateData.endDate && updateData.endDate.includes('-') && updateData.endDate.length > 5) {
+            updateData.endDate = dateToMMDD(updateData.endDate);
         }
 
         const horoscope = await Horoscope.findByIdAndUpdate(
@@ -161,14 +181,7 @@ export const remove = async (req, res) => {
 // Получить текущий гороскоп
 export const getCurrent = async (req, res) => {
     try {
-        const startDate = new Date();
-        startDate.setHours(0, 0, 0, 0);
-        const endDate = new Date();
-        endDate.setHours(23, 59, 59, 999);
-        const horoscope = await Horoscope.findOne({
-            startDate: { $lte: startDate },
-            endDate: { $gte: endDate }
-        }).sort({ createdAt: -1 });
+        const horoscope = await Horoscope.getCurrent();
 
         if (!horoscope) {
             return res.status(404).json({
@@ -186,6 +199,65 @@ export const getCurrent = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка при получении текущего гороскопа",
+            error: error.message,
+        });
+    }
+};
+
+// Метод для миграции старых дат в новый формат
+export const correctHoroscopeDates = async (req, res) => {
+    try {
+        const horoscopes = await Horoscope.find();
+        let updated = 0;
+        let skipped = 0;
+
+        for (const horoscope of horoscopes) {
+            // Проверяем, нужно ли конвертировать даты
+            const needsConversion = 
+                typeof horoscope.startDate !== 'string' ||
+                horoscope.startDate.length > 5 ||
+                typeof horoscope.endDate !== 'string' ||
+                horoscope.endDate.length > 5;
+
+            if (needsConversion) {
+                try {
+                    const startDate = new Date(horoscope.startDate);
+                    const endDate = new Date(horoscope.endDate);
+                    
+                    const newStartDate = `${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+                    const newEndDate = `${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+                    await Horoscope.findByIdAndUpdate(
+                        horoscope._id,
+                        {
+                            startDate: newStartDate,
+                            endDate: newEndDate
+                        },
+                        { runValidators: false }
+                    );
+                    
+                    updated++;
+                    console.log(`Обновлен гороскоп ${horoscope._id}: ${newStartDate} - ${newEndDate}`);
+                } catch (error) {
+                    console.log(`Ошибка обновления гороскопа ${horoscope._id}:`, error.message);
+                }
+            } else {
+                skipped++;
+            }
+        }
+
+        res.json({
+            success: true,
+            message: "Миграция дат завершена",
+            updated,
+            skipped,
+            total: horoscopes.length
+        });
+    } catch (error) {
+        console.log("Ошибка в HoroscopeController.correctHoroscopeDates:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при миграции дат",
             error: error.message,
         });
     }
