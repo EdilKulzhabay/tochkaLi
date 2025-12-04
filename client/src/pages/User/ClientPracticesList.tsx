@@ -234,7 +234,15 @@ export const ClientPracticesList = () => {
                                     key={practice._id} 
                                     data-card
                                     className="flex-shrink-0 w-[45vw] sm:w-[30vw] lg:w-[20vw]"
-                                    style={cardHeight ? { height: `${cardHeight}px` } : {}}
+                                    style={
+                                        cardHeight
+                                            ? {
+                                                height: `calc(${cardHeight}px + 0px)`,
+                                                ...(window.innerWidth >= 640 && window.innerWidth < 1024 ? { height: `calc(${cardHeight}px + 50px)` } : {}),
+                                                ...(window.innerWidth >= 1024 ? { height: `calc(${cardHeight}px + 100px)` } : {}),
+                                            }
+                                            : {}
+                                    }
                                 >
                                     <div className="h-full">
                                         <MiniVideoCard 
