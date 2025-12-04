@@ -238,7 +238,7 @@ export const ClientMeditationsList = () => {
                                         cardHeight
                                             ? {
                                                 height: `calc(${cardHeight}px + 0px)`,
-                                                ...(window.innerWidth >= 640 && window.innerWidth < 1024 ? { height: `calc(${cardHeight}px + 50px)` } : {}),
+                                                ...(window.innerWidth >= 640 && window.innerWidth < 1024 ? { height: `calc(${cardHeight}px - 50px)` } : {}),
                                                 ...(window.innerWidth >= 1024 ? { height: `calc(${cardHeight}px - 100px)` } : {}),
                                             }
                                             : {}
