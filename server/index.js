@@ -86,6 +86,8 @@ app.get("/api/user/:id", UserController.getUserById);
 app.put("/api/user/:id", UserController.updateUser);
 app.put("/api/user/:id/activate-subscription", UserController.activateSubscription);
 app.put("/api/user/:id/deactivate-subscription", UserController.deactivateSubscription);
+app.put("/api/user/:id/block", UserController.blockUser);
+app.put("/api/user/:id/unblock", UserController.unblockUser);
 app.delete("/api/user/:id", UserController.deleteUser);
 
 // Управление профилем (для авторизованных пользователей)

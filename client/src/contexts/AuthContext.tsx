@@ -52,6 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const userFromStorage = JSON.parse(userStr);
                 if (userFromStorage && userFromStorage !== null && Object.keys(userFromStorage).length > 0) {
                     setUser(userFromStorage);
+                    // Проверка на блокировку пользователя
+                    if (userFromStorage.status === 'blocked' && userFromStorage.role !== 'admin') {
+                        navigate('/client/blocked-user');
+                    }
                 }
             } catch (e) {
                 console.error("Ошибка парсинга user из localStorage:", e);
@@ -68,6 +72,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (response.data.success) {
                 setUser(response.data.user);
                 localStorage.setItem("user", JSON.stringify(response.data.user));
+                
+                // Проверка на блокировку пользователя
+                if (response.data.user.status === 'blocked' && response.data.user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                }
             } else {
                 setUser(null);
                 localStorage.removeItem("token");
@@ -118,6 +127,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(response.data.userData);
             localStorage.setItem("user", JSON.stringify(response.data.userData));
             
+            // Проверка на блокировку пользователя
+            if (response.data.userData.status === 'blocked' && response.data.userData.role !== 'admin') {
+                navigate('/client/blocked-user');
+                return;
+            }
+            
             const redirectPath = localStorage.getItem("redirectAfterLogin");
             if (redirectPath) {
                 localStorage.removeItem("redirectAfterLogin");
@@ -148,6 +163,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(response.data.userData);
             localStorage.setItem("user", JSON.stringify(response.data.userData));
             
+            // Проверка на блокировку пользователя
+            if (response.data.userData.status === 'blocked' && response.data.userData.role !== 'admin') {
+                navigate('/client/blocked-user');
+                return;
+            }
+            
             const redirectPath = localStorage.getItem("redirectAfterLogin");
             if (redirectPath) {
                 localStorage.removeItem("redirectAfterLogin");
@@ -175,6 +196,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const updateUser = (userData: User) => {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        
+        // Проверка на блокировку пользователя
+        if (userData.status === 'blocked' && userData.role !== 'admin') {
+            navigate('/client/blocked-user');
+        }
     };
 
     return (

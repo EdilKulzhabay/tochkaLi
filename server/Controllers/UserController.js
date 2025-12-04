@@ -690,6 +690,74 @@ export const deactivateSubscription = async (req, res) => {
     }
 };
 
+// Заблокировать пользователя
+export const blockUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            {
+                status: 'blocked'
+            },
+            { new: true, runValidators: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: user,
+            message: "Пользователь заблокирован",
+        });
+    } catch (error) {
+        console.log("Ошибка в blockUser:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка блокировки пользователя",
+        });
+    }
+};
+
+// Разблокировать пользователя
+export const unblockUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            {
+                status: 'active'
+            },
+            { new: true, runValidators: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: user,
+            message: "Пользователь разблокирован",
+        });
+    } catch (error) {
+        console.log("Ошибка в unblockUser:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка разблокировки пользователя",
+        });
+    }
+};
+
 // Удалить пользователя (только для админа)
 export const deleteUser = async (req, res) => {
     try {

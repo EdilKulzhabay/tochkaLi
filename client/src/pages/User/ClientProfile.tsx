@@ -6,7 +6,7 @@ import api from "../../api";
 import profile from "../../assets/profile.png";
 import profileStar from "../../assets/profileStar.png";
 import arrowRight from "../../assets/arrowRight.png";
-import arrowDown from "../../assets/arrowDown.png";
+import copyLink from "../../assets/copyLink.png";
 import linkArrow from "../../assets/linkArrow.png";
 import { MyLink } from "../../components/User/MyLink";
 import { Switch } from "../../components/User/Switch";
@@ -120,20 +120,21 @@ export const ClientProfile = () => {
                         </div>
                     )}
 
-                    <div className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2">
+                    <div onClick={copyReferralLink} className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2 cursor-pointer">
                         <div className="flex items-center justify-between">
                             <div className="text-xl font-medium">Пригласи друга по ссылке</div>
-                            <img src={arrowDown} alt="arrowDown" className="w-6 h-6 object-cover -rotate-90" />
+                            <div className="text-lg font-medium">{userData?.inviteesCount}</div>
                         </div>
-                        <div 
-                            className="break-all cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={copyReferralLink}
-                            title="Нажмите, чтобы скопировать"
-                        >
-                            {userData?.telegramId 
-                                ? `t.me/io_tochkali_bot?start=${userData.telegramId}`
-                                : 'Загрузка...'
-                            }
+                        <div className="flex items-center gap-x-2">
+                            <div 
+                                className="break-all"
+                            >
+                                {userData?.telegramId 
+                                    ? `t.me/io_tochkali_bot?start=${userData.telegramId}`
+                                    : 'Загрузка...'
+                                }
+                            </div>
+                            <img src={copyLink} alt="copy" className="w-5 h-5 object-cover" />
                         </div>
                         {linkCopied && (
                             <div className="text-sm text-[#EC1313] mt-1">Ссылка скопирована!</div>

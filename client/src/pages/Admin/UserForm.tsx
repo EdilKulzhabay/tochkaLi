@@ -14,6 +14,7 @@ interface FormData {
     bonus: number;
     telegramId?: string;
     telegramUserName?: string;
+    status?: string;
 }
 
 export const UserForm = () => {
@@ -45,6 +46,7 @@ export const UserForm = () => {
                 bonus: data.bonus || 0,
                 telegramId: data.telegramId || '',
                 telegramUserName: data.telegramUserName || '',
+                status: data.status || '',
             });
             // Преобразуем subscriptionEndDate из Date в формат DD-MM-YYYY
             if (data.subscriptionEndDate) {
@@ -138,6 +140,40 @@ export const UserForm = () => {
         }
     };
 
+    const handleBlockUser = async () => {
+        if (!confirm('Вы уверены, что хотите заблокировать этого пользователя?')) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await api.put(`/api/user/${id}/block`);
+            toast.success('Пользователь заблокирован');
+            fetchUser();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Ошибка блокировки пользователя');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUnblockUser = async () => {
+        if (!confirm('Вы уверены, что хотите разблокировать этого пользователя?')) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await api.put(`/api/user/${id}/unblock`);
+            toast.success('Пользователь разблокирован');
+            fetchUser();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Ошибка разблокировки пользователя');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <AdminLayout>
             <div className="max-w-4xl mx-auto space-y-6">
@@ -222,6 +258,48 @@ export const UserForm = () => {
                         )}
                     </div>
 
+                    {/* Статус пользователя */}
+                    {id && (
+                        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                            <h2 className="text-xl font-semibold text-gray-900">Статус пользователя</h2>
+                            
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Текущий статус</label>
+                                <div className="flex items-center gap-3">
+                                    <span className={`px-4 py-2 rounded-lg font-medium ${
+                                        formData.status === 'blocked' 
+                                            ? 'bg-red-100 text-red-700' 
+                                            : 'bg-green-100 text-green-700'
+                                    }`}>
+                                        {formData.status === 'blocked' ? '🚫 Заблокирован' : '✅ Активен'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                                {formData.status === 'blocked' ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleUnblockUser}
+                                        disabled={loading}
+                                        className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Разблокировать пользователя
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleBlockUser}
+                                        disabled={loading}
+                                        className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Заблокировать пользователя
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Управление подпиской */}
                     {id && (
                         <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
@@ -283,7 +361,7 @@ export const UserForm = () => {
                         </button>
                         <MyButton
                             text={loading ? (id ? 'Сохранение...' : 'Создание...') : (id ? 'Сохранить' : 'Создать')}
-                            onClick={() => {}}
+                            type="submit"
                             disabled={loading}
                             className="w-auto px-3 py-1.5 text-sm"
                         />

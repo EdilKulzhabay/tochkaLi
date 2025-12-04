@@ -42,10 +42,10 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     const { user, logout } = useAuth();
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-lg">
-                <div className="p-6 border-b">
+            <aside className="w-64 bg-white shadow-lg flex flex-col h-screen">
+                <div className="p-6 border-b flex-shrink-0">
                     <h1 className="text-2xl font-bold text-blue-600">Админ панель</h1>
                     <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
                         <User size={16} />
@@ -53,7 +53,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </div>
                 </div>
                 
-                <nav className="p-4">
+                <nav className="p-4 flex-1 overflow-y-auto">
                     <ul className="space-y-2">
                         {menuItems.map((item, index) => {
                             // Разделитель
@@ -84,7 +84,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </ul>
                 </nav>
 
-                <div className="w-64 p-4 border-t">
+                <div className="p-4 border-t flex-shrink-0">
                     <button
                         onClick={logout}
                         className="flex items-center gap-3 px-4 py-3 w-full text-gray-700 hover:bg-gray-100 hover:cursor-pointer rounded-lg transition-colors"
@@ -96,7 +96,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             </aside>
 
             {/* Main content */}
-            <main className="flex-1 overflow-auto">
+            <main className="flex-1 overflow-y-auto h-screen">
                 <div className="p-8">
                     {children}
                 </div>

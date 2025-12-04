@@ -57,6 +57,8 @@ import { ClientSchedule } from "./pages/User/ClientSchedule";
 import { ClientDiary } from "./pages/User/ClientDiary";
 import { ClientProfile } from "./pages/User/ClientProfile";
 import { TelegramWebAppHandler } from "./components/TelegramWebAppHandler";
+import { BlockedUser } from "./pages/User/BlockedUser";
+import { EaseLaunch } from "./pages/User/EaseLaunch";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -172,6 +174,14 @@ export const routes = createBrowserRouter([
     {
         path: "/register",
         element: <RootLayout><Register /></RootLayout>,
+    },
+    {
+        path: "/client/ease-launch",
+        element: <RootLayout><ProtectedRoute><EaseLaunch /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/client/blocked-user",
+        element: <RootLayout><ProtectedRoute><BlockedUser /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin",
