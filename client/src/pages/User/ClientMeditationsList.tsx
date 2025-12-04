@@ -233,7 +233,7 @@ export const ClientMeditationsList = () => {
                                 <div 
                                     key={meditation._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw]"
+                                    className="flex-shrink-0 w-[45vw] sm:w-[30vw] lg:w-[20vw]"
                                     style={cardHeight ? { height: `${cardHeight}px` } : {}}
                                 >
                                     <div className="h-full">
@@ -254,7 +254,7 @@ export const ClientMeditationsList = () => {
                         )}
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                         { meditations.length > 0 ? (
                             <>
                             {meditations.filter((meditation: any) => meditation.accessType === 'stars').map((meditation: any) => (
@@ -287,7 +287,7 @@ export const ClientMeditationsList = () => {
                             ))}
                             </>
                         ) : (
-                            <p className="text-center text-gray-500">Нет медитаций</p>
+                            <p className="text-center text-gray-500 lg:col-span-2">Нет медитаций</p>
                         )}
                     </div>
                 </div>

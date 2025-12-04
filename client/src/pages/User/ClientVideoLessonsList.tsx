@@ -232,8 +232,16 @@ export const ClientVideoLessonsList = () => {
                                 <div 
                                     key={videoLesson._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw]"
-                                    style={cardHeight ? { height: `${cardHeight}px` } : {}}
+                                    className="flex-shrink-0 w-[45vw] sm:w-[30vw] lg:w-[20vw]"
+                                    style={
+                                        cardHeight
+                                            ? {
+                                                height: `calc(${cardHeight}px + 0px)`,
+                                                ...(window.innerWidth >= 640 && window.innerWidth < 1024 ? { height: `calc(${cardHeight}px + 50px)` } : {}),
+                                                ...(window.innerWidth >= 1024 ? { height: `calc(${cardHeight}px + 100px)` } : {}),
+                                            }
+                                            : {}
+                                    }
                                 >
                                     <div className="h-full">
                                         <MiniVideoCard 
@@ -253,7 +261,7 @@ export const ClientVideoLessonsList = () => {
                         )}
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                         { videoLessons.length > 0 ? (
                             <>
                                 {
@@ -290,7 +298,7 @@ export const ClientVideoLessonsList = () => {
                                 }
                             </>
                         ) : (
-                            <p className="text-center text-gray-500">Нет видео уроков</p>
+                            <p className="text-center text-gray-500 lg:col-span-2">Нет видео уроков</p>
                         )}
                     </div>
                 </div>

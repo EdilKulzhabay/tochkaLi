@@ -6,8 +6,8 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
         <>
         {accessType === 'free' ? (
             <Link to={link} className="bg-[#333333] rounded-lg w-full h-full flex flex-col">
-                <div className="h-[100px] flex-shrink-0">
-                    <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-[100px] rounded-lg object-cover" />
+                <div className="relative h-[60%] sm:h-[60%] lg:h-[70%] flex-shrink-0">
+                    <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                 </div>
 
                 <div className='w-full p-4 pt-3 text-left flex-grow flex flex-col'>
@@ -25,8 +25,8 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
             </Link>
         ) : (
             <button onClick={onLockedClick} className="bg-[#333333] rounded-lg w-full h-full flex flex-col">
-                <div className="relative h-[100px] flex-shrink-0">
-                    <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-[100px] rounded-lg object-cover" />
+                <div className="relative h-[50%] sm:h-[60%] lg:h-[70%] flex-shrink-0">
+                    <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                     <div className="absolute inset-0 bg-black/40 rounded-lg" />
                     <img
                         src={lock}

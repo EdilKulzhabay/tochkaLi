@@ -14,12 +14,16 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
     }
 
     return (
-        <button onClick={handleClick} className="w-full text-left bg-[#333333] rounded-lg flex gap-x-3 items-center cursor-pointer">
-            <div className="basis-[40%] relative">
-                <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full rounded-lg object-cover" />
+        <button onClick={handleClick} className="w-full text-left bg-[#333333] rounded-lg flex gap-x-3 items-stretch cursor-pointer h-[120px] md:h-[160px] lg:h-[180px]">
+            <div className="basis-[40%] relative flex-shrink-0 overflow-hidden rounded-l-lg">
+                <img 
+                    src={`${import.meta.env.VITE_API_URL}${image}`} 
+                    alt={title} 
+                    className="w-full h-full rounded-lg object-cover" 
+                />
                 {accessType !== 'free' && (
                     <>
-                        <div className="absolute inset-0 bg-black/40 rounded-lg" />
+                        <div className="absolute inset-0 bg-black/40 rounded-l-lg" />
                         <img
                             src={lock}
                             alt="lock"
@@ -28,21 +32,23 @@ export const VideoCard = ({ title, description, image, link, accessType, progres
                     </>
                 )}
             </div>
-            <div className="basis-[60%] p-4 pl-0">
-                <p className="font-medium">{title}</p>
-                <p
-                    className="text-sm mt-1 line-clamp-2"
-                    style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                    }}
-                >
-                    {description}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
+            <div className="basis-[60%] p-4 pl-0 flex flex-col justify-between min-w-0">
+                <div className="flex-1 min-h-0 flex flex-col">
+                    <p className="font-medium line-clamp-1">{title}</p>
+                    <p
+                        className="text-sm mt-1 line-clamp-2 flex-shrink-0"
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}
+                    >
+                        {description}
+                    </p>
+                </div>
+                <div className="mt-auto pt-2 flex items-center justify-between flex-shrink-0">
                     <div className='w-[40%]'>
                         <div className='flex items-center justify-between'>
                             <p className='text-[10px] font-medium'>{progress}%</p>

@@ -233,7 +233,7 @@ export const ClientPracticesList = () => {
                                 <div 
                                     key={practice._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw]"
+                                    className="flex-shrink-0 w-[45vw] sm:w-[30vw] lg:w-[20vw]"
                                     style={cardHeight ? { height: `${cardHeight}px` } : {}}
                                 >
                                     <div className="h-full">
@@ -254,7 +254,7 @@ export const ClientPracticesList = () => {
                         )}
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                         { practices.length > 0 ? (
                             <>
                                 {
@@ -291,7 +291,7 @@ export const ClientPracticesList = () => {
                                 }
                             </>
                         ) : (
-                            <p className="text-center text-gray-500">Нет практик</p>
+                            <p className="text-center text-gray-500 lg:col-span-2">Нет практик</p>
                         )}
                     </div>
                 </div>
