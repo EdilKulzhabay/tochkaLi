@@ -20,8 +20,8 @@ export const Login = () => {
             setLoading(true);
             await login(email, password);
             toast.success("Вход выполнен успешно!");
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || error.message || "Ошибка входа");
+        } catch (error) {
+            toast.error("Ошибка входа");
         } finally {
             setLoading(false);
         }

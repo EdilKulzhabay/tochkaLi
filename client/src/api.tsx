@@ -1,5 +1,4 @@
 import axios from "axios";
-// Импортируем файл для загрузки глобальных типов Telegram WebApp
 import './utils/telegramWebApp';
 
 const api = axios.create({
@@ -33,7 +32,6 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Улучшенная обработка ошибок для Telegram WebView
         const isTelegramWebView = window.Telegram?.WebApp !== undefined;
         
         if (isTelegramWebView) {
@@ -45,12 +43,9 @@ api.interceptors.response.use(
             });
         }
         
-        // Не делаем автоматический редирект при проверке сессии или авторизации
-        // Это обрабатывается в AuthContext
         const isAuthCheck = error.config?.url?.includes('/user/me') || 
                            error.config?.url?.includes('/user/check-session');
         
-        // Обработка сетевых ошибок (особенно важно для Telegram WebView)
         if (!error.response) {
             console.error('❌ Сетевая ошибка:', error.message);
             if (isTelegramWebView) {
@@ -63,16 +58,13 @@ api.interceptors.response.use(
         }
         
         if (error.response && error.response.status === 403 && !isAuthCheck) {
-            // Проверяем, не является ли это ошибкой сессии (sessionExpired)
             if (error.response.data?.sessionExpired) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                // Не удаляем user для Telegram пользователей (если есть telegramId, но нет токена)
                 const telegramId = localStorage.getItem("telegramId");
                 if (!telegramId) {
                     localStorage.removeItem("user");
                 }
-                // Редирект обрабатывается в AuthContext
             }
         }
         

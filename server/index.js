@@ -1,8 +1,11 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-
 import "dotenv/config";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
 
 import { 
     UserController,
@@ -23,13 +26,7 @@ import {
     DiaryController,
     VideoProgressController
 } from "./Controllers/index.js";
-import { authMiddleware } from "./Middlewares/authMiddleware.js";
-import { requireAdmin } from "./Middlewares/roleMiddleware.js";
 import User from "./Models/User.js";
-import path from 'path';
-import { fileURLToPath } from 'url';
-import swaggerUi from 'swagger-ui-express';
-import YAML from 'yamljs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,18 +42,12 @@ mongoose
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Для Robokassa (отправляет данные в urlencoded формате)
+app.use(express.urlencoded({ extended: true }));
 app.use(express.text());
-app.use(
-    cors({
-        origin: "*",
-    })
-);
+app.use(cors({ origin: "*" }));
 
-// Статическая раздача файлов из папки uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Swagger документация
 const swaggerDocument = YAML.load(path.join(__dirname, 'swagger.yaml'));
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
     customCss: '.swagger-ui .topbar { display: none }',
@@ -75,7 +66,6 @@ app.post("/api/send-code", UserController.sendMail);
 app.post("/api/user/profile", UserController.getProfile);
 app.get("/api/user/telegram/:telegramId", UserController.getUserByTelegramId);
 
-// Защищенные маршруты (требуют авторизации)
 app.get("/api/user/me", async (req, res) => {
     try {
         const user = await User.findById(req.userId).select("-password -currentToken -refreshToken");
@@ -85,7 +75,6 @@ app.get("/api/user/me", async (req, res) => {
     }
 });
 
-// Эндпоинт для проверки валидности токена
 app.get("/api/user/check-session", (req, res) => {
     res.json({ success: true, valid: true });
 });
@@ -188,9 +177,20 @@ app.get("/api/broadcast/users", BroadcastController.getFilteredUsers);
 app.post("/api/broadcast/send", BroadcastController.sendBroadcast);
 app.post("/api/broadcast/test", BroadcastController.sendTestMessage);
 
-// ==================== Robokassa маршруты ====================
-// ResultURL - обработка результата оплаты (вызывается Robokassa)
+// ==================== Robokassa ====================
 app.post("/api/robres", RobokassaController.handleResult);
+
+app.all("/robokassa_callback/success", (req, res) => {
+    const params = req.method === 'POST' ? req.body : req.query;
+    const queryString = new URLSearchParams(params).toString();
+    res.redirect(`${process.env.CLIENT_URL}/robokassa_callback/success${queryString ? '?' + queryString : ''}`);
+});
+
+app.all("/robokassa_callback/fail", (req, res) => {
+    const params = req.method === 'POST' ? req.body : req.query;
+    const queryString = new URLSearchParams(params).toString();
+    res.redirect(`${process.env.CLIENT_URL}/robokassa_callback/fail${queryString ? '?' + queryString : ''}`);
+});
 
 // ==================== Upload маршруты ====================
 app.post("/api/upload/image", UploadController.upload.single('image'), UploadController.uploadImage);
@@ -204,14 +204,10 @@ app.get("/api/diary/:id", DiaryController.getById);
 app.put("/api/diary/:id", DiaryController.update);
 app.delete("/api/diary/:id", DiaryController.remove);
 
-// ==================== VideoProgress маршруты ====================
-// Сохранение прогресса (опциональная авторизация - работает и без токена)
+// ==================== VideoProgress ====================
 app.post("/api/video-progress", VideoProgressController.saveProgress);
-// Получение прогресса конкретного видео (требует авторизации)
 app.get("/api/video-progress/:userId/:contentType/:contentId", VideoProgressController.getProgress);
-// Получение всех прогрессов пользователя (требует авторизации)
 app.get("/api/video-progress/user/:userId/:contentType", VideoProgressController.getUserProgresses);
-// Получение прогрессов для списка контента (опциональная авторизация - работает и без токена)
 app.post("/api/video-progress/batch/:userId/:contentType", VideoProgressController.getProgressesForContents);
 
 

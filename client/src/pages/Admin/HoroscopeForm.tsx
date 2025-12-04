@@ -45,7 +45,6 @@ export const HoroscopeForm = () => {
         }
     }, [id]);
 
-    // Преобразование полной даты в формат MM-DD
     const dateToMonthDay = (dateString: string): string => {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -54,7 +53,6 @@ export const HoroscopeForm = () => {
         return `${month}-${day}`;
     };
 
-    // Преобразование формата MM-DD в полную дату (используя текущий год)
     const monthDayToDate = (monthDay: string): string => {
         if (!monthDay || !monthDay.includes('-')) return '';
         const [month, day] = monthDay.split('-');
@@ -76,7 +74,7 @@ export const HoroscopeForm = () => {
                 lines: data.lines || [],
                 accessType: data.accessType || 'free',
             });
-        } catch (error: any) {
+        } catch (error) {
             toast.error('Ошибка загрузки гороскопа');
             navigate('/admin/horoscope');
         }
@@ -113,7 +111,6 @@ export const HoroscopeForm = () => {
         setLoading(true);
 
         try {
-            // Преобразуем формат MM-DD в полную дату перед отправкой
             const submitData = {
                 ...formData,
                 startDate: monthDayToDate(formData.startDate),
@@ -128,8 +125,8 @@ export const HoroscopeForm = () => {
                 toast.success('Гороскоп создан');
             }
             navigate('/admin/horoscope');
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка сохранения');
+        } catch (error) {
+            toast.error('Ошибка сохранения');
         } finally {
             setLoading(false);
         }

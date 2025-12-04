@@ -18,7 +18,7 @@ export const DynamicContentAdmin = () => {
         try {
             const response = await api.get('/api/dynamic-content');
             setDynamicContents(response.data.data);
-        } catch (error: any) {
+        } catch (error) {
             toast.error('Ошибка загрузки динамического контента');
         }
     };
@@ -38,7 +38,7 @@ export const DynamicContentAdmin = () => {
             await api.delete(`/api/dynamic-content/${item._id}`);
             toast.success('Динамический контент удален');
             fetchDynamicContents();
-        } catch (error: any) {
+        } catch (error) {
             toast.error('Ошибка удаления');
         }
     };

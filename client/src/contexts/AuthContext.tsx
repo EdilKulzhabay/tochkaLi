@@ -31,16 +31,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Проверка валидности токена при загрузке
     useEffect(() => {
         checkAuth();
     }, []);
 
-    // Периодическая проверка валидности токена (каждые 5 минут)
     useEffect(() => {
         const interval = setInterval(() => {
             checkSession();
-        }, 5 * 60 * 1000); // 5 минут
+        }, 5 * 60 * 1000);
 
         return () => clearInterval(interval);
     }, []);
@@ -48,12 +46,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
         const token = localStorage.getItem("token");
         
-        // Сначала пытаемся загрузить user из localStorage
         const userStr = localStorage.getItem("user");
         if (userStr) {
             try {
                 const userFromStorage = JSON.parse(userStr);
-                // Проверяем, что user не null и не пустой объект
                 if (userFromStorage && userFromStorage !== null && Object.keys(userFromStorage).length > 0) {
                     setUser(userFromStorage);
                 }
@@ -62,7 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
         }
         
-        // Если нет токена, не удаляем user из localStorage (может быть пользователь из Telegram)
         if (!token) {
             setLoading(false);
             return;
@@ -72,27 +67,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await api.get("/api/user/me");
             if (response.data.success) {
                 setUser(response.data.user);
-                // Сохраняем актуальные данные в localStorage
                 localStorage.setItem("user", JSON.stringify(response.data.user));
             } else {
-                // Если запрос успешен, но success = false, удаляем только токены
                 setUser(null);
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                // НЕ удаляем user, так как он может быть нужен для Telegram пользователей
-                // localStorage.removeItem("user");
             }
         } catch (error: any) {
             console.log("Ошибка проверки авторизации:", error);
-            // Очищаем данные только если это действительно ошибка авторизации
             if (error.response?.status === 403 || error.response?.status === 401) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                // НЕ удаляем user, так как он может быть нужен для Telegram пользователей
-                // localStorage.removeItem("user");
                 setUser(null);
             }
-            // Если это другая ошибка (сеть, таймаут), оставляем данные из localStorage
         } finally {
             setLoading(false);
         }
@@ -109,12 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await api.get("/api/user/check-session");
             return response.data.success;
         } catch (error: any) {
-            // Если сессия истекла, очищаем данные, но не делаем редирект здесь
-            // Редирект будет обработан в компонентах через ProtectedRoute
             if (error.response?.data?.sessionExpired) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
-                // Не удаляем user для Telegram пользователей (если есть telegramId, но нет токена)
                 const telegramId = localStorage.getItem("telegramId");
                 if (!telegramId) {
                     localStorage.removeItem("user");
@@ -134,13 +118,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(response.data.userData);
             localStorage.setItem("user", JSON.stringify(response.data.userData));
             
-            // Проверяем сохраненный путь для редиректа
             const redirectPath = localStorage.getItem("redirectAfterLogin");
             if (redirectPath) {
                 localStorage.removeItem("redirectAfterLogin");
                 navigate(redirectPath);
             } else {
-                // Редирект в зависимости от роли
                 if (response.data.userData.role === "admin") {
                     navigate("/admin");
                 } else {
@@ -166,13 +148,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(response.data.userData);
             localStorage.setItem("user", JSON.stringify(response.data.userData));
             
-            // Проверяем сохраненный путь для редиректа
             const redirectPath = localStorage.getItem("redirectAfterLogin");
             if (redirectPath) {
                 localStorage.removeItem("redirectAfterLogin");
                 navigate(redirectPath);
             } else {
-                // Редирект в зависимости от роли
                 if (response.data.userData.role === "admin") {
                     navigate("/admin");
                 } else {
@@ -192,7 +172,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         navigate("/login");
     };
 
-    // Метод для обновления пользователя в контексте
     const updateUser = (userData: User) => {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));

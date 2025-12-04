@@ -36,7 +36,7 @@ export const FAQForm = () => {
                 answer: faq.answer,
                 order: faq.order || 0,
             });
-        } catch (error: any) {
+        } catch (error) {
             toast.error('Ошибка загрузки FAQ');
             navigate('/admin/faq');
         }
@@ -55,8 +55,8 @@ export const FAQForm = () => {
                 toast.success('FAQ создан');
             }
             navigate('/admin/faq');
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка сохранения');
+        } catch (error) {
+            toast.error('Ошибка сохранения');
         } finally {
             setLoading(false);
         }
@@ -85,7 +85,7 @@ export const FAQForm = () => {
                                 label="Вопрос"
                                 type="text"
                                 value={formData.question}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, question: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, question: e.target.value })}
                                 placeholder="Введите вопрос"
                                 required
                             />
@@ -94,7 +94,7 @@ export const FAQForm = () => {
                                 label="Порядок отображения"
                                 type="number"
                                 value={formData.order.toString()}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
                                 placeholder="0"
                             />
                         </div>

@@ -6,32 +6,24 @@ import { useEffect } from "react";
 import { useTelegramFullscreen } from "./utils/telegramWebApp";
 
 function App() {
-    // Используем хук для настройки Telegram WebApp fullscreen режима
-    // Это заполняет CSS переменные --tg-safe-* из Telegram API viewport.safeArea
     useTelegramFullscreen();
     
-    // Дополнительная инициализация Telegram WebApp при монтировании компонента
-    // Это дополнительная гарантия для случаев, когда main.tsx не успел выполниться
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
         if (tg) {
-            // Вызываем ready() и expand() для гарантии полной высоты
             tg.ready();
             tg.expand();
             
-            // Скрываем кнопку "Назад" по умолчанию
             if (tg.BackButton) {
                 tg.BackButton.hide();
             }
             
-            // Дополнительная проверка через небольшую задержку
             setTimeout(() => {
                 if (!tg.isExpanded) {
                     tg.expand();
                 }
             }, 100);
             
-            // Обрабатываем изменения viewport
             tg.onEvent('viewportChanged', () => {
                 if (!tg.isExpanded) {
                     tg.expand();
@@ -45,7 +37,6 @@ function App() {
             <RouterProvider router={routes} />
             <ToastContainer 
                 position="top-right"
-                // style={{ paddingTop: 'var(--tg-safe-top, 0px)' }}
                 autoClose={3000}
                 hideProgressBar={false}
                 newestOnTop={false}

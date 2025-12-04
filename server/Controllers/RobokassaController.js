@@ -12,8 +12,6 @@ export const handleResult = async (req, res) => {
             return res.status(400).send("ERROR: Missing required parameters");
         }
 
-        // Проверяем подпись с Password2
-        // Формат: MD5(OutSum:InvId:Password2[:Shp_param=value])
         const password2 = process.env.ROBOKASSA_PASSWORD2;
         
         let signatureString = `${OutSum}:${InvId}:${password2}`;
@@ -41,13 +39,11 @@ export const handleResult = async (req, res) => {
         
         console.log("Подпись верна!");
         
-        // Обновляем пользователя в базе данных
         if (Shp_userId) {
             const user = await User.findById(Shp_userId);
             if (user) {
-                // Устанавливаем подписку на 30 дней
                 const subscriptionEndDate = new Date();
-                subscriptionEndDate.setDate(subscriptionEndDate.getDate() + 30);
+                subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
                 
                 user.hasPaid = true;
                 user.paymentDate = new Date();
@@ -62,7 +58,6 @@ export const handleResult = async (req, res) => {
             }
         }
         
-        // Robokassa ожидает ответ в формате OK{InvId}
         res.send(`OK${InvId}`);
         
     } catch (error) {

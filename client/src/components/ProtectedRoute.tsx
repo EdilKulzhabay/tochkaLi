@@ -1,4 +1,4 @@
-// import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 type Role = "user" | "admin" | "content_manager" | "client_manager" | "manager";
@@ -19,12 +19,18 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         );
     }
 
+    // Проверка для админских страниц
     if (requiredRole) {
         const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
         
-        if (!user?.role || !allowedRoles.includes(user.role as Role)) {
-            // Если требуется определенная роль и у пользователя её нет - редирект
-            // return <Navigate to="/" replace />;
+        // Если пользователь не авторизован - редирект на /login
+        if (!user) {
+            return <Navigate to="/login" replace />;
+        }
+        
+        // Если у пользователя нет нужной роли - редирект на главную
+        if (!user.role || !allowedRoles.includes(user.role as Role)) {
+            return <Navigate to="/" replace />;
         }
     }
 
