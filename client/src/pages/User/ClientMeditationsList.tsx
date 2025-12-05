@@ -233,16 +233,7 @@ export const ClientMeditationsList = () => {
                                 <div 
                                     key={meditation._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw] sm:w-[30vw] lg:w-[20vw]"
-                                    style={
-                                        cardHeight
-                                            ? {
-                                                height: `calc(${cardHeight}px + 0px)`,
-                                                ...(window.innerWidth >= 640 && window.innerWidth < 1024 ? { height: `calc(${cardHeight}px - 50px)` } : {}),
-                                                ...(window.innerWidth >= 1024 ? { height: `calc(${cardHeight}px - 100px)` } : {}),
-                                            }
-                                            : {}
-                                    }
+                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw]"
                                 >
                                     <div className="h-full">
                                         <MiniVideoCard 

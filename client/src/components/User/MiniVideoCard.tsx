@@ -5,8 +5,8 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
     return (
         <>
         {accessType === 'free' ? (
-            <Link to={link} className="bg-[#333333] rounded-lg w-full h-full flex flex-col">
-                <div className="relative h-[60%] sm:h-[60%] lg:h-[60%] flex-shrink-0">
+            <Link to={link} className="bg-[#333333] rounded-lg w-full h-full">
+                <div className="relative h-[173px] sm:h-[251px] lg:h-[347px] flex-shrink-0">
                     <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                 </div>
 
@@ -25,7 +25,7 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
             </Link>
         ) : (
             <button onClick={onLockedClick} className="bg-[#333333] rounded-lg w-full h-full flex flex-col">
-                <div className="relative h-[50%] sm:h-[60%] lg:h-[60%] flex-shrink-0">
+                <div className="relative h-[173px] sm:h-[251px] lg:h-[347px] flex-shrink-0">
                     <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                     <div className="absolute inset-0 bg-black/40 rounded-lg" />
                     <img
@@ -36,8 +36,20 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                 </div>
 
                 <div className='w-full p-4 pt-3 text-left flex-grow flex flex-col'>
-                    <p className="font-medium">{title}</p>
-                    <div className="mt-auto">
+                    <p
+                        className="font-medium line-clamp-2 min-h-[44px]"
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: '44px', // 2 lines at 22px line-height
+                        }}
+                    >
+                        {title}
+                    </p>
+                    <div className="mt-2">
                         <div className='w-full flex items-center justify-between'>
                             <p className='text-sm font-medium'>{progress}%</p>
                             <p className='text-sm font-medium'>{duration} мин.</p>
