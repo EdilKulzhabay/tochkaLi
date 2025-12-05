@@ -30,6 +30,7 @@ export const BroadcastAdmin = () => {
     const [userCount, setUserCount] = useState(0);
     const [foundUsers, setFoundUsers] = useState<User[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+    const [selectedUsersData, setSelectedUsersData] = useState<Map<string, User>>(new Map());
     const [lastStats, setLastStats] = useState<BroadcastStats | null>(null);
 
     const fetchUserCount = async () => {
@@ -47,6 +48,11 @@ export const BroadcastAdmin = () => {
 
     useEffect(() => {
         fetchUserCount();
+        // При изменении статуса очищаем поиск и найденных пользователей
+        setSearch('');
+        setFoundUsers([]);
+        setSelectedUsers(new Set());
+        setSelectedUsersData(new Map());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
@@ -80,24 +86,45 @@ export const BroadcastAdmin = () => {
     const handleClearSearch = () => {
         setSearch('');
         setFoundUsers([]);
-        setSelectedUsers(new Set());
+        // Не очищаем выбранных пользователей при очистке поиска
     };
 
-    const toggleUserSelection = (userId: string) => {
+    const toggleUserSelection = (user: User) => {
         const newSelected = new Set(selectedUsers);
-        if (newSelected.has(userId)) {
-            newSelected.delete(userId);
+        const newSelectedData = new Map(selectedUsersData);
+        
+        if (newSelected.has(user._id)) {
+            newSelected.delete(user._id);
+            newSelectedData.delete(user._id);
         } else {
-            newSelected.add(userId);
+            newSelected.add(user._id);
+            newSelectedData.set(user._id, user);
         }
+        
         setSelectedUsers(newSelected);
+        setSelectedUsersData(newSelectedData);
+    };
+
+    const removeSelectedUser = (userId: string) => {
+        const newSelected = new Set(selectedUsers);
+        const newSelectedData = new Map(selectedUsersData);
+        
+        newSelected.delete(userId);
+        newSelectedData.delete(userId);
+        
+        setSelectedUsers(newSelected);
+        setSelectedUsersData(newSelectedData);
     };
 
     const toggleAllUsers = () => {
         if (selectedUsers.size === foundUsers.length) {
             setSelectedUsers(new Set());
+            setSelectedUsersData(new Map());
         } else {
-            setSelectedUsers(new Set(foundUsers.map(u => u._id)));
+            const allIds = new Set(foundUsers.map(u => u._id));
+            const allData = new Map(foundUsers.map(u => [u._id, u]));
+            setSelectedUsers(allIds);
+            setSelectedUsersData(allData);
         }
     };
 
@@ -134,6 +161,7 @@ export const BroadcastAdmin = () => {
                     
                     setFoundUsers([]);
                     setSelectedUsers(new Set());
+                    setSelectedUsersData(new Map());
                     setSearch('');
                 } else {
                     toast.error(response.data.message || 'Ошибка отправки рассылки');
@@ -315,6 +343,9 @@ export const BroadcastAdmin = () => {
                         )}
                     </div>
 
+                    {/* Выбранные пользователи */}
+                    
+
                     {/* Список найденных пользователей */}
                     {foundUsers.length > 0 && (
                         <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -322,7 +353,7 @@ export const BroadcastAdmin = () => {
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
-                                        checked={selectedUsers.size === foundUsers.length}
+                                        checked={foundUsers.length > 0 && selectedUsers.size === foundUsers.length}
                                         onChange={toggleAllUsers}
                                         className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                                     />
@@ -339,12 +370,12 @@ export const BroadcastAdmin = () => {
                                     <div
                                         key={user._id}
                                         className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 flex items-center gap-3 cursor-pointer"
-                                        onClick={() => toggleUserSelection(user._id)}
+                                        onClick={() => toggleUserSelection(user)}
                                     >
                                         <input
                                             type="checkbox"
                                             checked={selectedUsers.has(user._id)}
-                                            onChange={() => toggleUserSelection(user._id)}
+                                            onChange={() => toggleUserSelection(user)}
                                             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                                             onClick={(e) => e.stopPropagation()}
                                         />
@@ -361,6 +392,52 @@ export const BroadcastAdmin = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+{selectedUsers.size > 0 && (
+                        <div className="border border-blue-200 rounded-lg overflow-hidden bg-blue-50">
+                            <div className="bg-blue-100 px-4 py-3 border-b border-blue-200 flex items-center justify-between">
+                                <span className="font-medium text-blue-900">
+                                    Выбрано пользователей: {selectedUsers.size}
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        setSelectedUsers(new Set());
+                                        setSelectedUsersData(new Map());
+                                    }}
+                                    className="text-sm text-blue-700 hover:text-blue-900 underline"
+                                >
+                                    Очистить все
+                                </button>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto p-2">
+                                <div className="flex flex-wrap gap-2">
+                                    {Array.from(selectedUsersData.values()).map((user) => (
+                                        <div
+                                            key={user._id}
+                                            className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-blue-200 shadow-sm"
+                                        >
+                                            <span className="text-sm font-medium text-gray-900">
+                                                {user.fullName || 'Без имени'}
+                                            </span>
+                                            {user.telegramUserName && (
+                                                <span className="text-xs text-gray-500">@{user.telegramUserName}</span>
+                                            )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeSelectedUser(user._id);
+                                                }}
+                                                className="text-red-600 hover:text-red-800 transition-colors"
+                                                title="Удалить из выбранных"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
