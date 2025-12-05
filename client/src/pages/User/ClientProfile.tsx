@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../api";
 import profile from "../../assets/profile.png";
 import profileStar from "../../assets/profileStar.png";
-import arrowRight from "../../assets/arrowRight.png";
 import copyLink from "../../assets/copyLink.png";
 import linkArrow from "../../assets/linkArrow.png";
 import { MyLink } from "../../components/User/MyLink";
