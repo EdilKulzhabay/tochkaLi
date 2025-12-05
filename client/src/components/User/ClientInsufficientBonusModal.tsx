@@ -128,21 +128,25 @@ export const ClientInsufficientBonusModal = ({
         }
     }, [isOpen]);
 
+    // Не возвращаем null, если хотя бы одно модальное окно открыто
     if (!isOpen && !isPolicyModalOpen) return null;
 
     const handleMoreInfoClick = () => {
-        onClose();
+        // Открываем второе модальное окно
         setIsPolicyModalOpen(true);
     };
 
     const handlePolicyModalClose = () => {
+        // Закрываем второе модальное окно
         setIsPolicyModalOpen(false);
+        // И закрываем первое модальное окно
+        onClose();
     };
 
     return (
         <>
             <BonusPolicyModal isOpen={isPolicyModalOpen} onClose={handlePolicyModalClose} />
-            {isOpen && (
+            {isOpen && !isPolicyModalOpen && (
             <div className="fixed inset-0 z-50 overflow-y-auto">
             {/* Мобильная версия: модальное окно снизу */}
             <div className="flex items-end justify-center min-h-screen sm:hidden">
