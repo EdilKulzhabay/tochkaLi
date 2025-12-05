@@ -213,19 +213,17 @@ export const ClientMeditationsList = () => {
                                 <div 
                                     key={meditation._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw]"
+                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw] h-[210px] sm:h-[275px] lg:h-[330px]"
                                 >
-                                    <div className="h-full">
-                                        <MiniVideoCard 
-                                            title={meditation.title} 
-                                            image={meditation.imageUrl} 
-                                            link={`/client/meditation/${meditation._id}`} 
-                                            progress={progresses[meditation._id] || 0} 
-                                            accessType={hasAccessToContentSubscription() ? 'free' : meditation.accessType}
-                                            onLockedClick={hasAccessToContentSubscription() ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClickSubscription(meditation) : undefined)}
-                                            duration={meditation?.duration || 0}
-                                        />
-                                    </div>
+                                    <MiniVideoCard 
+                                        title={meditation.title} 
+                                        image={meditation.imageUrl} 
+                                        link={`/client/meditation/${meditation._id}`} 
+                                        progress={progresses[meditation._id] || 0} 
+                                        accessType={hasAccessToContentSubscription() ? 'free' : meditation.accessType}
+                                        onLockedClick={hasAccessToContentSubscription() ? undefined : (meditation.accessType !== 'free' ? () => handleLockedMeditationClickSubscription(meditation) : undefined)}
+                                        duration={meditation?.duration || 0}
+                                    />
                                 </div>
                             ))
                         ) : (

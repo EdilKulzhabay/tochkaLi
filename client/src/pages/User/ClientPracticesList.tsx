@@ -213,19 +213,17 @@ export const ClientPracticesList = () => {
                                 <div 
                                     key={practice._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw]"
+                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw] h-[210px] sm:h-[275px] lg:h-[330px]"
                                 >
-                                    <div className="h-full">
-                                        <MiniVideoCard 
-                                            title={practice.title} 
-                                            image={practice.imageUrl} 
-                                            link={`/client/practice/${practice._id}`} 
-                                            progress={progresses[practice._id] || 0} 
-                                            accessType={hasAccessToContentSubscription() ? 'free' : practice.accessType}
-                                            onLockedClick={hasAccessToContentSubscription() ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClickSubscription(practice) : undefined)}
-                                            duration={practice?.duration || 0}
-                                        />
-                                    </div>
+                                    <MiniVideoCard 
+                                        title={practice.title} 
+                                        image={practice.imageUrl} 
+                                        link={`/client/practice/${practice._id}`} 
+                                        progress={progresses[practice._id] || 0} 
+                                        accessType={hasAccessToContentSubscription() ? 'free' : practice.accessType}
+                                        onLockedClick={hasAccessToContentSubscription() ? undefined : (practice.accessType !== 'free' ? () => handleLockedPracticeClickSubscription(practice) : undefined)}
+                                        duration={practice?.duration || 0}
+                                    />
                                 </div>
                             ))
                         ) : (
