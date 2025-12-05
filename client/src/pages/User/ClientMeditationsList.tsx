@@ -10,7 +10,6 @@ import { ClientInsufficientBonusModal } from "../../components/User/ClientInsuff
 
 export const ClientMeditationsList = () => {
     const [meditations, setMeditations] = useState([]);
-    const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
     const [isInsufficientBonusModalOpen, setIsInsufficientBonusModalOpen] = useState(false);
@@ -53,25 +52,6 @@ export const ClientMeditationsList = () => {
         const responseStars = await api.get('/api/dynamic-content/name/meditation-stars');
         setStarsContent(responseStars.data.data.content);
     }
-
-    useEffect(() => {
-        if (meditations.length > 0 && cardsContainerRef.current) {
-            // Даем время на рендер всех карточек
-            setTimeout(() => {
-                const cards = cardsContainerRef.current?.querySelectorAll('[data-card]');
-                if (cards && cards.length > 0) {
-                    let maxHeight = 0;
-                    cards.forEach((card) => {
-                        const height = (card as HTMLElement).offsetHeight;
-                        if (height > maxHeight) {
-                            maxHeight = height;
-                        }
-                    });
-                    setCardHeight(maxHeight);
-                }
-            }, 100);
-        }
-    }, [meditations]);
 
     const fetchMeditations = async () => {
         const response = await api.get('/api/meditation');

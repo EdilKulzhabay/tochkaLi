@@ -10,7 +10,6 @@ import { ClientInsufficientBonusModal } from "../../components/User/ClientInsuff
 
 export const ClientVideoLessonsList = () => {
     const [videoLessons, setVideoLessons] = useState([]);
-    const [cardHeight, setCardHeight] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
     const [isInsufficientBonusModalOpen, setIsInsufficientBonusModalOpen] = useState(false);
@@ -53,25 +52,6 @@ export const ClientVideoLessonsList = () => {
         const responseStars = await api.get('/api/dynamic-content/name/video-stars');
         setStarsContent(responseStars.data.data.content);
     }
-
-    useEffect(() => {
-        if (videoLessons.length > 0 && cardsContainerRef.current) {
-            // Даем время на рендер всех карточек
-            setTimeout(() => {
-                const cards = cardsContainerRef.current?.querySelectorAll('[data-card]');
-                if (cards && cards.length > 0) {
-                    let maxHeight = 0;
-                    cards.forEach((card) => {
-                        const height = (card as HTMLElement).offsetHeight;
-                        if (height > maxHeight) {
-                            maxHeight = height;
-                        }
-                    });
-                    setCardHeight(maxHeight);
-                }
-            }, 100);
-        }
-    }, [videoLessons]);
 
     const fetchVideoLessons = async () => {
         const response = await api.get('/api/video-lesson');
