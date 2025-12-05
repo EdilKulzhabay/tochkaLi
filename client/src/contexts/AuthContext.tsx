@@ -11,6 +11,7 @@ interface User {
     mail: string;
     role: string;
     status: string;
+    isBlocked?: boolean;
     hasPaid?: boolean;
 }
 
@@ -47,13 +48,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = localStorage.getItem("token");
         
         const userStr = localStorage.getItem("user");
+        let userFromStorage: User | null = null;
         if (userStr) {
             try {
-                const userFromStorage = JSON.parse(userStr);
-                if (userFromStorage && userFromStorage !== null && Object.keys(userFromStorage).length > 0) {
+                const parsed = JSON.parse(userStr);
+                if (parsed && parsed !== null && Object.keys(parsed).length > 0) {
+                    userFromStorage = parsed;
                     setUser(userFromStorage);
                     // Проверка на блокировку пользователя
-                    if (userFromStorage && userFromStorage.status && userFromStorage.status === 'blocked' && userFromStorage.role !== 'admin') {
+                    if (userFromStorage && userFromStorage.isBlocked && userFromStorage.role !== 'admin') {
                         navigate('/client/blocked-user');
                     }
                 }
@@ -74,20 +77,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 localStorage.setItem("user", JSON.stringify(response.data.user));
                 
                 // Проверка на блокировку пользователя
-                if (response.data.user.status === 'blocked' && response.data.user.role !== 'admin') {
+                if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
                     navigate('/client/blocked-user');
                 }
             } else {
-                setUser(null);
-                localStorage.removeItem("token");
-                localStorage.removeItem("refreshToken");
+                // Если ответ не успешен, но пользователь был в localStorage с валидной ролью админа
+                // Оставляем его, чтобы не выбрасывать со страницы при временных проблемах
+                if (userFromStorage && ['admin', 'manager', 'content_manager', 'client_manager'].includes(userFromStorage.role)) {
+                    // Оставляем пользователя из localStorage
+                    console.log("API вернул ошибку, но оставляем пользователя из localStorage (админ)");
+                } else {
+                    // Только если ответ явно говорит об ошибке авторизации и нет валидного пользователя в localStorage
+                    setUser(null);
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem("user");
+                }
             }
         } catch (error: any) {
             console.log("Ошибка проверки авторизации:", error);
+            // Сбрасываем пользователя только при явной ошибке авторизации (401/403)
+            // При других ошибках (сеть, таймаут и т.д.) оставляем пользователя из localStorage
             if (error.response?.status === 403 || error.response?.status === 401) {
-                localStorage.removeItem("token");
-                localStorage.removeItem("refreshToken");
-                setUser(null);
+                // При 401/403 сбрасываем только если пользователь не админ
+                // Админы могут иметь доступ даже при временных проблемах с API
+                if (!userFromStorage || !['admin', 'manager', 'content_manager', 'client_manager'].includes(userFromStorage.role)) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem("user");
+                    setUser(null);
+                } else {
+                    // Для админов оставляем пользователя из localStorage даже при 401/403
+                    console.log("401/403 ошибка, но оставляем админа из localStorage");
+                }
+            } else {
+                // При сетевых ошибках или других проблемах оставляем пользователя из localStorage
+                // Это позволяет оставаться на странице при временных проблемах с сетью
+                if (!userFromStorage) {
+                    // Если пользователя не было в localStorage, то сбрасываем
+                    setUser(null);
+                } else {
+                    // Пользователь из localStorage остается, даже если API недоступен
+                    console.log("Сетевая ошибка, но оставляем пользователя из localStorage");
+                }
             }
         } finally {
             setLoading(false);
@@ -128,7 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem("user", JSON.stringify(response.data.userData));
             
             // Проверка на блокировку пользователя
-            if (response.data.userData.status === 'blocked' && response.data.userData.role !== 'admin') {
+            if (response.data.userData.isBlocked && response.data.userData.role !== 'admin') {
                 navigate('/client/blocked-user');
                 return;
             }
@@ -164,7 +196,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem("user", JSON.stringify(response.data.userData));
             
             // Проверка на блокировку пользователя
-            if (response.data.userData.status === 'blocked' && response.data.userData.role !== 'admin') {
+            if (response.data.userData.isBlocked && response.data.userData.role !== 'admin') {
                 navigate('/client/blocked-user');
                 return;
             }
@@ -198,7 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem("user", JSON.stringify(userData));
         
         // Проверка на блокировку пользователя
-        if (userData.status === 'blocked' && userData.role !== 'admin') {
+        if (userData.isBlocked && userData.role !== 'admin') {
             navigate('/client/blocked-user');
         }
     };

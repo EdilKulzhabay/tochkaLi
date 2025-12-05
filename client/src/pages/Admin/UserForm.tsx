@@ -15,6 +15,7 @@ interface FormData {
     telegramId?: string;
     telegramUserName?: string;
     status?: string;
+    isBlocked?: boolean;
 }
 
 export const UserForm = () => {
@@ -47,6 +48,7 @@ export const UserForm = () => {
                 telegramId: data.telegramId || '',
                 telegramUserName: data.telegramUserName || '',
                 status: data.status || '',
+                isBlocked: data.isBlocked || false,
             });
             // Преобразуем subscriptionEndDate из Date в формат DD-MM-YYYY
             if (data.subscriptionEndDate) {
@@ -224,7 +226,7 @@ export const UserForm = () => {
 
                         <MyInput
                             label="Количество бонусов (Звезды)"
-                            type="number"
+                            type="text"
                             value={formData.bonus.toString()}
                             onChange={(e) => {
                                 const value = parseInt(e.target.value) || 0;
@@ -267,17 +269,17 @@ export const UserForm = () => {
                                 <label className="block text-sm font-medium mb-2">Текущий статус</label>
                                 <div className="flex items-center gap-3">
                                     <span className={`px-4 py-2 rounded-lg font-medium ${
-                                        formData.status === 'blocked' 
+                                        formData.isBlocked 
                                             ? 'bg-red-100 text-red-700' 
                                             : 'bg-green-100 text-green-700'
                                     }`}>
-                                        {formData.status === 'blocked' ? '🚫 Заблокирован' : '✅ Активен'}
+                                        {formData.isBlocked ? '🚫 Заблокирован' : '✅ Активен'}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="flex gap-2">
-                                {formData.status === 'blocked' ? (
+                                {formData.isBlocked ? (
                                     <button
                                         type="button"
                                         onClick={handleUnblockUser}

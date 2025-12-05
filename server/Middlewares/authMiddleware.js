@@ -25,9 +25,9 @@ export const authMiddleware = async (req, res, next) => {
             });
         }
 
-        // Админы и менеджеры могут иметь доступ даже если статус не "active"
-        // Для обычных пользователей проверяем статус
-        if (user.status !== "active" && !['admin', 'manager', 'content_manager', 'client_manager'].includes(user.role)) {
+        // Админы и менеджеры могут иметь доступ даже если заблокированы
+        // Для обычных пользователей проверяем блокировку
+        if (user.isBlocked && !['admin', 'manager', 'content_manager', 'client_manager'].includes(user.role)) {
             return res.status(403).json({
                 success: false,
                 message: "Аккаунт заблокирован",

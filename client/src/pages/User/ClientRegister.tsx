@@ -58,6 +58,19 @@ export const ClientRegister = () => {
             toast.error('Пожалуйста, введите корректный email');
             return;
         }
+        if (phone.trim() === '') {
+            toast.error('Пожалуйста, введите телефон');
+            return;
+        }
+
+        if (firstName.trim() === '') {
+            toast.error('Пожалуйста, введите имя');
+            return;
+        }
+        if (lastName.trim() === '') {
+            toast.error('Пожалуйста, введите фамилию');
+            return;
+        }
 
         setSendingCode(true);
         try {

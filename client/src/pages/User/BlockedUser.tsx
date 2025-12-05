@@ -1,7 +1,7 @@
 import bgGar from '../../assets/bgGar.png';
-import { MyLink } from '../../components/User/MyLink';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { RedButton } from '../../components/User/RedButton';
 
 export const BlockedUser = () => {
     const [screenHeight, setScreenHeight] = useState<number>(0);
@@ -11,7 +11,6 @@ export const BlockedUser = () => {
             // window.innerHeight - высота окна браузера в пикселях (это то же самое, что h-screen)
             const height = window.innerHeight;
             setScreenHeight(height);
-            console.log('Высота экрана (h-screen):', height, 'px');
         };
 
         // Получаем высоту при монтировании компонента
@@ -47,7 +46,11 @@ export const BlockedUser = () => {
                 >
                     Связаться с нами
                 </Link>
-                <MyLink to="/" text="Назад" className='w-full mt-4' color='red'/>
+                <RedButton
+                    text="Закрыть"
+                    onClick={() => window.close()}
+                    className='w-full mt-4'
+                />
             </div>
         </div>
     );

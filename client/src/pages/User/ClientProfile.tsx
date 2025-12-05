@@ -38,7 +38,7 @@ export const ClientProfile = () => {
 
     const copyReferralLink = async () => {
         if (userData?.telegramId) {
-            const referralLink = `t.me/@io_tochkali_bot?start=${userData.telegramId}`;
+            const referralLink = `t.me/io_tochkali_bot?start=${userData.telegramId}`;
             try {
                 await navigator.clipboard.writeText(referralLink);
                 setLinkCopied(true);
@@ -98,16 +98,19 @@ export const ClientProfile = () => {
                                 <div className="mt-1">
                                 За выполнение бесполезного упражнения, ведение дневника и приглашение друзей. Звезды обмениваются на эксклюзивный контент, который нельзя купить
                                 </div>
-                                {!userData?.emailConfirmed && (
-                                    <Link to="/client/register" className="flex items-center gap-x-2 mt-2.5">
-                                        <div className="text-sm text-[#FFC293]">Пройти регистрацию для начисления Звезд</div>
-                                        <img src={arrowRight} alt="arrowRight" className="w-4 h-4 object-cover" />
-                                    </Link>
-                                )}
                             </div>
                         </div>
 
-                        <div className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2">
+                        <div 
+                            className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2"
+                            onClick={() => {
+                                if (userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date()) {
+                                    console.log('Подписка активна');
+                                } else {
+                                    navigate('/about');
+                                }
+                            }}
+                        >
                             <div className="text-xl font-medium">Статус подписки на клуб .li</div>
                             {userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() ? (
                                 <div>
@@ -140,7 +143,7 @@ export const ClientProfile = () => {
                                 <div className="text-xl font-medium">Пригласи друга по ссылке</div>
                                 <div className="text-lg font-medium">{userData?.inviteesCount}</div>
                             </div>
-                            <div className="flex items-center gap-x-2">
+                            <div className="flex items-center justify-between">
                                 <div 
                                     className="break-all"
                                 >
@@ -193,7 +196,15 @@ export const ClientProfile = () => {
                             }} />
                         </div>
                     </div>
-                    <div className="mt-4 ">
+                    {!userData?.emailConfirmed && (
+                        <Link 
+                            to="/client/register"
+                            className="w-full block border mt-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
+                        >
+                            Пройти регистрацию
+                        </Link>
+                    )}
+                    <div className="mt-3">
                         <MyLink to="/client/contactus" text="Связаться с нами" className='w-full' color='red'/>
                     </div>
                 </div>

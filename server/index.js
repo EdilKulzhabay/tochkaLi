@@ -26,6 +26,7 @@ import {
     DiaryController,
     VideoProgressController
 } from "./Controllers/index.js";
+import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -66,16 +67,20 @@ app.post("/api/send-code", UserController.sendMail);
 app.post("/api/user/profile", UserController.getProfile);
 app.get("/api/user/telegram/:telegramId", UserController.getUserByTelegramId);
 
-app.get("/api/user/me", async (req, res) => {
+app.get("/api/user/me", authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.userId).select("-password -currentToken -refreshToken");
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Пользователь не найден" });
+        }
         res.json({ success: true, user });
     } catch (error) {
+        console.log("Ошибка получения данных пользователя:", error);
         res.status(500).json({ success: false, message: "Ошибка получения данных пользователя" });
     }
 });
 
-app.get("/api/user/check-session", (req, res) => {
+app.get("/api/user/check-session", authMiddleware, (req, res) => {
     res.json({ success: true, valid: true });
 });
 

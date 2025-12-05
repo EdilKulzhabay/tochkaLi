@@ -333,6 +333,7 @@ export const ClientVideoLessonsList = () => {
                     onClose={handleCloseInsufficientBonusModal}
                     starsRequired={selectedVideoLesson.starsRequired || 0}
                     userBonus={userData?.bonus || 0}
+                    contentTitle={selectedVideoLesson.title}
                 />
             )}
         </div>

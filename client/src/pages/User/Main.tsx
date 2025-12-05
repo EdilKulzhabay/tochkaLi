@@ -185,7 +185,7 @@ export const Main = () => {
         <UserLayout>
             <div className="px-4 pb-10 bg-[#161616]">
                 <div className="flex items-center justify-between pt-5 pb-4">
-                    <div className="">
+                    <div className="cursor-pointer" onClick={() => navigate('/client/contactus')}>
                         <img src={logo} alt="logo" className="w-6 h-6" />
                     </div>
                     <div className="flex items-center gap-6">

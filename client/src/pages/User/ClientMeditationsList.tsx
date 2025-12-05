@@ -330,6 +330,7 @@ export const ClientMeditationsList = () => {
                     onClose={handleCloseInsufficientBonusModal}
                     starsRequired={selectedMeditation.starsRequired || 0}
                     userBonus={userData?.bonus || 0}
+                    contentTitle={selectedMeditation.title}
                 />
             )}
         </div>

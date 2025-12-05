@@ -143,7 +143,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
 
                             <MyInput
                                 label="Длительность (мин)"
-                                type="number"
+                                type="text"
                                 value={formData.duration}
                                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                                 placeholder="45"
@@ -151,7 +151,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
 
                             <MyInput
                                 label="Порядок"
-                                type="number"
+                                type="text"
                                 value={formData.order.toString()}
                                 onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
                                 placeholder="0"
@@ -175,7 +175,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
                         {formData.accessType === 'stars' && (
                             <MyInput
                                 label="Количество звёзд для доступа"
-                                type="number"
+                                type="text"
                                 value={formData.starsRequired.toString()}
                                 onChange={(e) => setFormData({ ...formData, starsRequired: parseInt(e.target.value) || 0 })}
                                 placeholder="0"

@@ -23,7 +23,7 @@ export const About = () => {
             try {
                 const response = await api.get(`/api/user/telegram/${telegramId}`);
                 if (response.data.success && response.data.user) {
-                    if (response.data.user.status === 'blocked') {
+                    if (response.data.user.isBlocked) {
                         navigate('/client/blocked-user');
                         return;
                     }

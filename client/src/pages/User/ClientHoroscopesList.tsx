@@ -52,19 +52,44 @@ export const ClientHoroscopesList = () => {
         }
     };
 
+    const normalizeDate = (date: string | Date): string => {
+        if (typeof date === 'string' && date.match(/^\d{2}-\d{2}$/)) {
+            return date;
+        }
+        const d = typeof date === 'string' ? new Date(date) : date;
+        return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
     const fetchHoroscopes = async () => {
         setLoading(true);
         try {
             const response = await api.get("/api/horoscope");
             if (response.data && response.data.success && Array.isArray(response.data.data)) {
-                // Сортируем: активные гороскопы первыми
-                const sortedHoroscopes = [...response.data.data].sort((a, b) => {
-                    const aActive = isHoroscopeActive(a);
-                    const bActive = isHoroscopeActive(b);
-                    if (aActive && !bActive) return -1;
-                    if (!aActive && bActive) return 1;
-                    return 0;
+                // Сначала сортируем все гороскопы по дате начала
+                const sortedByStartDate = [...response.data.data].sort((a, b) => {
+                    const aStartDate = normalizeDate(a.startDate);
+                    const bStartDate = normalizeDate(b.startDate);
+                    return compareDates(aStartDate, bStartDate);
                 });
+                
+                // Находим индекс активного гороскопа
+                const activeIndex = sortedByStartDate.findIndex(h => isHoroscopeActive(h));
+                
+                let sortedHoroscopes: HoroscopeEntity[];
+                
+                if (activeIndex !== -1) {
+                    // Если есть активный гороскоп:
+                    // Порядок: активный (i), затем i+1 до n, затем 1 до i
+                    const activeHoroscope = sortedByStartDate[activeIndex];
+                    const afterActive = sortedByStartDate.slice(activeIndex + 1);
+                    const beforeActive = sortedByStartDate.slice(0, activeIndex);
+                    
+                    sortedHoroscopes = [activeHoroscope, ...afterActive, ...beforeActive];
+                } else {
+                    // Если нет активного гороскопа, просто используем сортировку по дате
+                    sortedHoroscopes = sortedByStartDate;
+                }
+                
                 setHoroscopes(sortedHoroscopes);
             }
         } catch (error) {
@@ -74,28 +99,36 @@ export const ClientHoroscopesList = () => {
         }
     };
 
+    // Функция для сравнения дат в формате MM-DD
+    // Возвращает: -1 если date1 < date2, 0 если равны, 1 если date1 > date2
+    // Для простоты используем строковое сравнение (работает корректно для MM-DD)
+    const compareDates = (date1: string, date2: string): number => {
+        return date1.localeCompare(date2);
+    };
+
     const isHoroscopeActive = (horoscope: HoroscopeEntity): boolean => {
         const now = new Date();
-        const nowMonth = now.getMonth();
-        const nowDay = now.getDate();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const currentDay = String(now.getDate()).padStart(2, '0');
+        const currentDate = `${currentMonth}-${currentDay}`;
         
-        const start = typeof horoscope.startDate === 'string' ? new Date(horoscope.startDate) : horoscope.startDate;
-        const end = typeof horoscope.endDate === 'string' ? new Date(horoscope.endDate) : horoscope.endDate;
+        // Даты хранятся в формате MM-DD (например, "03-21")
+        const startDate = typeof horoscope.startDate === 'string' 
+            ? horoscope.startDate 
+            : `${String(new Date(horoscope.startDate).getMonth() + 1).padStart(2, '0')}-${String(new Date(horoscope.startDate).getDate()).padStart(2, '0')}`;
         
-        const startMonth = start.getMonth();
-        const startDay = start.getDate();
-        const endMonth = end.getMonth();
-        const endDay = end.getDate();
+        const endDate = typeof horoscope.endDate === 'string' 
+            ? horoscope.endDate 
+            : `${String(new Date(horoscope.endDate).getMonth() + 1).padStart(2, '0')}-${String(new Date(horoscope.endDate).getDate()).padStart(2, '0')}`;
         
-        // Если период пересекает границу года (например, декабрь - январь)
-        if (startMonth > endMonth) {
-            // Текущая дата должна быть либо после start (в том же году), либо до end (в следующем году)
-            return (nowMonth > startMonth || (nowMonth === startMonth && nowDay >= startDay)) ||
-                   (nowMonth < endMonth || (nowMonth === endMonth && nowDay <= endDay));
+        // Проверяем, попадает ли текущая дата в диапазон
+        // Учитываем случай, когда период переходит через конец года (например, 12-22 до 01-20)
+        if (startDate <= endDate) {
+            // Обычный случай (например, 03-21 до 04-20)
+            return currentDate >= startDate && currentDate <= endDate;
         } else {
-            // Обычный случай: период в пределах одного года
-            return (nowMonth > startMonth || (nowMonth === startMonth && nowDay >= startDay)) &&
-                   (nowMonth < endMonth || (nowMonth === endMonth && nowDay <= endDay));
+            // Период переходит через конец года (например, 12-22 до 01-20)
+            return currentDate >= startDate || currentDate <= endDate;
         }
     };
 

@@ -698,7 +698,7 @@ export const blockUser = async (req, res) => {
         const user = await User.findByIdAndUpdate(
             id,
             {
-                status: 'blocked'
+                isBlocked: true
             },
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
@@ -732,7 +732,7 @@ export const unblockUser = async (req, res) => {
         const user = await User.findByIdAndUpdate(
             id,
             {
-                status: 'active'
+                isBlocked: false
             },
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");

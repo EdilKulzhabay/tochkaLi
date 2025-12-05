@@ -92,7 +92,7 @@ export const FAQForm = () => {
 
                             <MyInput
                                 label="Порядок отображения"
-                                type="number"
+                                type="text"
                                 value={formData.order.toString()}
                                 onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
                                 placeholder="0"

@@ -334,6 +334,7 @@ export const ClientPracticesList = () => {
                     onClose={handleCloseInsufficientBonusModal}
                     starsRequired={selectedPractice.starsRequired || 0}
                     userBonus={userData?.bonus || 0}
+                    contentTitle={selectedPractice.title}
                 />
             )}
         </div>

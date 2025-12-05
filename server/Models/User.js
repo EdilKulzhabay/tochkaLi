@@ -64,8 +64,12 @@ const UserSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['guest', 'registered', 'active', 'client', 'blocked'],
+        enum: ['guest', 'registered', 'active', 'client'],
         default: 'guest',
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false,
     },
     currentToken: {
         type: String,

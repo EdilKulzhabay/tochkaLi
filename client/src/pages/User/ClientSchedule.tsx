@@ -153,10 +153,10 @@ export const ClientSchedule = () => {
         }
     }
 
-    const handleScheduleClick = (schedule: any) => {
-        setSelectedSchedule(schedule);
-        setIsModalOpen(true);
-    };
+    // const handleScheduleClick = (schedule: any) => {
+    //     setSelectedSchedule(schedule);
+    //     setIsModalOpen(true);
+    // };
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -325,7 +325,7 @@ export const ClientSchedule = () => {
                         <div 
                             key={schedule._id}
                             className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
-                            onClick={() => handleScheduleClick(schedule)}
+                            // onClick={() => handleScheduleClick(schedule)}
                         >
                             <div className="flex items-center justify-between">
                                 <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
