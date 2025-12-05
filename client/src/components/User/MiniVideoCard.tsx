@@ -5,7 +5,7 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
     return (
         <>
         {accessType === 'free' ? (
-            <Link to={link} className="bg-[#333333] rounded-lg w-full h-full">
+            <Link to={link} className="bg-[#333333] rounded-lg w-full h-full flex flex-col">
                 <div className="relative h-[173px] sm:h-[251px] lg:h-[347px] flex-shrink-0">
                     <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                 </div>
@@ -24,8 +24,8 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                 </div>
             </Link>
         ) : (
-            <button onClick={onLockedClick} className="bg-[#333333] rounded-lg w-full h-full flex flex-col">
-                <div className="relative h-[173px] sm:h-[251px] lg:h-[347px] flex-shrink-0">
+            <button onClick={onLockedClick} className="bg-[#333333] rounded-lg w-full h-full flex-1 flex flex-col">
+                <div className="relative h-[98px] sm:h-[142px] lg:h-[197px]">
                     <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                     <div className="absolute inset-0 bg-black/40 rounded-lg" />
                     <img
@@ -35,7 +35,7 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                     />
                 </div>
 
-                <div className='w-full p-4 pt-3 text-left flex-grow flex flex-col'>
+                <div className='w-full p-4 pt-3 text-left flex-1 flex flex-col'>
                     <p
                         className="font-medium line-clamp-2 min-h-[44px]"
                         style={{
@@ -49,7 +49,7 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
                     >
                         {title}
                     </p>
-                    <div className="mt-2">
+                    <div className="mt-auto">
                         <div className='w-full flex items-center justify-between'>
                             <p className='text-sm font-medium'>{progress}%</p>
                             <p className='text-sm font-medium'>{duration} мин.</p>

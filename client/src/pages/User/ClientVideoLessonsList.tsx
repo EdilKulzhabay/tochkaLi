@@ -212,19 +212,17 @@ export const ClientVideoLessonsList = () => {
                                 <div 
                                     key={videoLesson._id} 
                                     data-card
-                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw]"
+                                    className="flex-shrink-0 w-[45vw] sm:w-[35vw] lg:w-[25vw] h-[210px] sm:h-[275px] lg:h-[330px]"
                                 >
-                                    <div className="">
-                                        <MiniVideoCard 
-                                            title={videoLesson.title} 
-                                            image={videoLesson.imageUrl} 
-                                            link={`/client/video-lesson/${videoLesson._id}`} 
-                                            progress={progresses[videoLesson._id] || 0} 
-                                            accessType={hasAccessToContentSubscription() ? 'free' : videoLesson.accessType}
-                                            onLockedClick={hasAccessToContentSubscription() ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClickSubscription(videoLesson) : undefined)}
-                                            duration={videoLesson?.duration || 0}
-                                        />
-                                    </div>
+                                    <MiniVideoCard 
+                                        title={videoLesson.title} 
+                                        image={videoLesson.imageUrl} 
+                                        link={`/client/video-lesson/${videoLesson._id}`} 
+                                        progress={progresses[videoLesson._id] || 0} 
+                                        accessType={hasAccessToContentSubscription() ? 'free' : videoLesson.accessType}
+                                        onLockedClick={hasAccessToContentSubscription() ? undefined : (videoLesson.accessType !== 'free' ? () => handleLockedVideoLessonClickSubscription(videoLesson) : undefined)}
+                                        duration={videoLesson?.duration || 0}
+                                    />
                                 </div>
                             ))
                         ) : (
