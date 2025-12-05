@@ -28,11 +28,20 @@ export const getFilteredUsers = async (req, res) => {
 
         let filter = {
             notifyPermission: true,
+            // Исключаем заблокированных пользователей
+            isBlocked: { $ne: true },
         };
         
         // Фильтр по статусу (если указан)
         if (status && status !== 'all') {
-            filter.status = status;
+            if (status === 'blocked') {
+                // Если фильтр "blocked", показываем только заблокированных
+                filter.isBlocked = true;
+            } else {
+                // Иначе исключаем заблокированных и фильтруем по статусу
+                filter.status = status;
+                filter.isBlocked = { $ne: true };
+            }
         }
 
         // Получаем только пользователей с telegramId (для рассылки)
@@ -50,7 +59,7 @@ export const getFilteredUsers = async (req, res) => {
         }
 
         const users = await User.find(filter)
-            .select('telegramId telegramUserName userName fullName phone status createdAt')
+            .select('telegramId telegramUserName userName fullName phone status isBlocked createdAt')
             .sort({ createdAt: -1 });
 
         res.json({
@@ -93,13 +102,25 @@ export const sendBroadcast = async (req, res) => {
         if (userIds && Array.isArray(userIds) && userIds.length > 0) {
             filter._id = { $in: userIds };
             filter.telegramId = { $exists: true, $ne: null, $ne: '' };
-            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status');
+            // Исключаем заблокированных пользователей
+            filter.isBlocked = { $ne: true };
+            // Только пользователи с разрешением на уведомления
+            filter.notifyPermission = true;
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked');
         } else {
             // Иначе используем фильтры по статусу и поиску
             
+            // Исключаем заблокированных пользователей (заблокированным не отправляем рассылку)
+            filter.isBlocked = { $ne: true };
+            // Только пользователи с разрешением на уведомления
+            filter.notifyPermission = true;
+            
             // Фильтр по статусу (если указан)
             if (status && status !== 'all') {
-                filter.status = status;
+                // Если статус "blocked", не отправляем рассылку (уже исключены выше)
+                if (status !== 'blocked') {
+                    filter.status = status;
+                }
             }
 
             // Получаем только пользователей с telegramId
@@ -116,7 +137,7 @@ export const sendBroadcast = async (req, res) => {
                 ];
             }
 
-            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status');
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked');
         }
 
         if (users.length === 0) {
@@ -142,6 +163,12 @@ export const sendBroadcast = async (req, res) => {
         }
 
         console.log(`Начинаем рассылку для ${telegramIds.length} пользователей через бот сервер`);
+        console.log(`BOT_SERVER_URL: ${BOT_SERVER_URL}`);
+
+        // Проверяем доступность бот сервера
+        if (!BOT_SERVER_URL || BOT_SERVER_URL === 'http://localhost:5011') {
+            console.warn('BOT_SERVER_URL не настроен или использует значение по умолчанию');
+        }
 
         // Отправляем запрос на бот сервер для рассылки
         try {
@@ -155,9 +182,19 @@ export const sendBroadcast = async (req, res) => {
                 timeout: 300000, // 5 минут таймаут для больших рассылок
             });
 
+            // Проверяем структуру ответа
+            if (!response.data || !response.data.results) {
+                console.error('Неожиданная структура ответа от бот сервера:', response.data);
+                return res.status(500).json({
+                    success: false,
+                    message: "Неожиданный формат ответа от бот сервера",
+                    error: response.data,
+                });
+            }
+
             const { results } = response.data;
-            const totalSent = results.success.length;
-            const totalFailed = results.failed.length;
+            const totalSent = results.success?.length || 0;
+            const totalFailed = results.failed?.length || 0;
 
             console.log(`Рассылка завершена. Отправлено: ${totalSent}, Ошибок: ${totalFailed}`);
 
@@ -167,14 +204,38 @@ export const sendBroadcast = async (req, res) => {
                 sent: totalSent,
                 failed: totalFailed,
                 total: telegramIds.length,
-                failedUsers: results.failed,
+                failedUsers: results.failed || [],
             });
         } catch (error) {
-            console.error('Ошибка при отправке запроса на бот сервер:', error.response?.data || error.message);
+            console.error('Ошибка при отправке запроса на бот сервер:', {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+                status: error.response?.status,
+                url: `${BOT_SERVER_URL}/api/bot/broadcast`
+            });
+            
+            // Более детальная обработка ошибок
+            if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+                return res.status(500).json({
+                    success: false,
+                    message: `Бот сервер недоступен по адресу ${BOT_SERVER_URL}. Проверьте, что бот сервер запущен и доступен.`,
+                    error: error.message,
+                });
+            }
+            
+            if (error.response) {
+                return res.status(error.response.status || 500).json({
+                    success: false,
+                    message: "Ошибка при отправке рассылки на бот сервер",
+                    error: error.response.data || error.message,
+                });
+            }
+            
             return res.status(500).json({
                 success: false,
                 message: "Ошибка при отправке рассылки на бот сервер",
-                error: error.response?.data || error.message,
+                error: error.message,
             });
         }
     } catch (error) {

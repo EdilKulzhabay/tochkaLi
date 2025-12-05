@@ -18,6 +18,7 @@ interface User {
     telegramUserName?: string;
     phone?: string;
     status: string;
+    isBlocked?: boolean;
 }
 
 export const BroadcastAdmin = () => {
@@ -118,18 +119,29 @@ export const BroadcastAdmin = () => {
                     userIds: Array.from(selectedUsers)
                 });
                 
-                setLastStats({
-                    sent: response.data.sent,
-                    failed: response.data.failed,
-                    total: response.data.total
-                });
+                if (response.data.success) {
+                    setLastStats({
+                        sent: response.data.sent || 0,
+                        failed: response.data.failed || 0,
+                        total: response.data.total || 0
+                    });
 
-                toast.success('Рассылка завершена!');
-                setFoundUsers([]);
-                setSelectedUsers(new Set());
-                setSearch('');
+                    if (response.data.failed > 0) {
+                        toast.warning(`Рассылка завершена! Отправлено: ${response.data.sent}, Ошибок: ${response.data.failed}`);
+                    } else {
+                        toast.success(`Рассылка завершена! Отправлено: ${response.data.sent} сообщений`);
+                    }
+                    
+                    setFoundUsers([]);
+                    setSelectedUsers(new Set());
+                    setSearch('');
+                } else {
+                    toast.error(response.data.message || 'Ошибка отправки рассылки');
+                }
             } catch (error: any) {
-                toast.error(error.response?.data?.message || 'Ошибка отправки рассылки');
+                console.error('Ошибка отправки рассылки:', error);
+                const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Ошибка отправки рассылки';
+                toast.error(errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -157,21 +169,32 @@ export const BroadcastAdmin = () => {
                 status: status === 'all' ? undefined : status
             });
             
-            setLastStats({
-                sent: response.data.sent,
-                failed: response.data.failed,
-                total: response.data.total
-            });
+            if (response.data.success) {
+                setLastStats({
+                    sent: response.data.sent || 0,
+                    failed: response.data.failed || 0,
+                    total: response.data.total || 0
+                });
 
-            toast.success('Рассылка завершена!');
+                if (response.data.failed > 0) {
+                    toast.warning(`Рассылка завершена! Отправлено: ${response.data.sent}, Ошибок: ${response.data.failed}`);
+                } else {
+                    toast.success(`Рассылка завершена! Отправлено: ${response.data.sent} сообщений`);
+                }
+            } else {
+                toast.error(response.data.message || 'Ошибка отправки рассылки');
+            }
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка отправки рассылки');
+            console.error('Ошибка отправки рассылки:', error);
+            const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Ошибка отправки рассылки';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    const getStatusLabel = (statusValue: string) => {
+    const getStatusLabel = (statusValue: string, isBlocked?: boolean) => {
+        if (isBlocked) return 'Заблокирован';
         switch (statusValue) {
             case 'guest': return 'Гость';
             case 'registered': return 'Зарегистрирован';
@@ -181,7 +204,8 @@ export const BroadcastAdmin = () => {
         }
     };
 
-    const getStatusColor = (statusValue: string) => {
+    const getStatusColor = (statusValue: string, isBlocked?: boolean) => {
+        if (isBlocked) return 'bg-red-100 text-red-700';
         switch (statusValue) {
             case 'guest': return 'bg-gray-100 text-gray-700';
             case 'registered': return 'bg-blue-100 text-blue-700';
@@ -332,8 +356,8 @@ export const BroadcastAdmin = () => {
                                                 {user.phone && <span>{user.phone}</span>}
                                             </div>
                                         </div>
-                                        <div className={`text-xs px-2 py-1 rounded ${getStatusColor(user.status)}`}>
-                                            {getStatusLabel(user.status)}
+                                        <div className={`text-xs px-2 py-1 rounded ${getStatusColor(user.status, user.isBlocked)}`}>
+                                            {getStatusLabel(user.status, user.isBlocked)}
                                         </div>
                                     </div>
                                 ))}
