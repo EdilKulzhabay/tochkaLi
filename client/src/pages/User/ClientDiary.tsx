@@ -20,28 +20,22 @@ export const ClientDiary = () => {
     const [isOpenToday, setIsOpenToday] = useState(true);
     const [content, setContent] = useState<any>(null);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     
     useEffect(() => {
-        // Проверяем авторизацию
-        // const token = localStorage.getItem('token');
-        // const userStr = localStorage.getItem('user');
-        
-        // if (!token || !userStr) {
-        //     navigate('/client/login');
-        //     return;
-        // }
-
-        // try {
-        //     const user = JSON.parse(userStr);
-        //     // Проверяем, что пользователь зарегистрирован (есть токен и подтвержденный email)
-        //     if (!user.emailConfirmed) {
-        //         navigate('/client/login');
-        //         return;
-        //     }
-        // } catch (e) {
-        //     navigate('/client/login');
-        //     return;
-        // }
+        // Проверка на блокировку пользователя
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
+        }
 
         fetchDiaries();
         fetchContent();
@@ -90,6 +84,7 @@ export const ClientDiary = () => {
     }
 
     const handleSubmit = async () => {
+        setLoading(true);
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         
         try {
@@ -118,6 +113,8 @@ export const ClientDiary = () => {
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Ошибка при сохранении дневника');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -228,7 +225,7 @@ export const ClientDiary = () => {
                     </div>
                     {isOpenToday && (
                         <div className="mt-3">
-                            <RedButton text={todayDiaryId ? "Обновить" : "Сохранить"} onClick={handleSubmit} className="w-full" />
+                            <RedButton text={todayDiaryId ? "Обновить" : "Сохранить"} onClick={handleSubmit} className="w-full" disabled={loading} />
                         </div>
                     )}
 

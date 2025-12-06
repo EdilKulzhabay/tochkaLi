@@ -25,6 +25,20 @@ export const ClientHoroscopesList = () => {
     const [content, setContent] = useState<string>('');
 
     useEffect(() => {
+        // Проверка на блокировку пользователя
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
+        }
+
         fetchHoroscopes();
         fetchUserPaymentStatus();
         fetchContent();
@@ -43,6 +57,11 @@ export const ClientHoroscopesList = () => {
                 if (userData._id) {
                     const response = await api.post('/api/user/profile', { userId: userData._id });
                     if (response.data && response.data.success && response.data.user) {
+                        // Проверка на блокировку пользователя после получения данных с сервера
+                        if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
+                            navigate('/client/blocked-user');
+                            return;
+                        }
                         setUserHasPaid(response.data.user.hasPaid && response.data.user.subscriptionEndDate && new Date(response.data.user.subscriptionEndDate) > new Date());
                     }
                 }

@@ -23,6 +23,20 @@ export const ClientMeditationsList = () => {
     const [progresses, setProgresses] = useState<Record<string, number>>({});
 
     useEffect(() => {
+        // Проверка на блокировку пользователя
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    window.location.href = '/client/blocked-user';
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
+        }
+
         fetchMeditations();
         fetchContent();
         fetchUserData();
@@ -39,7 +53,13 @@ export const ClientMeditationsList = () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user._id) {
                 const response = await api.get(`/api/user/${user._id}`);
-                setUserData(response.data.data);
+                const userData = response.data.data;
+                // Проверка на блокировку пользователя после получения данных с сервера
+                if (userData && userData.isBlocked && userData.role !== 'admin') {
+                    window.location.href = '/client/blocked-user';
+                    return;
+                }
+                setUserData(userData);
             }
         } catch (error) {
             console.error('Ошибка получения данных пользователя:', error);

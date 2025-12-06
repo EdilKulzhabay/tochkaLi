@@ -4,11 +4,11 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.mail.ru",
-    port: 465, // Или 587 для TLS
+    host: "smtp.gmail.com",
+    port: 465,
     secure: true,
     auth: {
-        user: "aytenov_01@mail.ru",
+        user: "tg-app@tochka.li",
         pass: process.env.MailSMTP,
     },
 });

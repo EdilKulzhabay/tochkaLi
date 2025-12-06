@@ -9,6 +9,7 @@ import copyLink from "../../assets/copyLink.png";
 import linkArrow from "../../assets/linkArrow.png";
 import { MyLink } from "../../components/User/MyLink";
 import { Switch } from "../../components/User/Switch";
+import { BonusPolicyModal } from "../../components/User/ClientInsufficientBonusModal";
 
 export const ClientProfile = () => {
     const [userData, setUserData] = useState<any>(null);
@@ -17,7 +18,25 @@ export const ClientProfile = () => {
     const [linkCopied, setLinkCopied] = useState(false);
     const navigate = useNavigate();
     const [screenHeight, setScreenHeight] = useState(0);
+    const [safeAreaTop, setSafeAreaTop] = useState(0);
+    const [safeAreaBottom, setSafeAreaBottom] = useState(0);
+    const [isBonusPolicyModalOpen, setIsBonusPolicyModalOpen] = useState(false);
+    
     useEffect(() => {
+        // Проверка на блокировку пользователя
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
+        }
+
         fetchUserData();
     }, [navigate]);
 
@@ -32,6 +51,12 @@ export const ClientProfile = () => {
             setUserData(response.data.user);
             setNotifications(response.data.user.notifyPermission);
             setLocatedInRussia(response.data.user.locatedInRussia);
+            
+            // Проверка на блокировку после получения данных с сервера
+            if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
+                navigate('/client/blocked-user');
+                return;
+            }
         }
     }
 
@@ -50,15 +75,31 @@ export const ClientProfile = () => {
 
     const updateUserData = async (field: string, value: boolean) => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const response = await api.patch(`/api/user/${user._id}`, { [field]: value });
+        const response = await api.put(`/api/user/${user._id}`, { [field]: value });
         if (response.data.success) {
-            setUserData(response.data.user);
+            setUserData(response.data.data);
         }
     }
+
     useEffect(() => {
         const updateScreenHeight = () => {
             const height = window.innerHeight;
             setScreenHeight(height);
+            
+            // Получаем значения CSS переменных и преобразуем в числа
+            const root = document.documentElement;
+            const computedStyle = getComputedStyle(root);
+            const safeTop = computedStyle.getPropertyValue('--tg-safe-top') || '0px';
+            const safeBottom = computedStyle.getPropertyValue('--tg-safe-bottom') || '0px';
+            
+            // Преобразуем '0px' в число (убираем 'px' и парсим)
+            const topValue = parseInt(safeTop.replace('px', '')) || 0;
+            const bottomValue = parseInt(safeBottom.replace('px', '')) || 0;
+            console.log(topValue, bottomValue);
+            const addPadding = topValue > 0 ? 40 : 0;
+            
+            setSafeAreaTop(topValue + addPadding);
+            setSafeAreaBottom(bottomValue);
         }
         updateScreenHeight();
         window.addEventListener('resize', updateScreenHeight);
@@ -66,13 +107,14 @@ export const ClientProfile = () => {
             window.removeEventListener('resize', updateScreenHeight);
         };
     }, []);
+
     return (
         <div>
             <UserLayout>
                 <BackNav title="Профиль" />
                 <div 
                     className="px-4 mt-2 pb-10 bg-[#161616] flex flex-col justify-between"
-                    style={{ minHeight: `${screenHeight - 64}px` }}
+                    style={{ minHeight: `${screenHeight - (64 + safeAreaTop + safeAreaBottom)}px` }}
                 >
                     <div className="flex-1">
                         <div className="flex items-center gap-x-4">
@@ -86,7 +128,7 @@ export const ClientProfile = () => {
                         </div>
 
                         <div className="flex items-start gap-x-3 mt-4 bg-[#333333] rounded-lg p-4">
-                            <div className="shrink-0">
+                            <div className="shrink-0 cursor-pointer" onClick={() => setIsBonusPolicyModalOpen(true)}>
                                 <img src={profileStar} alt="star" className="w-8 h-8 object-cover" />
                             </div>
                             <div className="w-full">
@@ -95,7 +137,7 @@ export const ClientProfile = () => {
                                     <div className="text-xl font-medium">{userData?.bonus}</div>
                                 </div>
                                 <div className="mt-1">
-                                За выполнение бесполезного упражнения, ведение дневника и приглашение друзей. Звезды обмениваются на эксклюзивный контент, который нельзя купить
+                                За выполнение бесполезного упражнения, ведение дневника и приглашение друзей. Звезды обмениваются на эксклюзивный контент, который нельзя купить за деньги
                                 </div>
                             </div>
                         </div>
@@ -208,6 +250,10 @@ export const ClientProfile = () => {
                     </div>
                 </div>
             </UserLayout>
+            <BonusPolicyModal 
+                isOpen={isBonusPolicyModalOpen} 
+                onClose={() => setIsBonusPolicyModalOpen(false)} 
+            />
         </div>
     );
 };

@@ -31,6 +31,20 @@ export const ClientSchedule = () => {
 
     // Загружаем все события при монтировании компонента
     useEffect(() => {
+        // Проверка на блокировку пользователя
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    window.location.href = '/client/blocked-user';
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
+        }
+
         fetchAllSchedules();
         // Устанавливаем диапазон по умолчанию: сегодня + 90 дней вперед
         const today = new Date();

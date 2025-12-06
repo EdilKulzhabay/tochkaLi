@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import star from '../../assets/star.png';
 
 interface ClientInsufficientBonusModalProps {
     isOpen: boolean;
@@ -9,15 +10,15 @@ interface ClientInsufficientBonusModalProps {
     contentTitle: string;
 }
 
-const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     if (!isOpen) return null;
 
     const policies = [
-        { id: 1, text: 'заполнение дневника - 1 звезда' },
-        { id: 2, text: 'поставили радио кнопку Б/у - 1 звезда' },
-        { id: 3, text: 'кто-то зарегался по моей ссылке - 1 звезда' },
-        { id: 4, text: 'просмотр любой практики/видео/медитации - 1 звезда' },
-        { id: 5, text: 'за регистрацию - 10 звезд' },
+        { id: 1, title: 'Регистрация в приложении', subtitle: '10 звёзд' },
+        { id: 2, text: 'Приглашение участника по ссылке', subtitle: '2 звезды' },
+        { id: 3, text: 'Заполнение дневника', subtitle: '2 звезды (1 звезда за дневник, 1 звезда за упражнение)' },
+        { id: 4, text: 'Просмотр бесплатного контента', subtitle: '1 звезда за просмотр каждой единицы контента' },
+        { id: 5, text: 'Регистрация в клубе .li', subtitle: '10 звезд' },
     ];
 
     return (
@@ -43,12 +44,16 @@ const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                     </button>
                     
                     <div className="mt-4">
-                        <h3 className="text-xl font-bold mb-6">Политика назначения звезд</h3>
-                        <div className="space-y-4 mb-6">
+                        <div className='flex items-center gap-x-3'>
+                            <img src={star} alt="star icon" className='w-4 h-4' />
+                            <h3 className="text-xl font-bold mb-6">Как это работает?</h3>
+                        </div>
+                        
+                        <div className="space-y-3 mb-6">
                             {policies.map((policy) => (
-                                <div key={policy.id} className="flex items-start gap-3">
-                                    <span className="text-red-600 font-bold text-lg flex-shrink-0">{policy.id})</span>
-                                    <p className="text-gray-200">{policy.text}</p>
+                                <div key={policy.id} className="">
+                                    <p className="text-white font-medium">{policy.title}</p>
+                                    <p className='mt-1 text-sm'>{policy.subtitle}</p>
                                 </div>
                             ))}
                         </div>
@@ -57,7 +62,7 @@ const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         </p>
                         <button
                             onClick={onClose}
-                            className="w-full px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                            className="w-full px-4 py-3 bg-red-600 rounded-xl hover:bg-red-700 transition-colors"
                         >
                             Понятно
                         </button>

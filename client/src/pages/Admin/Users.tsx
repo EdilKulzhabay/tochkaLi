@@ -86,7 +86,7 @@ export const UsersAdmin = () => {
                 }
 
                 // Обработка чисел
-                if (sortField === 'bonus') {
+                if (sortField === 'bonus' || sortField === 'inviteesCount') {
                     aValue = aValue || 0;
                     bValue = bValue || 0;
                 }
@@ -186,6 +186,14 @@ export const UsersAdmin = () => {
             key: 'bonus', 
             label: 'Звезды',
             sortable: true
+        },
+        { 
+            key: 'inviteesCount', 
+            label: 'РЕФЕРАЛЫ',
+            sortable: true,
+            render: (value: number) => {
+                return value || 0;
+            }
         },
         { 
             key: 'subscriptionEndDate', 
@@ -307,7 +315,19 @@ export const UsersAdmin = () => {
                             Подписка до
                             {sortField === 'subscriptionEndDate' && (sortDirection === 'asc' ? ' ↑' : ' ↓')}
                         </button>
-                        {(sortField === 'bonus' || sortField === 'subscriptionEndDate') && (
+                        <button
+                            onClick={() => handleSort('inviteesCount')}
+                            className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm transition-colors ${
+                                sortField === 'inviteesCount' 
+                                    ? 'bg-blue-100 text-blue-700' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <ArrowUpDown size={16} />
+                            Рефералы
+                            {sortField === 'inviteesCount' && (sortDirection === 'asc' ? ' ↑' : ' ↓')}
+                        </button>
+                        {(sortField === 'bonus' || sortField === 'subscriptionEndDate' || sortField === 'inviteesCount') && (
                             <button
                                 onClick={() => {
                                     setSortField('');

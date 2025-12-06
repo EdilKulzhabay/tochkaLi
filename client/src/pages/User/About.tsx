@@ -3,78 +3,80 @@ import { UserLayout } from '../../components/User/UserLayout';
 import api from '../../api';
 import { MobileAccordionList } from '../../components/User/MobileAccordionList';
 import { RedButton } from '../../components/User/RedButton';
+import { MyLink } from '../../components/User/MyLink';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import CryptoJS from 'crypto-js';
+import { X } from 'lucide-react';
 
 export const About = () => {
     const [content, setContent] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleJoinClub = () => {
-        const telegramId = localStorage.getItem('telegramId');
-        if (!telegramId) {
-            toast.error('Ошибка: не найден telegramId');
-            navigate(-1);
-            return;
-        }
-        const fetchUser = async () => {
-            try {
-                const response = await api.get(`/api/user/telegram/${telegramId}`);
-                if (response.data.success && response.data.user) {
-                    if (response.data.user.isBlocked) {
-                        navigate('/client/blocked-user');
-                        return;
-                    }
-                    if (!response.data.user.emailConfirmed) {
-                        navigate('/client/register');
-                    } else {
-                        const user = response.data.user;
-                        const merchantLogin = import.meta.env.VITE_ROBOKASSA_MERCHANT_LOGIN;
-                        const password1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1;
-                        const isTestMode = import.meta.env.VITE_ROBOKASSA_TEST_MODE === '1';
+        // const telegramId = localStorage.getItem('telegramId');
+        // if (!telegramId) {
+        //     toast.error('Ошибка: не найден telegramId');
+        //     navigate(-1);
+        //     return;
+        // }
+        // const fetchUser = async () => {
+        //     try {
+        //         const response = await api.get(`/api/user/telegram/${telegramId}`);
+        //         if (response.data.success && response.data.user) {
+        //             if (response.data.user.isBlocked) {
+        //                 navigate('/client/blocked-user');
+        //                 return;
+        //             }
+        //             if (!response.data.user.emailConfirmed) {
+        //                 navigate('/client/register');
+        //             } else {
+        //                 const user = response.data.user;
+        //                 const merchantLogin = import.meta.env.VITE_ROBOKASSA_MERCHANT_LOGIN;
+        //                 const password1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1;
+        //                 const isTestMode = import.meta.env.VITE_ROBOKASSA_TEST_MODE === '1';
                         
-                        // Генерируем уникальный ID счета
-                        const invoiceId = Date.now();
-                        const outSum = '10.00';
-                        const description = 'Оплата клуба лицензии';
+        //                 // Генерируем уникальный ID счета
+        //                 const invoiceId = Date.now();
+        //                 const outSum = '10.00';
+        //                 const description = 'Оплата клуба лицензии';
 
-                        // Формируем строку для подписи: MerchantLogin:OutSum:InvoiceID:Password1[:Shp_userId=value]
-                        let signatureString = `${merchantLogin}:${outSum}:${invoiceId}:${password1}`;
-                        if (user._id) {
-                            signatureString += `:Shp_userId=${user._id}`;
-                        }
+        //                 // Формируем строку для подписи: MerchantLogin:OutSum:InvoiceID:Password1[:Shp_userId=value]
+        //                 let signatureString = `${merchantLogin}:${outSum}:${invoiceId}:${password1}`;
+        //                 if (user._id) {
+        //                     signatureString += `:Shp_userId=${user._id}`;
+        //                 }
                         
-                        // Генерируем MD5 хеш для подписи
-                        const signature = CryptoJS.MD5(signatureString).toString();
+        //                 // Генерируем MD5 хеш для подписи
+        //                 const signature = CryptoJS.MD5(signatureString).toString();
 
-                        // Формируем URL для оплаты
-                        const baseUrl = 'https://auth.robokassa.ru/Merchant/Index.aspx';
+        //                 // Формируем URL для оплаты
+        //                 const baseUrl = 'https://auth.robokassa.ru/Merchant/Index.aspx';
                         
-                        const params: Record<string, string> = {
-                            MerchantLogin: merchantLogin,
-                            OutSum: outSum,
-                            InvoiceID: invoiceId.toString(),
-                            Description: description,
-                            SignatureValue: signature,
-                            IsTest: isTestMode ? '1' : '0',
-                        };
+        //                 const params: Record<string, string> = {
+        //                     MerchantLogin: merchantLogin,
+        //                     OutSum: outSum,
+        //                     InvoiceID: invoiceId.toString(),
+        //                     Description: description,
+        //                     SignatureValue: signature,
+        //                     IsTest: isTestMode ? '1' : '0',
+        //                 };
 
-                        if (user._id) {
-                            params.Shp_userId = user._id;
-                        }
+        //                 if (user._id) {
+        //                     params.Shp_userId = user._id;
+        //                 }
 
-                        const searchParams = new URLSearchParams(params);
-                        window.location.href = `${baseUrl}?${searchParams.toString()}`;
-                    }
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        }
+        //                 const searchParams = new URLSearchParams(params);
+        //                 window.location.href = `${baseUrl}?${searchParams.toString()}`;
+        //             }
+        //         }
+        //     } catch (error) {
+        //         console.log(error);
+        //     }
+        // }
 
-        fetchUser();
+        // fetchUser();
+        setModalOpen(true);
     }
 
     const handleSkip = () => {
@@ -147,6 +149,80 @@ export const About = () => {
                     <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4 cursor-pointer'/>
                 </div>
             </div>
+            {modalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    {/* Мобильная версия: модальное окно снизу */}
+                    <div className="flex items-end justify-center min-h-screen sm:hidden">
+                        {/* Overlay */}
+                        <div 
+                            className="fixed inset-0 bg-black/60 transition-opacity z-20"
+                            onClick={() => setModalOpen(false)}
+                        />
+
+                        {/* Modal - снизу на мобильных */}
+                        <div 
+                            className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setModalOpen(false)}
+                                className="absolute top-6 right-5 cursor-pointer"
+                            >
+                                <X size={24} />
+                            </button>
+                            
+                            <div className="mt-4">
+                                <h3 className="text-xl font-bold mb-4">Вступить в клуб</h3>
+                                <p className="mb-6 text-gray-300">
+                                    Функционал оплаты членства в клубе ещё не готов. Для вступления в клубе свяжитесь с нами
+                                </p>
+                                <MyLink 
+                                    to="/client/contactus" 
+                                    text="Связаться с нами" 
+                                    className='w-full' 
+                                    color='red'
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Десктопная версия: модальное окно по центру */}
+                    <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                        {/* Overlay */}
+                        <div 
+                            className="fixed inset-0 bg-black/60 transition-opacity"
+                            onClick={() => setModalOpen(false)}
+                        />
+
+                        {/* Modal - по центру на десктопе */}
+                        <div 
+                            className="relative p-8 inline-block align-middle bg-[#333333] rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all"
+                            style={{ maxWidth: '500px', width: '100%' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setModalOpen(false)}
+                                className="absolute top-8 right-8 cursor-pointer"
+                            >
+                                <X size={32} />
+                            </button>
+                            
+                            <div className="mt-4">
+                                <h3 className="text-2xl font-bold mb-4">Вступить в клуб</h3>
+                                <p className="mb-6 text-gray-300 text-lg">
+                                    Функционал оплаты членства в клубе ещё не готов. Для вступления в клубе свяжитесь с нами
+                                </p>
+                                <MyLink 
+                                    to="/client/contactus" 
+                                    text="Связаться с нами" 
+                                    className='w-full' 
+                                    color='red'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </UserLayout>
     )
 }

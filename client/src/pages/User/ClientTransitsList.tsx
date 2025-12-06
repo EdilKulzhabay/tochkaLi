@@ -25,6 +25,20 @@ export const ClientTransitsList = () => {
     const [content, setContent] = useState<string>('');
     
     useEffect(() => {
+        // Проверка на блокировку пользователя
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
+        }
+
         fetchTransits();
         fetchContent();
         fetchUserPaymentStatus();

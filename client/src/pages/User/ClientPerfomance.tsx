@@ -28,6 +28,12 @@ export const ClientPerfomance = () => {
             }
         })();
 
+        // Проверка на блокировку пользователя
+        if (currentUser && currentUser.isBlocked && currentUser.role !== 'admin') {
+            navigate('/client/blocked-user');
+            return;
+        }
+
         if (!currentUser || !currentUser.fullName || currentUser.fullName.trim() === '') {
             return;
         }

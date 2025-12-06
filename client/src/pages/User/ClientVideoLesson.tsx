@@ -73,7 +73,17 @@ export const ClientVideoLesson = () => {
         // Получаем данные пользователя из localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
-            setUser(JSON.parse(userData));
+            try {
+                const user = JSON.parse(userData);
+                setUser(user);
+                // Проверка на блокировку пользователя
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    window.location.href = '/client/blocked-user';
+                    return;
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга user из localStorage:', e);
+            }
         }
         fetchVideoLesson();
     }, []);

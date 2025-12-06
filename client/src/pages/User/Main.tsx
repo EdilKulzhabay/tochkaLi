@@ -70,6 +70,12 @@ export const Main = () => {
                 }
 
                 const user = JSON.parse(userStr);
+                
+                // Проверка на блокировку пользователя
+                if (user && user.isBlocked && user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                    return;
+                }
                 let updatedUser = null;
 
                 // Если есть токен, используем стандартный endpoint
@@ -126,6 +132,12 @@ export const Main = () => {
 
                 // Обновляем данные если получили их с сервера
                 if (updatedUser) {
+                    // Проверка на блокировку пользователя после получения данных с сервера
+                    if (updatedUser.isBlocked && updatedUser.role !== 'admin') {
+                        navigate('/client/blocked-user');
+                        return;
+                    }
+
                     // Сохраняем обновленные данные в localStorage
                     localStorage.setItem('user', JSON.stringify(updatedUser));
                     setUserData(updatedUser);
