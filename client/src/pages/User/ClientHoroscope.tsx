@@ -94,8 +94,22 @@ export const ClientHoroscope = () => {
                 className="flex flex-col justify-between bg-[#161616]"
                 style={{ minHeight: `${screenHeight - (64 + safeAreaTop + safeAreaBottom)}px` }}
             >
-                <div>
+                <div className="lg:pb-10">
                     <BackNav title="Антисоциумный гороскоп" />
+                    <div className="hidden lg:flex justify-end items-center gap-x-3">
+                        <a
+                            href="https://tochka.li/signs"
+                            target="_blank"
+                            className="block border px-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
+                        >
+                            Подробнее об энергии на Точке Знаки
+                        </a>
+                        <RedButton
+                            text="Посмотреть все гороскопы"
+                            onClick={() => navigate('/client/horoscopes')}
+                            className="px-4"
+                        />
+                    </div>
                     <div className="px-4 mt-2">
                         <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {horoscope && (
@@ -139,7 +153,7 @@ export const ClientHoroscope = () => {
                     )}
                 </div>
 
-                <div className="px-4 mt-auto pt-8 space-y-3 pb-10">
+                <div className="px-4 mt-auto pt-8 space-y-3 pb-10 lg:hidden">
                     <a
                         href="https://tochka.li/signs"
                         target="_blank"

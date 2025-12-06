@@ -48,9 +48,7 @@ bot.start(async (ctx) => {
         inline_keyboard: [[
           {
             text: '🚀 Открыть Портал .li',
-            web_app: {
-              url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
-            }
+            url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
           }
         ]]
       }

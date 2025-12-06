@@ -128,8 +128,15 @@ export const ClientTransit = () => {
                 className="flex flex-col justify-between bg-[#161616]"
                 style={{ minHeight: `${screenHeight - (64 + safeAreaTop + safeAreaBottom)}px` }}
             >
-                <div>
+                <div className="lg:pb-10">
                     <BackNav title="Описание транзитов" />
+                    <div className="hidden lg:flex justify-end items-center gap-x-3">
+                        <RedButton
+                            text="Посмотреть все транзиты"
+                            onClick={() => navigate('/client/transits')}
+                            className="px-4"
+                        />
+                    </div>
                     <div className="px-4 mt-2">
                         <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {transit && (
@@ -169,7 +176,7 @@ export const ClientTransit = () => {
                     )}
                 </div>
 
-                <div className="px-4 pt-8 pb-10">
+                <div className="px-4 pt-8 pb-10 lg:hidden">
                     {/* <Link 
                         to="/client/schumann"
                         className="w-full block border border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"

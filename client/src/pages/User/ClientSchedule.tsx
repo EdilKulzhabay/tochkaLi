@@ -328,37 +328,41 @@ export const ClientSchedule = () => {
     return (
         <UserLayout>
             <BackNav title="Расписание" />
-            <div className="px-4 mt-2 pb-10 bg-[#161616]">
-                <DateRangeCalendar 
-                    onDateRangeSelect={handleDateRangeSelect}
-                    selectedStartDate={startDate}
-                    selectedEndDate={endDate}
-                    eventDates={eventDates}
-                />
-                <div className="mt-6 flex items-center justify-between">
-                    <div className="text-white/60">{new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
-                    <div className="flex items-center gap-x-3">
-                        <div className="text-white/60">Все меропрития</div>
-                        <Switch
-                            checked={showAllEvents}
-                            onChange={() => setShowAllEvents(!showAllEvents)}
-                        />
-                    </div>
+            <div className="px-4 mt-2 pb-10 bg-[#161616] lg:flex lg:flex-row-reverse lg:gap-x-4">
+                <div className="lg:basis-1/3">
+                    <DateRangeCalendar 
+                        onDateRangeSelect={handleDateRangeSelect}
+                        selectedStartDate={startDate}
+                        selectedEndDate={endDate}
+                        eventDates={eventDates}
+                    />
                 </div>
-                <div className="mt-4 space-y-4">
-                    {schedules.length > 0 && schedules.map((schedule: any) => (
-                        <div 
-                            key={schedule._id}
-                            className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
-                            // onClick={() => handleScheduleClick(schedule)}
-                        >
-                            <div className="flex items-center justify-between">
-                                <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
-                                <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />
-                            </div>
-                            <p className="">{schedule?.description}</p>
+                <div className="lg:basis-2/3">
+                    <div className="mt-6 lg:mt-0 flex items-center justify-between">
+                        <div className="text-white/60">{new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                        <div className="flex items-center gap-x-3">
+                            <div className="text-white/60">Все меропрития</div>
+                            <Switch
+                                checked={showAllEvents}
+                                onChange={() => setShowAllEvents(!showAllEvents)}
+                            />
                         </div>
-                    ))}
+                    </div>
+                    <div className="mt-4 space-y-4">
+                        {schedules.length > 0 && schedules.map((schedule: any) => (
+                            <div 
+                                key={schedule._id}
+                                className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
+                                // onClick={() => handleScheduleClick(schedule)}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
+                                    <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />
+                                </div>
+                                <p className="">{schedule?.description}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Модальное окно для добавления в календарь */}
