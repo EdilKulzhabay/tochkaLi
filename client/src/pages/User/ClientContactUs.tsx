@@ -18,18 +18,18 @@ export const ClientContactUs = () => {
     const [loading, setLoading] = useState(true);
     useEffect(() => {
         // Проверка на блокировку пользователя
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                if (user && user.isBlocked && user.role !== 'admin') {
-                    window.location.href = '/client/blocked-user';
-                    return;
-                }
-            } catch (e) {
-                console.error('Ошибка парсинга user из localStorage:', e);
-            }
-        }
+        // const userStr = localStorage.getItem('user');
+        // if (userStr) {
+        //     try {
+        //         const user = JSON.parse(userStr);
+        //         if (user && user.isBlocked && user.role !== 'admin') {
+        //             window.location.href = '/client/blocked-user';
+        //             return;
+        //         }
+        //     } catch (e) {
+        //         console.error('Ошибка парсинга user из localStorage:', e);
+        //     }
+        // }
 
         fetchContent();
     }, []);

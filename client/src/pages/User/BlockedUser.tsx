@@ -1,11 +1,11 @@
 import bgGar from '../../assets/bgGar.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { RedButton } from '../../components/User/RedButton';
 
 export const BlockedUser = () => {
     const [screenHeight, setScreenHeight] = useState<number>(0);
-
+    const navigate = useNavigate();
     useEffect(() => {
         const updateScreenHeight = () => {
             // window.innerHeight - высота окна браузера в пикселях (это то же самое, что h-screen)
@@ -40,15 +40,15 @@ export const BlockedUser = () => {
             </div>
 
             <div className='bg-[#161616]'>
-                <Link
+                {/* <Link
                     to="/client/contactus"
                     className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
                 >
                     Связаться с нами
-                </Link>
+                </Link> */}
                 <RedButton
-                    text="Закрыть"
-                    onClick={() => window.close()}
+                    text="Связаться с нами"
+                    onClick={() => {navigate('/client/contactus')}}
                     className='w-full mt-4'
                 />
             </div>

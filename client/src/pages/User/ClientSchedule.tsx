@@ -355,7 +355,11 @@ export const ClientSchedule = () => {
                                 className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
                                 // onClick={() => handleScheduleClick(schedule)}
                             >
-                                <div className="flex items-center justify-between">
+                                <div onClick={() => {
+                                    if (schedule?.eventLink) {
+                                        window.location.href = schedule.eventLink;
+                                    }
+                                }} className="flex items-center justify-between">
                                     <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
                                     <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />
                                 </div>
