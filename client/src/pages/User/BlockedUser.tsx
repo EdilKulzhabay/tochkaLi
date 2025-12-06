@@ -1,5 +1,5 @@
 import bgGar from '../../assets/bgGar.png';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { RedButton } from '../../components/User/RedButton';
 
