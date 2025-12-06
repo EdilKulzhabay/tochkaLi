@@ -13,6 +13,8 @@ declare global {
                 disableClosingConfirmation: () => void;
                 enableVerticalSwipes: () => void;
                 disableVerticalSwipes: () => void;
+                setHeaderColor: (color: string) => void;
+                setBackgroundColor: (color: string) => void;
                 onEvent: (eventType: string, eventHandler: () => void) => void;
                 offEvent: (eventType: string, eventHandler: () => void) => void;
                 version: string;

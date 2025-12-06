@@ -13,6 +13,8 @@ function App() {
         if (tg) {
             tg.ready();
             tg.expand();
+            tg.setHeaderColor("#161616");
+            tg.setBackgroundColor("#161616");
             
             if (tg.BackButton) {
                 tg.BackButton.hide();
