@@ -357,7 +357,7 @@ export const ClientSchedule = () => {
                             >
                                 <div onClick={() => {
                                     if (schedule?.eventLink) {
-                                        window.location.href = schedule.eventLink;
+                                        window.open(schedule.eventLink, '_blank', 'noopener,noreferrer');
                                     }
                                 }} className="flex items-center justify-between">
                                     <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
