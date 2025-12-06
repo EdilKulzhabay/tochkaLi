@@ -15,10 +15,10 @@ export const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose
 
     const policies = [
         { id: 1, title: 'Регистрация в приложении', subtitle: '10 звёзд' },
-        { id: 2, text: 'Приглашение участника по ссылке', subtitle: '2 звезды' },
-        { id: 3, text: 'Заполнение дневника', subtitle: '2 звезды (1 звезда за дневник, 1 звезда за упражнение)' },
-        { id: 4, text: 'Просмотр бесплатного контента', subtitle: '1 звезда за просмотр каждой единицы контента' },
-        { id: 5, text: 'Регистрация в клубе .li', subtitle: '10 звезд' },
+        { id: 2, title: 'Приглашение участника по ссылке', subtitle: '2 звезды' },
+        { id: 3, title: 'Заполнение дневника', subtitle: '2 звезды (1 звезда за дневник, 1 звезда за упражнение)' },
+        { id: 4, title: 'Просмотр бесплатного контента', subtitle: '1 звезда за просмотр каждой единицы контента' },
+        { id: 5, title: 'Регистрация в клубе .li', subtitle: '10 звезд' },
     ];
 
     return (
@@ -43,13 +43,13 @@ export const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose
                         <X size={24} />
                     </button>
                     
-                    <div className="mt-4">
-                        <div className='flex items-center gap-x-3'>
-                            <img src={star} alt="star icon" className='w-4 h-4' />
-                            <h3 className="text-xl font-bold mb-6">Как это работает?</h3>
+                    <div className="">
+                        <div className='flex items-center gap-x-3 mb-4'>
+                            <img src={star} alt="star icon" className='w-6 h-6' />
+                            <h3 className="text-xl font-bold">Как это работает?</h3>
                         </div>
                         
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-4 mb-6">
                             {policies.map((policy) => (
                                 <div key={policy.id} className="">
                                     <p className="text-white font-medium">{policy.title}</p>
@@ -92,12 +92,16 @@ export const BonusPolicyModal = ({ isOpen, onClose }: { isOpen: boolean; onClose
                     </button>
                     
                     <div className="mt-4">
-                        <h3 className="text-2xl font-bold mb-6">Политика назначения звезд</h3>
+                    <div className='flex items-center gap-x-3 mb-5'>
+                            <img src={star} alt="star icon" className='w-6 h-6' />
+                            <h3 className="text-2xl font-bold">Как это работает?</h3>
+                        </div>
+                        
                         <div className="space-y-4 mb-6">
                             {policies.map((policy) => (
-                                <div key={policy.id} className="flex items-start gap-4">
-                                    <span className="text-red-600 font-bold text-xl flex-shrink-0">{policy.id})</span>
-                                    <p className="text-gray-200 text-lg">{policy.text}</p>
+                                <div key={policy.id} className="">
+                                    <p className="text-white font-medium text-lg">{policy.title}</p>
+                                    <p className='mt-1'>{policy.subtitle}</p>
                                 </div>
                             ))}
                         </div>

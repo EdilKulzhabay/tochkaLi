@@ -268,7 +268,7 @@ export const createUser = async (req, res) => {
                 
                 // Добавляем 1 бонус тому, кто пригласил
                 await User.findByIdAndUpdate(inviter._id, {
-                    $inc: { bonus: 1, inviteesCount: 1 }
+                    $inc: { bonus: 1, inviteesCount: 2 }
                 });
 
                 console.log(`✅ Пользователь ${inviter.telegramId} получил 1 бонус за приглашение пользователя ${telegramId}`);

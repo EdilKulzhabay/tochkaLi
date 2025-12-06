@@ -15,6 +15,7 @@ const ContactUsBlock = ({ title, content, isLink = false, link = '' }: { title: 
 export const ClientContactUs = () => {
     const [content, setContent] = useState<string>('');
     const [text, setText] = useState<string>('');
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         // Проверка на блокировку пользователя
         const userStr = localStorage.getItem('user');
@@ -34,11 +35,26 @@ export const ClientContactUs = () => {
     }, []);
 
     const fetchContent = async () => {
-        const response = await api.get('/api/dynamic-content/name/version');
-        setContent(response.data.data?.content ? response.data.data.content : '');
-        const responseText = await api.get('/api/dynamic-content/name/contact-us-text');
-        setText(responseText.data.data?.content ? responseText.data.data.content : '');
+        try {
+            const response = await api.get('/api/dynamic-content/name/version');
+            setContent(response.data.data?.content ? response.data.data.content : '');
+            const responseText = await api.get('/api/dynamic-content/name/contact-us-text');
+            setText(responseText.data.data?.content ? responseText.data.data.content : '');
+        } catch (error) {
+            console.error('Ошибка загрузки контента:', error);
+        } finally {
+            setLoading(false);
+        }
     }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
+
     return (
         <div>
             <UserLayout>

@@ -21,6 +21,7 @@ export const ClientProfile = () => {
     const [safeAreaTop, setSafeAreaTop] = useState(0);
     const [safeAreaBottom, setSafeAreaBottom] = useState(0);
     const [isBonusPolicyModalOpen, setIsBonusPolicyModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -41,22 +42,28 @@ export const ClientProfile = () => {
     }, [navigate]);
 
     const fetchUserData = async () => {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const response = await api.post('/api/user/profile', { userId: user._id }, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        if (response.data.success) {
-            setUserData(response.data.user);
-            setNotifications(response.data.user.notifyPermission);
-            setLocatedInRussia(response.data.user.locatedInRussia);
-            
-            // Проверка на блокировку после получения данных с сервера
-            if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
-                navigate('/client/blocked-user');
-                return;
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const response = await api.post('/api/user/profile', { userId: user._id }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.data.success) {
+                setUserData(response.data.user);
+                setNotifications(response.data.user.notifyPermission);
+                setLocatedInRussia(response.data.user.locatedInRussia);
+                
+                // Проверка на блокировку после получения данных с сервера
+                if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
+                    navigate('/client/blocked-user');
+                    return;
+                }
             }
+        } catch (error) {
+            console.error('Ошибка загрузки данных пользователя:', error);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -107,6 +114,14 @@ export const ClientProfile = () => {
             window.removeEventListener('resize', updateScreenHeight);
         };
     }, []);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
 
     return (
         <div>

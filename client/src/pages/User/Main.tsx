@@ -56,8 +56,9 @@ export const Main = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        setLoading(true);
+        
         const fetchUserData = async () => {
+            setLoading(true);
             try {
                 const userStr = localStorage.getItem('user');
                 const telegramId = localStorage.getItem('telegramId');
@@ -188,12 +189,12 @@ export const Main = () => {
                 } catch (e) {
                     console.error('Ошибка парсинга данных из localStorage:', e);
                 }
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchUserData();
-        setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

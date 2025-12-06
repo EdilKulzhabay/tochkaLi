@@ -25,6 +25,10 @@ export const ClientTransit = () => {
     const [transit, setTransit] = useState<TransitEntity | null>(null);
     const navigate = useNavigate();
     const [content, setContent] = useState<string>('');
+    const [screenHeight, setScreenHeight] = useState(0);
+    const [safeAreaTop, setSafeAreaTop] = useState(0);
+    const [safeAreaBottom, setSafeAreaBottom] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     const fetchContent = async () => {
         const response = await api.get('/api/dynamic-content/name/transit-desc');
@@ -50,6 +54,32 @@ export const ClientTransit = () => {
         fetchContent();
     }, []);
 
+    useEffect(() => {
+        const updateScreenHeight = () => {
+            const height = window.innerHeight;
+            setScreenHeight(height);
+            
+            // Получаем значения CSS переменных и преобразуем в числа
+            const root = document.documentElement;
+            const computedStyle = getComputedStyle(root);
+            const safeTop = computedStyle.getPropertyValue('--tg-safe-top') || '0px';
+            const safeBottom = computedStyle.getPropertyValue('--tg-safe-bottom') || '0px';
+            
+            // Преобразуем '0px' в число (убираем 'px' и парсим)
+            const topValue = parseInt(safeTop.replace('px', '')) || 0;
+            const bottomValue = parseInt(safeBottom.replace('px', '')) || 0;
+            const addPadding = topValue > 0 ? 40 : 0;
+            
+            setSafeAreaTop(topValue + addPadding);
+            setSafeAreaBottom(bottomValue);
+        }
+        updateScreenHeight();
+        window.addEventListener('resize', updateScreenHeight);
+        return () => {
+            window.removeEventListener('resize', updateScreenHeight);
+        };
+    }, []);
+
     const fetchTransit = async () => {
         try {
             const response = await api.get("/api/transit/current");
@@ -60,6 +90,8 @@ export const ClientTransit = () => {
         } catch (error) {
             console.error("Failed to fetch transit", error);
             setTransit(null);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -82,9 +114,20 @@ export const ClientTransit = () => {
         return `${year}: ${startDay} ${startMonth}-${endDay} ${endMonth}`;
     };
 
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
+
     return (
         <UserLayout>
-            <div className="min-h-screen flex flex-col justify-between bg-[#161616]">
+            <div 
+                className="flex flex-col justify-between bg-[#161616]"
+                style={{ minHeight: `${screenHeight - (64 + safeAreaTop + safeAreaBottom)}px` }}
+            >
                 <div>
                     <BackNav title="Описание транзитов" />
                     <div className="px-4 mt-2">

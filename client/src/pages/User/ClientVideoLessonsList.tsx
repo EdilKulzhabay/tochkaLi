@@ -21,6 +21,7 @@ export const ClientVideoLessonsList = () => {
     const [userData, setUserData] = useState<any>(null);
     const [selectedVideoLesson, setSelectedVideoLesson] = useState<any>(null);
     const [progresses, setProgresses] = useState<Record<string, number>>({});
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -74,8 +75,14 @@ export const ClientVideoLessonsList = () => {
     }
 
     const fetchVideoLessons = async () => {
-        const response = await api.get('/api/video-lesson');
-        setVideoLessons(response.data.data);
+        try {
+            const response = await api.get('/api/video-lesson');
+            setVideoLessons(response.data.data);
+        } catch (error) {
+            console.error('Ошибка загрузки видео-уроков:', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     const fetchProgresses = async () => {
@@ -218,6 +225,14 @@ export const ClientVideoLessonsList = () => {
     const hasAccessToContentSubscription = (): boolean => {
         if (userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date()) return true;
         return false;
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
     }
 
     return (

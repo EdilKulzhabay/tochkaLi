@@ -6,6 +6,7 @@ import { BackNav } from '../../components/User/BackNav';
 export const ClientSchumann = () => {
     const [schumanns, setSchumanns] = useState<any[]>([]);
     const [content, setContent] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         // Проверка на блокировку пользователя
         const userStr = localStorage.getItem('user');
@@ -26,14 +27,28 @@ export const ClientSchumann = () => {
     }, []);
 
     const fetchSchumanns = async () => {
-        const response = await api.get('/api/schumann');
-        setSchumanns(response.data.data);
+        try {
+            const response = await api.get('/api/schumann');
+            setSchumanns(response.data.data);
+        } catch (error) {
+            console.error('Ошибка загрузки данных Шумана:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fetchContent = async () => {
         const response = await api.get(`/api/dynamic-content/name/desc-shumana`);
         setContent(response.data.data);
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
 
     return (
         <UserLayout>

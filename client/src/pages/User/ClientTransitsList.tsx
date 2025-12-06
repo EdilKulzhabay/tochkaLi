@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { UserLayout } from "../../components/User/UserLayout";
 import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
@@ -23,6 +23,7 @@ export const ClientTransitsList = () => {
     const [userHasPaid, setUserHasPaid] = useState(false);
     const navigate = useNavigate();
     const [content, setContent] = useState<string>('');
+    const activeTransitRef = useRef<HTMLDivElement | null>(null);
     
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -43,6 +44,19 @@ export const ClientTransitsList = () => {
         fetchContent();
         fetchUserPaymentStatus();
     }, []);
+
+    // Скролл к активному транзиту после загрузки данных
+    useEffect(() => {
+        if (!loading && transits.length > 0 && activeTransitRef.current) {
+            // Небольшая задержка для завершения рендеринга
+            setTimeout(() => {
+                activeTransitRef.current?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 100);
+        }
+    }, [loading, transits]);
 
     const fetchContent = async () => {
         const response = await api.get('/api/dynamic-content/name/transit-subscription');
@@ -84,8 +98,18 @@ export const ClientTransitsList = () => {
         try {
             const response = await api.get("/api/transit");
             if (response.data && response.data.success && Array.isArray(response.data.data)) {
-                // Сортируем: активные транзиты первыми
+                // Сортируем: сначала по дате начала, затем активные первыми
                 const sortedTransits = [...response.data.data].sort((a, b) => {
+                    const aStart = typeof a.startDate === 'string' ? new Date(a.startDate) : a.startDate;
+                    const bStart = typeof b.startDate === 'string' ? new Date(b.startDate) : b.startDate;
+                    
+                    // Сначала сортируем по дате начала (от более ранних к более поздним)
+                    const dateDiff = aStart.getTime() - bStart.getTime();
+                    if (dateDiff !== 0) {
+                        return dateDiff;
+                    }
+                    
+                    // Если даты одинаковые, активные первыми
                     const aActive = isTransitActive(a);
                     const bActive = isTransitActive(b);
                     if (aActive && !bActive) return -1;
@@ -157,6 +181,7 @@ export const ClientTransitsList = () => {
                             return (
                                 <div
                                     key={transit._id}
+                                    ref={isActive ? activeTransitRef : null}
                                     onClick={() => handleTransitClick(transit)}
                                     className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
                                 >

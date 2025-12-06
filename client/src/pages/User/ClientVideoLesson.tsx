@@ -68,6 +68,7 @@ export const ClientVideoLesson = () => {
     const [videoLesson, setVideoLesson] = useState<any>(null);
     const [showPoster, setShowPoster] = useState(true);
     const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Получаем данные пользователя из localStorage
@@ -89,8 +90,14 @@ export const ClientVideoLesson = () => {
     }, []);
 
     const fetchVideoLesson = async () => {
-        const response = await api.get(`/api/video-lesson/${id}`);
-        setVideoLesson(response.data.data);
+        try {
+            const response = await api.get(`/api/video-lesson/${id}`);
+            setVideoLesson(response.data.data);
+        } catch (error) {
+            console.error('Ошибка загрузки видео-урока:', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     const handlePosterClick = async () => {
@@ -114,6 +121,14 @@ export const ClientVideoLesson = () => {
                 console.error('Ошибка при установке прогресса:', error);
             }
         }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
     }
 
     return (

@@ -15,6 +15,7 @@ export const ClientSchedule = () => {
     const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAddingToCalendar, setIsAddingToCalendar] = useState(false);
+    const [loading, setLoading] = useState(true);
     
     const formatDate = (date: Date | null) => {
         if (!date) return '';
@@ -150,6 +151,8 @@ export const ClientSchedule = () => {
             }
         } catch (error) {
             console.error('Ошибка загрузки всех событий:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -313,6 +316,14 @@ export const ClientSchedule = () => {
             closeModal();
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
 
     return (
         <UserLayout>

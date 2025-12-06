@@ -20,7 +20,7 @@ export const ClientDiary = () => {
     const [isOpenToday, setIsOpenToday] = useState(true);
     const [content, setContent] = useState<any>(null);
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -42,41 +42,47 @@ export const ClientDiary = () => {
     }, [navigate]);
 
     const fetchDiaries = async () => {
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        const response = await api.post('/api/diary/my', {userId: userData._id}, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const today = new Date().toISOString().split('T')[0];
-        const todayDiary = response.data.data.find((diary: any) => diary.createdAt.split('T')[0] === today);
-        
-        // Если есть запись за сегодня, загружаем её данные в форму
-        if (todayDiary) {
-            setTodayDiaryId(todayDiary._id);
-            setDiary({
-                discovery: todayDiary.discovery || '',
-                achievement: todayDiary.achievement || '',
-                gratitude: todayDiary.gratitude || '',
-                uselessTask: todayDiary.uselessTask || false,
+        try {
+            const userData = JSON.parse(localStorage.getItem('user') || '{}');
+            const response = await api.post('/api/diary/my', {userId: userData._id}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
-        } else {
-            setTodayDiaryId(null);
-            setDiary({
-                discovery: '',
-                achievement: '',
-                gratitude: '',
-                uselessTask: false,
-            });
+            const today = new Date().toISOString().split('T')[0];
+            const todayDiary = response.data.data.find((diary: any) => diary.createdAt.split('T')[0] === today);
+            
+            // Если есть запись за сегодня, загружаем её данные в форму
+            if (todayDiary) {
+                setTodayDiaryId(todayDiary._id);
+                setDiary({
+                    discovery: todayDiary.discovery || '',
+                    achievement: todayDiary.achievement || '',
+                    gratitude: todayDiary.gratitude || '',
+                    uselessTask: todayDiary.uselessTask || false,
+                });
+            } else {
+                setTodayDiaryId(null);
+                setDiary({
+                    discovery: '',
+                    achievement: '',
+                    gratitude: '',
+                    uselessTask: false,
+                });
+            }
+            
+            // Исключаем сегодняшнюю запись из списка старых записей
+            setDiaries(response.data.data
+                .filter((diary: any) => diary.createdAt.split('T')[0] !== today)
+                .map((diary: any) => ({
+                    ...diary,
+                    isOpen: false,
+                })));
+        } catch (error) {
+            console.error('Ошибка загрузки дневника:', error);
+        } finally {
+            setLoading(false);
         }
-        
-        // Исключаем сегодняшнюю запись из списка старых записей
-        setDiaries(response.data.data
-            .filter((diary: any) => diary.createdAt.split('T')[0] !== today)
-            .map((diary: any) => ({
-                ...diary,
-                isOpen: false,
-            })));
     }
 
     const handleChange = (e: any) => {
@@ -126,6 +132,14 @@ export const ClientDiary = () => {
         const response = await api.get(`/api/dynamic-content/name/dnevnik-desc`);
         setContent(response.data.data);
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
 
     return (
         <div>
