@@ -96,8 +96,8 @@ app.put("/api/user/:id/unblock", UserController.unblockUser);
 app.delete("/api/user/:id", UserController.deleteUser);
 
 // Управление профилем (для авторизованных пользователей)
-app.put("/api/user/profile/update", UserController.updateProfile);
-app.put("/api/user/profile/change-password", UserController.changePassword);
+app.put("/api/user/profile/update", authMiddleware, UserController.updateProfile);
+app.put("/api/user/profile/change-password", authMiddleware, UserController.changePassword);
 app.post("/api/user/purchase-content", UserController.purchaseContent);
 
 // ==================== FAQ маршруты ====================

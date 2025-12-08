@@ -788,12 +788,18 @@ export const deleteUser = async (req, res) => {
 // Обновить профиль текущего пользователя
 export const updateProfile = async (req, res) => {
     try {
-        const { fullName, phone } = req.body;
+        const { fullName, phone, profilePhotoUrl } = req.body;
         const userId = req.userId;
+
+        // Формируем объект для обновления
+        const updateData = {};
+        if (fullName !== undefined) updateData.fullName = fullName;
+        if (phone !== undefined) updateData.phone = phone;
+        if (profilePhotoUrl !== undefined) updateData.profilePhotoUrl = profilePhotoUrl;
 
         const user = await User.findByIdAndUpdate(
             userId,
-            { fullName, phone },
+            updateData,
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 

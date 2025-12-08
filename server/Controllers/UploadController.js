@@ -21,7 +21,9 @@ const storage = multer.diskStorage({
         // Генерируем уникальное имя файла
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
-        cb(null, 'cover-' + uniqueSuffix + ext);
+        // Определяем префикс в зависимости от типа загрузки (если указан в query параметре)
+        const prefix = req.query.type === 'profile' ? 'profile-' : 'cover-';
+        cb(null, prefix + uniqueSuffix + ext);
     }
 });
 
