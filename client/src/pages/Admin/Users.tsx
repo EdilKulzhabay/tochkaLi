@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AdminLayout } from '../../components/Admin/AdminLayout';
 import { AdminTable } from '../../components/Admin/AdminTable';
-import { Plus, Search, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, ArrowUpDown, Download } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -130,6 +130,46 @@ export const UsersAdmin = () => {
         }
     };
 
+    const handleExportToExcel = async () => {
+        try {
+            const response = await api.get('/api/user/export/excel', {
+                responseType: 'blob', // Важно для скачивания файла
+            });
+
+            // Создаем URL для blob
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Получаем имя файла из заголовка Content-Disposition или используем дефолтное
+            const contentDisposition = response.headers['content-disposition'];
+            let fileName = 'users_export.xlsx';
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (fileNameMatch && fileNameMatch[1]) {
+                    fileName = fileNameMatch[1].replace(/['"]/g, '');
+                    // Декодируем URI компонент если нужно
+                    try {
+                        fileName = decodeURIComponent(fileName);
+                    } catch (e) {
+                        // Если не удалось декодировать, используем как есть
+                    }
+                }
+            }
+            
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            
+            toast.success('Файл успешно скачан');
+        } catch (error: any) {
+            console.error('Ошибка экспорта:', error);
+            toast.error('Ошибка экспорта пользователей в Excel');
+        }
+    };
+
     const columns = [
         { key: 'fullName', label: 'Полное имя' },
         { key: 'telegramUserName', label: 'TG Имя' },
@@ -226,13 +266,22 @@ export const UsersAdmin = () => {
                             {filteredAndSortedUsers.length !== users.length && ` (отфильтровано: ${filteredAndSortedUsers.length})`}
                         </p>
                     </div>
-                    <button
-                        onClick={() => handleOpenForm()}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <Plus size={20} />
-                        Создать пользователя
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleExportToExcel}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                            <Download size={20} />
+                            Выгрузить в Excel
+                        </button>
+                        {/* <button
+                            onClick={() => handleOpenForm()}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <Plus size={20} />
+                            Создать пользователя
+                        </button> */}
+                    </div>
                 </div>
 
                 {/* Фильтры и поиск */}

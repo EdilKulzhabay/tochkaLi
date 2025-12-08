@@ -9,29 +9,8 @@ export const Welcome = () => {
     const [searchParams] = useSearchParams();
     const [content, setContent] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-    const [screenHeight, setScreenHeight] = useState<number>(0);
     const navigate = useNavigate();
     const { updateUser } = useAuth();
-
-    // Получаем высоту экрана в пикселях
-    useEffect(() => {
-        const updateScreenHeight = () => {
-            // window.innerHeight - высота окна браузера в пикселях (это то же самое, что h-screen)
-            const height = window.innerHeight;
-            setScreenHeight(height);
-            console.log('Высота экрана (h-screen):', height, 'px');
-        };
-
-        // Получаем высоту при монтировании компонента
-        updateScreenHeight();
-
-        // Обновляем при изменении размера окна
-        window.addEventListener('resize', updateScreenHeight);
-
-        return () => {
-            window.removeEventListener('resize', updateScreenHeight);
-        };
-    }, []);
 
     useEffect(() => {
         // Извлекаем параметры из URL

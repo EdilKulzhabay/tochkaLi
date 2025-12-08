@@ -24,6 +24,7 @@
     "nodemailer": "^7.0.9",
     "nodemon": "^3.1.10",
     "swagger-ui-express": "^5.0.1",
+    "xlsx": "^0.18.5",
     "yamljs": "^0.3.0"
   }
 }

@@ -87,6 +87,7 @@ app.get("/api/user/check-session", authMiddleware, (req, res) => {
 // Управление пользователями (для client_manager, manager, admin)
 app.post("/api/user/create-by-admin", UserController.createUserByAdmin);
 app.get("/api/user/all", UserController.getAllUsers);
+app.get("/api/user/export/excel", UserController.exportUsersToExcel);
 app.get("/api/user/:id", UserController.getUserById);
 app.put("/api/user/:id", UserController.updateUser);
 app.put("/api/user/:id/activate-subscription", UserController.activateSubscription);

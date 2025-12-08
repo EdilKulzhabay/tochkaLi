@@ -461,7 +461,7 @@ export const ClientProfile = () => {
                                 
                                 <div className="space-y-4 mb-6">
                                     <div>
-                                        <label className="block text-sm mb-2 text-gray-300">Имя</label>
+                                        <label className="block text-sm mb-2 text-gray-300">Фамилия</label>
                                         <input
                                             type="text"
                                             value={firstName}
@@ -472,7 +472,7 @@ export const ClientProfile = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm mb-2 text-gray-300">Фамилия</label>
+                                        <label className="block text-sm mb-2 text-gray-300">Имя</label>
                                         <input
                                             type="text"
                                             value={lastName}
@@ -521,7 +521,7 @@ export const ClientProfile = () => {
                                 
                                 <div className="space-y-4 mb-6">
                                     <div>
-                                        <label className="block text-sm mb-2 text-gray-300">Имя</label>
+                                        <label className="block text-sm mb-2 text-gray-300">Фамилия</label>
                                         <input
                                             type="text"
                                             value={firstName}
@@ -532,7 +532,7 @@ export const ClientProfile = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm mb-2 text-gray-300">Фамилия</label>
+                                        <label className="block text-sm mb-2 text-gray-300">Имя</label>
                                         <input
                                             type="text"
                                             value={lastName}

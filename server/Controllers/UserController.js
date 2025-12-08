@@ -2,6 +2,7 @@ import User from "../Models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import XLSX from "xlsx";
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -472,6 +473,90 @@ export const getAllUsers = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка получения пользователей",
+        });
+    }
+};
+
+// Экспорт пользователей в Excel
+export const exportUsersToExcel = async (req, res) => {
+    try {
+        const users = await User.find()
+            .select("-password -currentToken -refreshToken")
+            .sort({ createdAt: -1 });
+
+        // Подготовка данных для Excel
+        const excelData = users.map((user, index) => {
+            // Определяем статус
+            let status = '';
+            if (user.isBlocked) {
+                status = 'Заблокирован';
+            } else {
+                status = user.status === 'guest' ? 'Гость' : 
+                        user.status === 'registered' ? 'Зарегистрирован' : 
+                        user.status === 'client' ? 'Клиент' : user.status || '';
+            }
+
+            // Определяем роль
+            const roleLabels = {
+                'user': 'Пользователь',
+                'admin': 'Администратор',
+                'content_manager': 'Контент-менеджер',
+                'client_manager': 'Менеджер по клиентам',
+                'manager': 'Менеджер'
+            };
+            const role = roleLabels[user.role] || user.role || '';
+
+            // Форматируем дату подписки
+            let subscriptionDate = 'Нет подписки';
+            if (user.subscriptionEndDate) {
+                const date = new Date(user.subscriptionEndDate);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                subscriptionDate = `${day}-${month}-${year}`;
+            }
+
+            // Форматируем дату регистрации
+            const createdAt = user.createdAt ? new Date(user.createdAt).toLocaleDateString('ru-RU') : '';
+
+            return {
+                '№': index + 1,
+                'Полное имя': user.fullName || '',
+                'TG Имя': user.telegramUserName ? `@${user.telegramUserName}` : '',
+                'Email': user.mail || '',
+                'Телефон': user.phone || '',
+                'Роль': role,
+                'Статус': status,
+                'Звезды': user.bonus || 0,
+                'Рефералы': user.inviteesCount || 0,
+                'Подписка до': subscriptionDate,
+                'Дата регистрации': createdAt,
+            };
+        });
+
+        // Создаем рабочую книгу Excel
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Пользователи');
+
+        // Генерируем буфер Excel файла
+        const excelBuffer = XLSX.write(workbook, { 
+            type: 'buffer', 
+            bookType: 'xlsx' 
+        });
+
+        // Устанавливаем заголовки для скачивания файла
+        const fileName = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+
+        // Отправляем файл
+        res.send(excelBuffer);
+    } catch (error) {
+        console.log("Ошибка в exportUsersToExcel:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка экспорта пользователей в Excel",
         });
     }
 };
