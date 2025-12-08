@@ -81,8 +81,11 @@ export const About = () => {
 
     const handleSkip = () => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!user ||!user.fullName || user.fullName.trim() === '') {
+        const windowWidth = window.innerWidth;
+        if ((!user || !user.fullName || user.fullName.trim() === '') && windowWidth < 1024) {
             navigate("/client/ease-launch");
+        } else if ((!user || !user.fullName || user.fullName.trim() === '') && windowWidth >= 1024) {
+            navigate("/client-performance");
         } else {
             navigate("/main");
         }
@@ -113,120 +116,134 @@ export const About = () => {
     
     return (
         <UserLayout>
-            <div className='relative'>
-                {content?.image && (
-                    <img 
-                        src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
-                        alt={content?.title} 
-                        className='w-full h-auto rounded-lg object-cover z-10' 
-                    />
-                )}
-                <div 
-                    className="absolute inset-0"
-                    style={{
-                        background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
-                    }}
-                />
-                <div 
-                    className="absolute inset-0"
-                    style={{
-                        background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
-                    }}
-                />
-            </div>
-            <div className='px-4 pb-10 bg-[#161616] z-20'>
-                <div className='relative lg:w-[700px] lg:mx-auto lg:-mt-[120px] z-20'>
-                    <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>
-                    <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
-                    <h2 className="text-xl font-medium mt-8">Что входит в подписку</h2>
-                    {content?.list.length > 0 && (
-                        <div className='mt-4'>
-                            <MobileAccordionList items={content?.list} />
-                        </div>
+            <div className='bg-[#161616]'>
+                <div className='relative lg:w-[700px] lg:mx-auto'>
+                    {content?.image && (
+                        <img 
+                            src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
+                            alt={content?.title} 
+                            className='w-full h-auto rounded-lg object-cover z-10' 
+                        />
                     )}
-                    <button 
-                        className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4 cursor-pointer'
-                        onClick={handleSkip}
-                    >
-                        Пропустить
-                    </button>
-                    <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4 cursor-pointer'/>
+                    <div 
+                        className="absolute inset-0"
+                        style={{
+                            background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
+                        }}
+                    />
+                    <div 
+                        className="absolute inset-0"
+                        style={{
+                            background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
+                        }}
+                    />
+                    <div 
+                        className="absolute inset-0 z-10 hidden lg:block"
+                        style={{
+                            background: 'linear-gradient(to right, #16161600 70%, #161616 100%)',
+                        }}
+                    />
+                    <div 
+                        className="absolute inset-0 z-10 hidden lg:block"
+                        style={{
+                            background: 'linear-gradient(to left, #16161600 70%, #161616 100%)',
+                        }}
+                    />
                 </div>
+                <div className='px-4 pb-10 bg-[#161616] z-20'>
+                    <div className='relative lg:w-[700px] lg:mx-auto z-20'>
+                        <h1 className="text-2xl font-bold mt-4">{content?.title}</h1>
+                        <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
+                        <h2 className="text-xl font-medium mt-8">Что входит в подписку</h2>
+                        {content?.list.length > 0 && (
+                            <div className='mt-4'>
+                                <MobileAccordionList items={content?.list} />
+                            </div>
+                        )}
+                        <button 
+                            className='bg-white/10 block text-white py-2.5 text-center font-medium rounded-full w-full mt-4 cursor-pointer'
+                            onClick={handleSkip}
+                        >
+                            Пропустить
+                        </button>
+                        <RedButton text="Вступить в клуб" onClick={handleJoinClub} className='w-full mt-4 cursor-pointer'/>
+                    </div>
+                </div>
+                {modalOpen && (
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        {/* Мобильная версия: модальное окно снизу */}
+                        <div className="flex items-end justify-center min-h-screen sm:hidden">
+                            {/* Overlay */}
+                            <div 
+                                className="fixed inset-0 bg-black/60 transition-opacity z-20"
+                                onClick={() => setModalOpen(false)}
+                            />
+
+                            {/* Modal - снизу на мобильных */}
+                            <div 
+                                className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    onClick={() => setModalOpen(false)}
+                                    className="absolute top-6 right-5 cursor-pointer"
+                                >
+                                    <X size={24} />
+                                </button>
+                                
+                                <div className="mt-4">
+                                    <h3 className="text-xl font-bold mb-4">Вступить в клуб</h3>
+                                    <p className="mb-6 text-gray-300">
+                                        Функционал оплаты членства в клубе ещё не готов. Для вступления в клубе свяжитесь с нами
+                                    </p>
+                                    <MyLink 
+                                        to="/client/contactus" 
+                                        text="Связаться с нами" 
+                                        className='w-full' 
+                                        color='red'
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Десктопная версия: модальное окно по центру */}
+                        <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                            {/* Overlay */}
+                            <div 
+                                className="fixed inset-0 bg-black/60 transition-opacity"
+                                onClick={() => setModalOpen(false)}
+                            />
+
+                            {/* Modal - по центру на десктопе */}
+                            <div 
+                                className="relative p-8 inline-block align-middle bg-[#333333] rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all"
+                                style={{ maxWidth: '500px', width: '100%' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    onClick={() => setModalOpen(false)}
+                                    className="absolute top-8 right-8 cursor-pointer"
+                                >
+                                    <X size={32} />
+                                </button>
+                                
+                                <div className="mt-4">
+                                    <h3 className="text-2xl font-bold mb-4">Вступить в клуб</h3>
+                                    <p className="mb-6 text-gray-300 text-lg">
+                                        Функционал оплаты членства в клубе ещё не готов. Для вступления в клубе свяжитесь с нами
+                                    </p>
+                                    <MyLink 
+                                        to="/client/contactus" 
+                                        text="Связаться с нами" 
+                                        className='w-full' 
+                                        color='red'
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
-            {modalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    {/* Мобильная версия: модальное окно снизу */}
-                    <div className="flex items-end justify-center min-h-screen sm:hidden">
-                        {/* Overlay */}
-                        <div 
-                            className="fixed inset-0 bg-black/60 transition-opacity z-20"
-                            onClick={() => setModalOpen(false)}
-                        />
-
-                        {/* Modal - снизу на мобильных */}
-                        <div 
-                            className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                onClick={() => setModalOpen(false)}
-                                className="absolute top-6 right-5 cursor-pointer"
-                            >
-                                <X size={24} />
-                            </button>
-                            
-                            <div className="mt-4">
-                                <h3 className="text-xl font-bold mb-4">Вступить в клуб</h3>
-                                <p className="mb-6 text-gray-300">
-                                    Функционал оплаты членства в клубе ещё не готов. Для вступления в клубе свяжитесь с нами
-                                </p>
-                                <MyLink 
-                                    to="/client/contactus" 
-                                    text="Связаться с нами" 
-                                    className='w-full' 
-                                    color='red'
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Десктопная версия: модальное окно по центру */}
-                    <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
-                        {/* Overlay */}
-                        <div 
-                            className="fixed inset-0 bg-black/60 transition-opacity"
-                            onClick={() => setModalOpen(false)}
-                        />
-
-                        {/* Modal - по центру на десктопе */}
-                        <div 
-                            className="relative p-8 inline-block align-middle bg-[#333333] rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all"
-                            style={{ maxWidth: '500px', width: '100%' }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                onClick={() => setModalOpen(false)}
-                                className="absolute top-8 right-8 cursor-pointer"
-                            >
-                                <X size={32} />
-                            </button>
-                            
-                            <div className="mt-4">
-                                <h3 className="text-2xl font-bold mb-4">Вступить в клуб</h3>
-                                <p className="mb-6 text-gray-300 text-lg">
-                                    Функционал оплаты членства в клубе ещё не готов. Для вступления в клубе свяжитесь с нами
-                                </p>
-                                <MyLink 
-                                    to="/client/contactus" 
-                                    text="Связаться с нами" 
-                                    className='w-full' 
-                                    color='red'
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </UserLayout>
     )
 }

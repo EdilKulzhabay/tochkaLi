@@ -74,7 +74,7 @@ export const ClientPurchaseConfirmModal = ({
                         <X size={24} />
                     </button>
                     
-                    <div className="mt-4">
+                    <div className="">
                         <h3 className="text-xl font-bold mb-4">Подтверждение покупки</h3>
                         <p className="mb-2">Вы хотите приобрести контент:</p>
                         <p className="font-semibold mb-4">{contentTitle}</p>
@@ -125,7 +125,7 @@ export const ClientPurchaseConfirmModal = ({
                         <X size={32} />
                     </button>
                     
-                    <div className="mt-4">
+                    <div className="">
                         <h3 className="text-2xl font-bold mb-4">Подтверждение покупки</h3>
                         <p className="mb-2">Вы хотите приобрести контент:</p>
                         <p className="font-semibold mb-4 text-lg">{contentTitle}</p>

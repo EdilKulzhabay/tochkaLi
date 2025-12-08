@@ -42,7 +42,7 @@ export const EaseLaunch = () => {
                 <h1 className='text-[48px] font-semibold text-white leading-12'>Удобство запуска</h1>
                 <p className='text-white'>Для удобства последующих запусков Приложения его можно добавить на экран Домой телефона</p>
                 <div className='mt-4'>
-                    <img src={easeLaunch} alt="Ease Launch" className='w-full h-auto object-cover' />
+                    <img src={easeLaunch} alt="Ease Launch" className='w-full h-auto object-cover sm:w-3/4 sm:mx-auto' />
                 </div>
             </div>
             

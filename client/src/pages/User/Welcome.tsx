@@ -130,37 +130,52 @@ export const Welcome = () => {
 
     return (
         <UserLayout>
-            <div className='relative'>
-                {content?.image && (
-                    <img 
-                        src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
-                        alt={content?.title} 
-                        className='w-full h-auto lg:h-screen rounded-lg object-top z-10' 
-                    />
-                )}
-                <div 
-                    className="absolute inset-0"
-                    style={{
-                        background: 'linear-gradient(to top, #000000 0%, #00000000 70%)',
-                    }}
-                />
-                <div 
-                    className="absolute inset-0 lg:bg-none"
-                    style={{
-                        background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
-                    }}
-                />
-            </div>
-            <div className='px-4 pt-4 pb-10 bg-[#161616]'>
-                <div 
-                    className={`relative lg:w-[700px] lg:mx-auto z-20`}
-                    style={{
-                        marginTop: window.innerWidth >= 1024 ? `-${screenHeight / 2}px` : 0
-                    }}    
-                >
-                    <h1 className="text-2xl font-bold">{content?.title}</h1>
-                    <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
-                    <MyLink to="/about" text="Далее" className='w-full mt-4' color='red'/>
+            <div className='bg-[#161616]'>
+                <div className='lg:w-[700px] lg:mx-auto bg-[#161616]'>
+                    <div className='relative'>
+                        {content?.image && (
+                            <div className="relative flex justify-center items-center">
+                                <img 
+                                    src={`${import.meta.env.VITE_API_URL}${content?.image}`} 
+                                    alt={content?.title} 
+                                    className='w-full h-auto rounded-lg object-top z-10' 
+                                />
+                            </div>
+                        )}
+                        <div 
+                            className="absolute inset-0"
+                            style={{
+                                background: 'linear-gradient(to top, #000000 0%, #00000000 70%)',
+                            }}
+                        />
+                        <div 
+                            className="absolute inset-0"
+                            style={{
+                                background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
+                            }}
+                        />
+                        <div 
+                            className="absolute inset-0 z-10 hidden lg:block"
+                            style={{
+                                background: 'linear-gradient(to right, #16161600 70%, #161616 100%)',
+                            }}
+                        />
+                        <div 
+                            className="absolute inset-0 z-10 hidden lg:block"
+                            style={{
+                                background: 'linear-gradient(to left, #16161600 70%, #161616 100%)',
+                            }}
+                        />
+                    </div>
+                    <div className='px-4 pt-4 pb-10 bg-[#161616]'>
+                        <div 
+                            className={`relative lg:w-[700px] lg:mx-auto z-20`}
+                        >
+                            <h1 className="text-2xl font-bold">{content?.title}</h1>
+                            <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }} />
+                            <MyLink to="/about" text="Далее" className='w-full mt-4' color='red'/>
+                        </div>
+                    </div>
                 </div>
             </div>
         </UserLayout>

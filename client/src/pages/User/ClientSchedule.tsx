@@ -328,7 +328,7 @@ export const ClientSchedule = () => {
     return (
         <UserLayout>
             <BackNav title="Расписание" />
-            <div className="px-4 mt-2 pb-10 bg-[#161616] lg:flex lg:flex-row-reverse lg:gap-x-4">
+            <div className="px-4 mt-2 pb-10 bg-[#161616] lg:flex lg:gap-x-4">
                 <div className="lg:basis-1/3">
                     <DateRangeCalendar 
                         onDateRangeSelect={handleDateRangeSelect}

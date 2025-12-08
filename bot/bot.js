@@ -10,13 +10,12 @@ export default bot;
 bot.start(async (ctx) => {
   const chatId = ctx.chat.id;
   const telegramId = ctx.from.id;
+  const telegramUserName = ctx.from.username;
 
   console.log("chatId:", chatId);
-  const telegramUserName = ctx.from.username;
   console.log("telegramUserName:", telegramUserName);
   
   // Получаем реферальный ID из параметра start
-  // В Telegraf параметр start доступен через ctx.startParam
   const startParam = ctx.startParam || (ctx.message?.text?.split(' ')[1] || null);
   console.log("startParam (referral ID):", startParam);
   
@@ -30,15 +29,46 @@ bot.start(async (ctx) => {
     console.log("Ошибка при удалении menu button:", error);
   }
   
-  await axios.post(`${process.env.API_URL}/api/user/create`, {
-    telegramId: telegramId,
-    telegramUserName: telegramUserName,
-    referralTelegramId: startParam || null
-  }, {
-    headers: {
-      'Content-Type': 'application/json'
+  // Получаем фото профиля пользователя
+  let profilePhotoUrl = null;
+  try {
+    const photos = await bot.telegram.getUserProfilePhotos(telegramId, { limit: 1 });
+    
+    if (photos.total_count > 0 && photos.photos.length > 0) {
+      // Берем фото максимального качества (последний элемент в массиве размеров)
+      const largestPhoto = photos.photos[0][photos.photos[0].length - 1];
+      const fileId = largestPhoto.file_id;
+      
+      // Получаем file_path через getFile
+      const file = await bot.telegram.getFile(fileId);
+      
+      // Формируем URL аватара
+      profilePhotoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
+      console.log("profilePhotoUrl:", profilePhotoUrl);
+    } else {
+      console.log("Фото профиля не найдено");
     }
-  });
+  } catch (error) {
+    console.log("Ошибка при получении фото профиля:", error.message);
+    // Продолжаем работу, даже если не удалось получить фото
+  }
+  
+  // Отправляем данные на backend
+  try {
+    await axios.post(`${process.env.API_URL}/api/user/create`, {
+      telegramId: telegramId,
+      telegramUserName: telegramUserName,
+      referralTelegramId: startParam || null,
+      profilePhotoUrl: profilePhotoUrl
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log("Пользователь успешно создан на backend");
+  } catch (error) {
+    console.error("Ошибка при создании пользователя на backend:", error.message);
+  }
 
   // Отправляем сообщение с inline кнопкой для запуска WebApp
   await ctx.reply(

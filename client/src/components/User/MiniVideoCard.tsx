@@ -6,14 +6,26 @@ export const MiniVideoCard = ({ title, image, link, progress, accessType, onLock
         <>
         {accessType === 'free' ? (
             <Link to={link} className="rounded-lg w-full h-full flex flex-col">
-                <div className="relative h-[173px] sm:h-[251px] lg:h-[347px] flex-shrink-0">
+                <div className="relative h-[98px] sm:h-[142px] lg:h-[197px]">
                     <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={title} className="w-full h-full rounded-lg object-cover" />
                 </div>
 
-                <div className='w-full p-4 pt-3 text-left flex-grow flex flex-col'>
-                    <p className="font-medium">{title}</p>
+                <div className='w-full p-4 pt-3 text-left flex-1 flex flex-col'>
+                    <p
+                        className="font-medium line-clamp-2 min-h-[44px]"
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: '44px', // 2 lines at 22px line-height
+                        }}
+                    >
+                        {title}
+                    </p>
                     <div className="mt-auto">
-                        <div className='flex items-center justify-between'>
+                        <div className='w-full flex items-center justify-between'>
                             <p className='text-sm font-medium'>{progress}%</p>
                             <p className='text-sm font-medium'>{duration} мин.</p>
                         </div>

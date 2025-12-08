@@ -94,48 +94,36 @@ export const ClientHoroscope = () => {
                 className="flex flex-col justify-between bg-[#161616]"
                 style={{ minHeight: `${screenHeight - (64 + safeAreaTop + safeAreaBottom)}px` }}
             >
-                <div className="lg:pb-10">
+                <div className="">
                     <BackNav title="Антисоциумный гороскоп" />
-                    <div className="hidden lg:flex justify-end items-center gap-x-3">
-                        <a
-                            href="https://tochka.li/signs"
-                            target="_blank"
-                            className="block border px-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
-                        >
-                            Подробнее об энергии на Точке Знаки
-                        </a>
-                        <RedButton
-                            text="Посмотреть все гороскопы"
-                            onClick={() => navigate('/client/horoscopes')}
-                            className="px-4"
-                        />
-                    </div>
                     <div className="px-4 mt-2">
                         <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {horoscope && (
                             <div className="mt-4">
-                                <h2 className="text-xl font-medium">{horoscope.title}</h2>
                                 <p className="text-sm">
                                     {formatDateRangeDDMM(horoscope.startDate, horoscope.endDate)}
                                 </p>
+                                <h2 className="text-xl font-medium">{horoscope.title}</h2>
                             </div>
                         )}
                     </div>
                     {horoscope?.image && (
                         <div className="mt-3 relative">
-                            <img src={`${import.meta.env.VITE_API_URL}${horoscope.image}`} alt={horoscope.title} className="w-full h-auto rounded-lg object-cover z-10" />
+                            <div className="relative flex justify-center">
+                                <img src={`${import.meta.env.VITE_API_URL}${horoscope.image}`} alt={horoscope.title} className="w-full lg:w-1/2  h-auto rounded-lg object-cover z-10" />
+                            </div>
                             <div 
-                                className="absolute inset-0"
-                                style={{
-                                    background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
-                                }}
-                            />
-                            <div 
-                                className="absolute inset-0"
-                                style={{
-                                    background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
-                                }}
-                            />
+                                    className="absolute inset-0 z-10"
+                                    style={{
+                                        background: 'linear-gradient(to bottom, #161616 0%, #16161600 30%)',
+                                    }}
+                                />
+                                <div 
+                                    className="absolute inset-0 z-10"
+                                    style={{
+                                        background: 'linear-gradient(to bottom, #16161600 70%, #161616 100%)',
+                                    }}
+                                />
                         </div>
                     )}
                     {horoscope && (
@@ -165,6 +153,20 @@ export const ClientHoroscope = () => {
                         text="Посмотреть все гороскопы"
                         onClick={() => navigate('/client/horoscopes')}
                         className="w-full"
+                    />
+                </div>
+                <div className="hidden lg:flex justify-end items-center gap-x-3 lg:pb-10 lg:mt-4">
+                    <a
+                        href="https://tochka.li/signs"
+                        target="_blank"
+                        className="block border px-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
+                    >
+                        Подробнее об энергии на Точке Знаки
+                    </a>
+                    <RedButton
+                        text="Посмотреть все гороскопы"
+                        onClick={() => navigate('/client/horoscopes')}
+                        className="px-4"
                     />
                 </div>
             </div>

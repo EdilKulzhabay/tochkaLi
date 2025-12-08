@@ -130,13 +130,6 @@ export const ClientTransit = () => {
             >
                 <div className="lg:pb-10">
                     <BackNav title="Описание транзитов" />
-                    <div className="hidden lg:flex justify-end items-center gap-x-3">
-                        <RedButton
-                            text="Посмотреть все транзиты"
-                            onClick={() => navigate('/client/transits')}
-                            className="px-4"
-                        />
-                    </div>
                     <div className="px-4 mt-2">
                         <p dangerouslySetInnerHTML={{ __html: content }}></p>
                         {transit && (
@@ -187,6 +180,13 @@ export const ClientTransit = () => {
                         text="Посмотреть все транзиты"
                         onClick={() => navigate('/client/transits')}
                         className="w-full mt-3"
+                    />
+                </div>
+                <div className="hidden lg:flex justify-end items-center gap-x-3">
+                    <RedButton
+                        text="Посмотреть все транзиты"
+                        onClick={() => navigate('/client/transits')}
+                        className="px-4"
                     />
                 </div>
             </div>

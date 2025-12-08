@@ -121,7 +121,7 @@ export const ClientPerfomance = () => {
         >
             <div style={{ height: `${screenHeight/3}px` }}></div>
             <div className='flex-1 lg:flex-0 lg:w-[700px] lg:mx-auto'>
-                <h1 className='text-[48px] font-semibold text-white leading-12'>Представьтесь пожалуйста</h1>
+                <h1 className='text-[48px] font-semibold text-white leading-12'>Представьтесь, пожалуйста</h1>
                 <div className='mt-6 lg:mt-10 space-y-3'>
                     <ClientInput
                         placeholder="Фамилия"

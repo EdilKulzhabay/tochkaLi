@@ -177,7 +177,7 @@ export const ClientInsufficientBonusModal = ({
                         <X size={24} />
                     </button>
                     
-                    <div className="mt-4">
+                    <div className="">
                         <h3 className="text-xl font-bold mb-4">Недостаточно звёзд</h3>
                         <div className="mb-4">
                             <p className="mb-2">Вы хотите приобрести контент:</p>
@@ -227,7 +227,7 @@ export const ClientInsufficientBonusModal = ({
                         <X size={32} />
                     </button>
                     
-                    <div className="mt-4">
+                    <div className="">
                         <h3 className="text-2xl font-bold mb-4">Недостаточно звёзд</h3>
                         <div className="mb-6">
                             <p className="mb-2">Вы хотите приобрести контент:</p>
