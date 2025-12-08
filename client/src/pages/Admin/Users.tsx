@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AdminLayout } from '../../components/Admin/AdminLayout';
 import { AdminTable } from '../../components/Admin/AdminTable';
-import { Plus, Search, ArrowUpDown, Download } from 'lucide-react';
+import { Search, ArrowUpDown, Download } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
