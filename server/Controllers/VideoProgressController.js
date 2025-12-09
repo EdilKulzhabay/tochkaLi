@@ -1,5 +1,8 @@
 import VideoProgress from '../Models/VideoProgress.js';
 import User from '../Models/User.js';
+import Meditation from '../Models/Meditation.js';
+import Practice from '../Models/Practice.js';
+import VideoLesson from '../Models/VideoLesson.js';
 
 // Сохранение или обновление прогресса просмотра
 export const saveProgress = async (req, res) => {
@@ -30,18 +33,14 @@ export const saveProgress = async (req, res) => {
         const progress = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
         const completed = progress >= 90; // Считаем завершенным, если просмотрено 90% или больше
 
-        if (completed) {
-            await User.findByIdAndUpdate(userId, {
-                $inc: { bonus: 1 },
-            });
-        }
-
         // Ищем существующий прогресс или создаем новый
         const existingProgress = await VideoProgress.findOne({
             userId,
             contentType,
             contentId
         });
+
+        // Бонусы больше не начисляются здесь - они начисляются при клике на обложку/воспроизведении
 
         if (existingProgress) {
             // Обновляем существующий прогресс
@@ -207,6 +206,111 @@ export const getProgressesForContents = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Ошибка получения прогрессов',
+            error: error.message
+        });
+    }
+};
+
+// Начисление бонусов при клике на обложку/воспроизведении
+export const awardBonusOnPlay = async (req, res) => {
+    try {
+        const { contentType, contentId, userId: bodyUserId } = req.body;
+        let userId = req.userId; // Из authMiddleware
+
+        // Если нет userId из токена, используем из body (для Telegram пользователей)
+        if (!userId && bodyUserId) {
+            userId = bodyUserId;
+        }
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Пользователь не авторизован'
+            });
+        }
+
+        if (!contentType || !contentId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Необходимо предоставить contentType и contentId'
+            });
+        }
+
+        // Получаем контент для проверки allowRepeatBonus
+        let content;
+        if (contentType === 'meditation') {
+            content = await Meditation.findById(contentId);
+        } else if (contentType === 'practice') {
+            content = await Practice.findById(contentId);
+        } else if (contentType === 'videoLesson' || contentType === 'video-lesson') {
+            content = await VideoLesson.findById(contentId);
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Неверный тип контента'
+            });
+        }
+
+        if (!content) {
+            return res.status(404).json({
+                success: false,
+                message: 'Контент не найден'
+            });
+        }
+
+        // Проверяем существующий прогресс
+        const existingProgress = await VideoProgress.findOne({
+            userId,
+            contentType,
+            contentId
+        });
+
+        // Начисляем бонус если:
+        // 1. allowRepeatBonus = true (можно начислять повторно)
+        // 2. ИЛИ бонус еще не был начислен (нет прогресса или прогресс не завершен)
+        const canAwardBonus = content.allowRepeatBonus || !existingProgress || !existingProgress.completed;
+
+        if (canAwardBonus) {
+            await User.findByIdAndUpdate(userId, {
+                $inc: { bonus: 1 },
+            });
+
+            // Обновляем или создаем прогресс с отметкой о начислении бонуса
+            if (existingProgress) {
+                existingProgress.completed = true;
+                existingProgress.lastWatched = new Date();
+                await existingProgress.save();
+            } else {
+                const newProgress = new VideoProgress({
+                    userId,
+                    contentType,
+                    contentId,
+                    currentTime: 0,
+                    duration: 0,
+                    progress: 0,
+                    completed: true,
+                    lastWatched: new Date()
+                });
+                await newProgress.save();
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Бонус начислен',
+                bonusAwarded: true
+            });
+        } else {
+            return res.status(200).json({
+                success: true,
+                message: 'Бонус уже был начислен ранее',
+                bonusAwarded: false
+            });
+        }
+    } catch (error) {
+        console.error('Ошибка начисления бонуса:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Ошибка начисления бонуса',
             error: error.message
         });
     }

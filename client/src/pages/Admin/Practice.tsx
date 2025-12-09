@@ -47,6 +47,11 @@ export const PracticeAdmin = () => {
         { key: 'title', label: 'Название' },
         { key: 'order', label: 'Порядок' },
         { key: 'accessType', label: 'Доступ' },
+        { 
+            key: 'allowRepeatBonus', 
+            label: 'Повторные бонусы',
+            render: (value: boolean) => value ? '✅ Да' : '❌ Нет'
+        },
     ];
 
     return (

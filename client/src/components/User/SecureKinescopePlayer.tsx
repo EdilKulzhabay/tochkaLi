@@ -13,6 +13,8 @@ interface SecureKinescopePlayerProps {
     duration?: number; // Длительность в минутах из данных контента
     onProgressUpdate?: (progress: number) => void;
     accessType?: 'free' | 'paid' | 'subscription' | 'stars'; // Тип доступа к контенту
+    aspectRatio?: number; // Соотношение сторон (по умолчанию 16:9 = 56.25%)
+    onPlay?: () => void; // Callback при воспроизведении видео
 }
 
 // Типы для Kinescope IFrame API
@@ -72,12 +74,15 @@ export const SecureKinescopePlayer = ({
     contentId,
     duration: durationMinutes = 0,
     onProgressUpdate,
-    accessType = 'subscription'
+    accessType = 'subscription',
+    onPlay,
 }: SecureKinescopePlayerProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<IframePlayerApi | null>(null);
     const playerElementIdRef = useRef<string>(`kinescope-player-${contentId}`);
     const [savedProgress, setSavedProgress] = useState<number>(0);
+    const width = window.innerWidth;
+    const height = width * 0.5625;
     
     // Рефы для отслеживания прогресса
     const currentTimeRef = useRef<number>(0);
@@ -332,6 +337,11 @@ export const SecureKinescopePlayer = ({
                     // Событие Playing - воспроизведение началось
                     player.on(player.Events.Playing, async () => {
                         console.log('▶️ Воспроизведение началось');
+                        
+                        // Вызываем callback для начисления бонусов при воспроизведении
+                        if (onPlay) {
+                            onPlay();
+                        }
                         
                         // Если контент бесплатный, сразу устанавливаем прогресс в 100% и сохраняем один раз
                         if (accessType === 'free') {
@@ -618,10 +628,11 @@ export const SecureKinescopePlayer = ({
             ref={containerRef}
             className="relative w-full rounded-lg overflow-hidden"
             style={{ 
-                paddingBottom: '56.25%', // Для поддержания соотношения сторон 16:9
+                // paddingBottom: `${aspectRatio}%`, // Соотношение сторон (по умолчанию 16:9)
                 WebkitTouchCallout: 'default',
                 touchAction: 'manipulation',
                 margin: 0,
+                height: height,
                 paddingTop: 0,
                 paddingLeft: 0,
                 paddingRight: 0

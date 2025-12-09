@@ -52,6 +52,11 @@ export const VideoLessonAdmin = () => {
             render: (value: number) => value ? `${value} мин` : '-'
         },
         { key: 'accessType', label: 'Доступ' },
+        { 
+            key: 'allowRepeatBonus', 
+            label: 'Повторные бонусы',
+            render: (value: boolean) => value ? '✅ Да' : '❌ Нет'
+        },
     ];
 
     return (

@@ -215,6 +215,7 @@ app.delete("/api/diary/:id", DiaryController.remove);
 
 // ==================== VideoProgress ====================
 app.post("/api/video-progress", VideoProgressController.saveProgress);
+app.post("/api/video-progress/award-bonus", VideoProgressController.awardBonusOnPlay);
 app.get("/api/video-progress/:userId/:contentType/:contentId", VideoProgressController.getProgress);
 app.get("/api/video-progress/user/:userId/:contentType", VideoProgressController.getUserProgresses);
 app.post("/api/video-progress/batch/:userId/:contentType", VideoProgressController.getProgressesForContents);

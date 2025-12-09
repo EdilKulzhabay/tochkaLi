@@ -26,6 +26,7 @@ interface FormData {
     order: number;
     accessType: string;
     starsRequired: number;
+    allowRepeatBonus: boolean;
 }
 
 export const VideoContentForm = ({ contentType, title, listRoute }: VideoContentFormProps) => {
@@ -45,6 +46,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
         order: 0,
         accessType: 'free',
         starsRequired: 0,
+        allowRepeatBonus: false,
     });
 
     useEffect(() => {
@@ -80,6 +82,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
                 duration: content.duration?.toString() || '',
                 order: content.order || 0,
                 starsRequired: content.starsRequired || 0,
+                allowRepeatBonus: content.allowRepeatBonus || false,
             });
         } catch (error) {
             toast.error(`Ошибка загрузки ${title.toLowerCase()}`);
@@ -181,6 +184,19 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
                                 placeholder="0"
                             />
                         )}
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="allowRepeatBonus"
+                                checked={formData.allowRepeatBonus}
+                                onChange={(e) => setFormData({ ...formData, allowRepeatBonus: e.target.checked })}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="allowRepeatBonus" className="text-sm font-medium text-gray-700">
+                                Повторное добавление бонусов за просмотр
+                            </label>
+                        </div>
 
                         <ImageUpload
                             label={`Обложка ${title.toLowerCase()}`}

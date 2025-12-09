@@ -332,8 +332,8 @@ export const ClientSchedule = () => {
                 <div className="lg:basis-1/3">
                     <DateRangeCalendar 
                         onDateRangeSelect={handleDateRangeSelect}
-                        selectedStartDate={startDate}
-                        selectedEndDate={endDate}
+                        selectedStartDate={null}
+                        selectedEndDate={null}
                         eventDates={eventDates}
                     />
                 </div>
