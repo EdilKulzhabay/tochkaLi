@@ -4,7 +4,7 @@ import api from "../../api";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SecureKinescopePlayer } from "../../components/User/SecureKinescopePlayer";
-import { Switch } from "../../components/User/Switch";
+// import { Switch } from "../../components/User/Switch";
 
 // Функция для определения типа видео и извлечения ID
 const getVideoInfo = (url: string): { type: 'kinescope' | 'youtube' | 'rutube' | 'unknown', id: string, privateParam?: string } => {
@@ -20,15 +20,30 @@ const getVideoInfo = (url: string): { type: 'kinescope' | 'youtube' | 'rutube' |
     
     // Проверяем RuTube
     if (url.includes('rutube.ru')) {
-        // Проверяем приватное видео с параметром p
-        const privateMatch = url.match(/rutube\.ru\/video\/private\/([^\/\?]+)\/?\?p=([^&\n?#]+)/);
+        // Проверяем приватное видео с параметром p в формате /video/private/{id}/?...&p={param} или ?p={param}
+        const privateMatch = url.match(/rutube\.ru\/video\/private\/([^\/\?]+)\/?\?([^#]*)/);
         if (privateMatch) {
-            // Для приватных видео используем ID из пути и сохраняем параметр p
-            return { type: 'rutube', id: privateMatch[1], privateParam: privateMatch[2] };
+            const videoId = privateMatch[1];
+            const queryString = privateMatch[2];
+            // Извлекаем параметр p из query string
+            const pMatch = queryString.match(/[&?]p=([^&\n?#]+)/);
+            const privateParam = pMatch ? pMatch[1] : undefined;
+            return { type: 'rutube', id: videoId, privateParam };
         }
         
-        // Проверяем уже embed URL
-        const embedMatch = url.match(/rutube\.ru\/play\/embed\/([^&\n?#]+)/);
+        // Проверяем embed URL с параметром p для приватных видео
+        const embedPrivateMatch = url.match(/rutube\.ru\/play\/embed\/([^\/\?]+)\/?\?([^#]*)/);
+        if (embedPrivateMatch) {
+            const videoId = embedPrivateMatch[1];
+            const queryString = embedPrivateMatch[2];
+            // Извлекаем параметр p из query string
+            const pMatch = queryString.match(/[&?]p=([^&\n?#]+)/);
+            const privateParam = pMatch ? pMatch[1] : undefined;
+            return { type: 'rutube', id: videoId, privateParam };
+        }
+        
+        // Проверяем уже embed URL без параметров
+        const embedMatch = url.match(/rutube\.ru\/play\/embed\/([^\/\?&]+)/);
         if (embedMatch) {
             return { type: 'rutube', id: embedMatch[1] };
         }
@@ -72,13 +87,15 @@ const getYouTubeEmbedUrl = (url: string): string => {
 // Функция для преобразования RuTube URL в embed формат
 const getRuTubeEmbedUrl = (url: string): string => {
     const info = getVideoInfo(url);
-    if (info.type === 'rutube' && info.id) {
+    if (info.type === 'rutube' && info.id && info.id !== 'private' && info.id.length > 0) {
         // Для приватных видео добавляем параметр p
         if (info.privateParam) {
             return `https://rutube.ru/play/embed/${info.id}/?p=${info.privateParam}`;
         }
         return `https://rutube.ru/play/embed/${info.id}`;
     }
+    // Если не удалось распарсить, возвращаем оригинальный URL
+    console.warn('Не удалось распарсить RuTube URL:', url);
     return url;
 };
 
@@ -118,13 +135,13 @@ export const ClientMeditation = () => {
         }
     }
 
-    const updateUserData = async (field: string, value: boolean) => {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const response = await api.put(`/api/user/${user._id}`, { [field]: value });
-        if (response.data.success) {
-            setUser(response.data.user);
-        }
-    }
+    // const updateUserData = async (field: string, value: boolean) => {
+    //     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    //     const response = await api.put(`/api/user/${user._id}`, { [field]: value });
+    //     if (response.data.success) {
+    //         setUser(response.data.user);
+    //     }
+    // }
 
     useEffect(() => {
         fetchUserData();
@@ -271,6 +288,53 @@ export const ClientMeditation = () => {
                         console.log(`videoUrl: ${videoUrl}`);
                         const videoInfo = getVideoInfo(videoUrl);
                         
+                        // Проверяем, что RuTube URL правильно распарсен
+                        if (videoInfo.type === 'rutube' && (!videoInfo.id || videoInfo.id === 'private' || videoInfo.id.length === 0)) {
+                            console.error('Ошибка парсинга RuTube URL:', videoUrl);
+                            // Если не удалось распарсить RuTube URL, используем оригинальное YouTube видео
+                            const fallbackInfo = getVideoInfo(meditation.videoUrl);
+                            if (fallbackInfo.type === 'youtube') {
+                                return (
+                                    <div className="mt-6">
+                                        <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+                                            {!showPoster && (
+                                                <iframe
+                                                    src={getYouTubeEmbedUrl(meditation.videoUrl)}
+                                                    title="YouTube video player"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                    allowFullScreen
+                                                    className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                                />
+                                            )}
+                                            {showPoster && meditation?.imageUrl && (
+                                                <div 
+                                                    className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
+                                                    onClick={handlePosterClick}
+                                                >
+                                                    <img 
+                                                        src={`${import.meta.env.VITE_API_URL}${meditation.imageUrl}`} 
+                                                        alt={meditation.title}
+                                                        className="w-full h-full object-cover rounded-lg"
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
+                                                            <svg 
+                                                                className="w-8 h-8 text-white ml-1" 
+                                                                fill="currentColor" 
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path d="M8 5v14l11-7z"/>
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                        }
+                        
                         // Используем защищенный плеер для Kinescope (без обложки)
                         if (videoInfo.type === 'kinescope') {
                             return (
@@ -291,12 +355,60 @@ export const ClientMeditation = () => {
                         
                         // Для RuTube используем iframe (без обложки)
                         if (videoInfo.type === 'rutube') {
+                            const rutubeEmbedUrl = getRuTubeEmbedUrl(videoUrl);
+                            // Проверяем, что URL правильно сформирован
+                            if (!rutubeEmbedUrl || !videoInfo.id || videoInfo.id === 'private' || videoInfo.id.length === 0) {
+                                console.error('Некорректный RuTube URL:', videoUrl, 'videoInfo:', videoInfo);
+                                // Если RuTube URL некорректный, используем оригинальное YouTube видео
+                                if (originalVideoInfo.type === 'youtube') {
+                                    return (
+                                        <div className="mt-6">
+                                            <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+                                                {!showPoster && (
+                                                    <iframe
+                                                        src={getYouTubeEmbedUrl(meditation.videoUrl)}
+                                                        title="YouTube video player"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        allowFullScreen
+                                                        className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                                    />
+                                                )}
+                                                {showPoster && meditation?.imageUrl && (
+                                                    <div 
+                                                        className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
+                                                        onClick={handlePosterClick}
+                                                    >
+                                                        <img 
+                                                            src={`${import.meta.env.VITE_API_URL}${meditation.imageUrl}`} 
+                                                            alt={meditation.title}
+                                                            className="w-full h-full object-cover rounded-lg"
+                                                        />
+                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                            <div className="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
+                                                                <svg 
+                                                                    className="w-8 h-8 text-white ml-1" 
+                                                                    fill="currentColor" 
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path d="M8 5v14l11-7z"/>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }
+                            
                             return (
                                 <div className="mt-6">
                                     <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
                                         <iframe
                                             ref={rutubeIframeRef}
-                                            src={getRuTubeEmbedUrl(videoUrl)}
+                                            src={rutubeEmbedUrl}
                                             title="RuTube video player"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                             allowFullScreen

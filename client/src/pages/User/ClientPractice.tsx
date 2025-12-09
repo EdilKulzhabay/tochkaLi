@@ -19,15 +19,30 @@ const getVideoInfo = (url: string): { type: 'kinescope' | 'youtube' | 'rutube' |
     
     // Проверяем RuTube
     if (url.includes('rutube.ru')) {
-        // Проверяем приватное видео с параметром p
-        const privateMatch = url.match(/rutube\.ru\/video\/private\/([^\/\?]+)\/?\?p=([^&\n?#]+)/);
+        // Проверяем приватное видео с параметром p в формате /video/private/{id}/?...&p={param} или ?p={param}
+        const privateMatch = url.match(/rutube\.ru\/video\/private\/([^\/\?]+)\/?\?([^#]*)/);
         if (privateMatch) {
-            // Для приватных видео используем ID из пути и сохраняем параметр p
-            return { type: 'rutube', id: privateMatch[1], privateParam: privateMatch[2] };
+            const videoId = privateMatch[1];
+            const queryString = privateMatch[2];
+            // Извлекаем параметр p из query string
+            const pMatch = queryString.match(/[&?]p=([^&\n?#]+)/);
+            const privateParam = pMatch ? pMatch[1] : undefined;
+            return { type: 'rutube', id: videoId, privateParam };
         }
         
-        // Проверяем уже embed URL
-        const embedMatch = url.match(/rutube\.ru\/play\/embed\/([^&\n?#]+)/);
+        // Проверяем embed URL с параметром p для приватных видео
+        const embedPrivateMatch = url.match(/rutube\.ru\/play\/embed\/([^\/\?]+)\/?\?([^#]*)/);
+        if (embedPrivateMatch) {
+            const videoId = embedPrivateMatch[1];
+            const queryString = embedPrivateMatch[2];
+            // Извлекаем параметр p из query string
+            const pMatch = queryString.match(/[&?]p=([^&\n?#]+)/);
+            const privateParam = pMatch ? pMatch[1] : undefined;
+            return { type: 'rutube', id: videoId, privateParam };
+        }
+        
+        // Проверяем уже embed URL без параметров
+        const embedMatch = url.match(/rutube\.ru\/play\/embed\/([^\/\?&]+)/);
         if (embedMatch) {
             return { type: 'rutube', id: embedMatch[1] };
         }
@@ -71,13 +86,15 @@ const getYouTubeEmbedUrl = (url: string): string => {
 // Функция для преобразования RuTube URL в embed формат
 const getRuTubeEmbedUrl = (url: string): string => {
     const info = getVideoInfo(url);
-    if (info.type === 'rutube' && info.id) {
+    if (info.type === 'rutube' && info.id && info.id !== 'private' && info.id.length > 0) {
         // Для приватных видео добавляем параметр p
         if (info.privateParam) {
             return `https://rutube.ru/play/embed/${info.id}/?p=${info.privateParam}`;
         }
         return `https://rutube.ru/play/embed/${info.id}`;
     }
+    // Если не удалось распарсить, возвращаем оригинальный URL
+    console.warn('Не удалось распарсить RuTube URL:', url);
     return url;
 };
 
@@ -263,12 +280,20 @@ export const ClientPractice = () => {
                         
                         // Для RuTube используем iframe (без обложки)
                         if (videoInfo.type === 'rutube') {
+                            const rutubeEmbedUrl = getRuTubeEmbedUrl(videoUrl);
+                            // Проверяем, что URL правильно сформирован
+                            if (!rutubeEmbedUrl || !videoInfo.id || videoInfo.id === 'private' || videoInfo.id.length === 0) {
+                                console.error('Некорректный RuTube URL:', videoUrl, 'videoInfo:', videoInfo);
+                                // Если RuTube URL некорректный, пропускаем рендеринг
+                                return null;
+                            }
+                            
                             return (
                                 <div className="mt-6">
                                     <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
                                         <iframe
                                             ref={rutubeIframeRef}
-                                            src={getRuTubeEmbedUrl(videoUrl)}
+                                            src={rutubeEmbedUrl}
                                             title="RuTube video player"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                             allowFullScreen
