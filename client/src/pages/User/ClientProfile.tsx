@@ -440,7 +440,9 @@ export const ClientProfile = () => {
                                 
                                 <button
                                     onClick={() => {
+                                        setUpdatingName(true);
                                         updateUserData('fullName', `${firstName.trim()} ${lastName.trim()}`);
+                                        setUpdatingName(false);
                                         setIsEditNameModalOpen(false);
                                     }}
                                     disabled={updatingName}
@@ -503,7 +505,9 @@ export const ClientProfile = () => {
                                 
                                 <button
                                     onClick={() => {
+                                        setUpdatingName(true);
                                         updateUserData('fullName', `${firstName.trim()} ${lastName.trim()}`);
+                                        setUpdatingName(false);
                                         setIsEditNameModalOpen(false);
                                     }}
                                     disabled={updatingName}
