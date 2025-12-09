@@ -873,8 +873,7 @@ export const deleteUser = async (req, res) => {
 // Обновить профиль текущего пользователя
 export const updateProfile = async (req, res) => {
     try {
-        const { fullName, phone, profilePhotoUrl } = req.body;
-        const userId = req.userId;
+        const { fullName, phone, profilePhotoUrl, userId } = req.body;
 
         // Формируем объект для обновления
         const updateData = {};

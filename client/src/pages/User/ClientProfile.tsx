@@ -88,7 +88,7 @@ export const ClientProfile = () => {
         }
     }
 
-    const updateUserData = async (field: string, value: boolean) => {
+    const updateUserData = async (field: string, value: any) => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const response = await api.put(`/api/user/${user._id}`, { [field]: value });
         if (response.data.success) {
@@ -136,15 +136,9 @@ export const ClientProfile = () => {
                 // Формируем полный URL для отображения
                 const fullUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3002'}${imageUrl}`;
                 
-                // Обновляем профиль пользователя с новым URL фото
-                const updateResponse = await api.put('/api/user/profile/update', { 
-                    profilePhotoUrl: fullUrl 
-                });
 
-                if (updateResponse.data.success) {
-                    setUploadedPhotoUrl(fullUrl);
-                    setUserData(updateResponse.data.data);
-                }
+                updateUserData('profilePhotoUrl', fullUrl);
+                setUploadedPhotoUrl(fullUrl);
             } else {
                 alert(uploadResponse.data.message || 'Ошибка загрузки изображения');
             }
@@ -182,46 +176,6 @@ export const ClientProfile = () => {
             setLastName('');
         }
         setIsEditNameModalOpen(true);
-    }
-
-    const handleUpdateName = async () => {
-        // Проверка на пустые поля
-        if (!firstName.trim() && !lastName.trim()) {
-            alert('Пожалуйста, введите имя или фамилию');
-            return;
-        }
-
-        setUpdatingName(true);
-
-        try {
-            // Формируем полное имя
-            const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
-
-            // Отправляем запрос на обновление
-            const response = await api.put('/api/user/profile/update', {
-                fullName: fullName
-            });
-
-            if (response.data.success) {
-                // Обновляем состояние
-                setUserData(response.data.data);
-                
-                // Обновляем localStorage
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                user.fullName = fullName;
-                localStorage.setItem('user', JSON.stringify(user));
-                
-                // Закрываем модальное окно
-                setIsEditNameModalOpen(false);
-            } else {
-                alert(response.data.message || 'Ошибка обновления имени');
-            }
-        } catch (error: any) {
-            console.error('Ошибка обновления имени:', error);
-            alert(error.response?.data?.message || 'Ошибка обновления имени');
-        } finally {
-            setUpdatingName(false);
-        }
     }
 
     useEffect(() => {
@@ -485,7 +439,10 @@ export const ClientProfile = () => {
                                 </div>
                                 
                                 <button
-                                    onClick={handleUpdateName}
+                                    onClick={() => {
+                                        updateUserData('fullName', `${firstName.trim()} ${lastName.trim()}`);
+                                        setIsEditNameModalOpen(false);
+                                    }}
                                     disabled={updatingName}
                                     className="w-full px-4 py-3 bg-red-600 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -545,7 +502,10 @@ export const ClientProfile = () => {
                                 </div>
                                 
                                 <button
-                                    onClick={handleUpdateName}
+                                    onClick={() => {
+                                        updateUserData('fullName', `${firstName.trim()} ${lastName.trim()}`);
+                                        setIsEditNameModalOpen(false);
+                                    }}
                                     disabled={updatingName}
                                     className="w-full px-4 py-3 bg-red-600 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >

@@ -37,12 +37,10 @@ export const ProfileAdmin = () => {
         setLoading(true);
 
         try {
-            const response = await api.put('/api/user/profile/update', profileData);
+            const response = await api.put('/api/user/profile/update', { ...profileData, userId: user?._id });
             toast.success('Профиль успешно обновлен');
-            
-            // Обновляем данные в контексте
             if (response.data.success) {
-                // Можно обновить user в AuthContext если нужно
+                setProfileData(response.data.data);
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Ошибка обновления профиля');
