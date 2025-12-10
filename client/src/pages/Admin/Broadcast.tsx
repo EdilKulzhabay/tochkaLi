@@ -168,10 +168,15 @@ export const BroadcastAdmin = () => {
                         toast.success(`Рассылка завершена! Отправлено: ${response.data.sent} сообщений`);
                     }
                     
-                    setFoundUsers([]);
+                    // Очищаем только выбранных пользователей, но не очищаем поиск и найденных пользователей
+                    // чтобы можно было отправить еще одно сообщение тем же пользователям
                     setSelectedUsers(new Set());
                     setSelectedUsersData(new Map());
-                    setSearch('');
+                    // Очищаем форму сообщения
+                    setMessage('');
+                    setImageUrl('');
+                    setButtonText('');
+                    setButtonUrl('');
                 } else {
                     toast.error(response.data.message || 'Ошибка отправки рассылки');
                 }

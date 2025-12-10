@@ -24,7 +24,9 @@ const sendTelegramMessage = async (chatId, message) => {
 // Получить пользователей с фильтрацией по статусу и поиску
 export const getFilteredUsers = async (req, res) => {
     try {
-        const { status, search } = req.query;
+        const { status, search } = req.params;
+        console.log("status: ", status);
+        console.log("search: ", search);
 
         let filter = {
             notifyPermission: true,
