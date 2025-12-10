@@ -4,6 +4,7 @@ import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
 import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 
 interface HoroscopeEntity {
     _id: string;
@@ -23,7 +24,7 @@ export const ClientHoroscopesList = () => {
     const [userHasPaid, setUserHasPaid] = useState(false);
     const navigate = useNavigate();
     const [content, setContent] = useState<string>('');
-
+    const [corridorsModalOpen, setCorridorsModalOpen] = useState(false);
     useEffect(() => {
         // Проверка на блокировку пользователя
         const userStr = localStorage.getItem('user');
@@ -153,6 +154,10 @@ export const ClientHoroscopesList = () => {
 
     const handleHoroscopeClick = async (horoscope: HoroscopeEntity) => {
         // Проверяем, активен ли гороскоп (startDate <= currentDate <= endDate)
+        if (horoscope.title.toLowerCase().includes('коридоры')) {
+            setCorridorsModalOpen(true);
+            return;
+        }
         const isActive = isHoroscopeActive(horoscope);
         
         if (isActive) {
@@ -226,6 +231,88 @@ export const ClientHoroscopesList = () => {
                 content={content}
                 accessType={"subscription"}
             />
+            {corridorsModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    {/* Мобильная версия: модальное окно снизу */}
+                    <div className="flex items-end justify-center min-h-screen sm:hidden">
+                        {/* Overlay */}
+                        <div 
+                            className="fixed inset-0 bg-black/60 transition-opacity z-20"
+                            onClick={() => setCorridorsModalOpen(false)}
+                        />
+        
+                        {/* Modal - снизу на мобильных */}
+                        <div 
+                            className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setCorridorsModalOpen(false)}
+                                className="absolute top-6 right-5 cursor-pointer"
+                            >
+                                <X size={24} />
+                            </button>
+                            <div 
+                                className="text-white" 
+                            >
+                                <h3 className="text-xl lg:text-2xl font-bold mb-2">ЧТО ТАКОЕ КОРИДОРЫ?</h3>
+                                <p className="mt-4 font-bold">
+                                    Временные периоды, которые наделяют человека, рождённого в них, особыми качествами.
+                                </p>
+                                <p className="mt-1 text-sm">
+                                    Когда вы знаете особенности энергии того или иного коридора (диапазон дат) или сверхдаты (один день), то вы сможете достигать сверх результатов даже не будучи рождёнными в это время. Красота этой технологии в том, что вы можете проявлять любую антисоциумную энергию, которая активна на текущую дату. Как это сделать, какие условия активации этой энергии в вас, а также подводные камни вы узнаете на онлайн Точке «Знаки»
+                                </p>
+                            </div>
+                            <a 
+                                className="block bg-[#EC1313] text-white py-2.5 text-center font-medium rounded-full mt-4 w-full" 
+                                href="https://tochka.li/signs" 
+                                target="_blank"
+                            >
+                                Подробнее о Точке «Знаки»
+                            </a>
+                        </div>
+                    </div>
+        
+                    {/* Десктопная версия: модальное окно по центру */}
+                    <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                        {/* Overlay */}
+                        <div 
+                            className="fixed inset-0 bg-black/60 transition-opacity"
+                            onClick={() => setCorridorsModalOpen(false)}
+                        />
+        
+                        {/* Modal - по центру на десктопе */}
+                        <div 
+                            className="relative p-8 inline-block align-middle bg-[#333333] rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all"
+                            style={{ maxWidth: '700px', width: '100%' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setCorridorsModalOpen(false)}
+                                className="absolute top-8 right-8 cursor-pointer"
+                            >
+                                <X size={32} />
+                            </button>
+                            <div className="text-white">
+                                <h3 className="text-xl lg:text-2xl font-bold mb-2">ЧТО ТАКОЕ КОРИДОРЫ?</h3>
+                                <p className="mt-4 font-bold">
+                                    Временные периоды, которые наделяют человека, рождённого в них, особыми качествами.
+                                </p>
+                                <p className="mt-1 text-sm">
+                                    Когда вы знаете особенности энергии того или иного коридора (диапазон дат) или сверхдаты (один день), то вы сможете достигать сверх результатов даже не будучи рождёнными в это время. Красота этой технологии в том, что вы можете проявлять любую антисоциумную энергию, которая активна на текущую дату. Как это сделать, какие условия активации этой энергии в вас, а также подводные камни вы узнаете на онлайн Точке «Знаки»
+                                </p>
+                            </div>
+                            <a 
+                                className="block bg-[#EC1313] text-white py-2.5 text-center font-medium rounded-full mt-4 w-full" 
+                                href="https://tochka.li/signs" 
+                                target="_blank"
+                            >
+                                Подробнее о Точке «Знаки»
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
         </UserLayout>
     );
 };

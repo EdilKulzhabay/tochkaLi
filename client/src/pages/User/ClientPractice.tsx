@@ -4,6 +4,7 @@ import api from "../../api";
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { SecureKinescopePlayer } from "../../components/User/SecureKinescopePlayer";
+import { Switch } from "../../components/User/Switch";
 
 // Функция для определения типа видео и извлечения ID
 const getVideoInfo = (url: string): { type: 'kinescope' | 'youtube' | 'rutube' | 'unknown', id: string, privateParam?: string } => {
@@ -106,6 +107,7 @@ export const ClientPractice = () => {
     const [loading, setLoading] = useState(true);
     const rutubeIframeRef = useRef<HTMLIFrameElement>(null);
     const rutubeProgressIntervalRef = useRef<number | null>(null);
+    const [locatedInRussia, setLocatedInRussia] = useState(false);
 
     useEffect(() => {
         // Получаем данные пользователя из localStorage
@@ -114,6 +116,7 @@ export const ClientPractice = () => {
             try {
                 const user = JSON.parse(userData);
                 setUser(user);
+                setLocatedInRussia(user.locatedInRussia);
                 // Проверка на блокировку пользователя
                 if (user && user.isBlocked && user.role !== 'admin') {
                     window.location.href = '/client/blocked-user';
@@ -188,6 +191,14 @@ export const ClientPractice = () => {
             } catch (error) {
                 console.error('Ошибка при установке прогресса:', error);
             }
+        }
+    }
+
+    const updateUserData = async (field: string, value: boolean) => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await api.put(`/api/user/${user._id}`, { [field]: value });
+        if (response.data.success) {
+            setUser(response.data.user);
         }
     }
 
@@ -356,8 +367,13 @@ export const ClientPractice = () => {
                         );
                     })()}
                     <p className="mt-6" dangerouslySetInnerHTML={{ __html: practice?.fullDescription }}></p>
-                    <div className="mt-3">
-                        Обновите страницу после изменения настроек
+                    <div className="mt-4 flex items-center justify-between">
+                        <div>Просмотр видео в РФ без VPN</div>
+                        <Switch checked={locatedInRussia} onChange={() => {
+                            updateUserData('locatedInRussia', !locatedInRussia);
+                            setLocatedInRussia(!locatedInRussia);
+                            window.location.reload();
+                        }} />
                     </div>
                 </div>
             </UserLayout>

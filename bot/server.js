@@ -96,7 +96,7 @@ const htmlToTelegramText = (html) => {
 
 app.post('/api/bot/broadcast', async (req, res) => {
     try {
-        const { text, telegramIds, parseMode } = req.body;
+        const { text, telegramIds, parseMode, imageUrl, buttonText, buttonUrl, usersData } = req.body;
         
         // Валидация входных данных
         if (!text || !telegramIds || !Array.isArray(telegramIds)) {
@@ -109,6 +109,11 @@ app.post('/api/bot/broadcast', async (req, res) => {
             return res.status(400).json({ 
                 error: 'Список telegramIds не может быть пустым' 
             });
+        }
+
+        // Проверяем соответствие количества usersData и telegramIds
+        if (usersData && usersData.length !== telegramIds.length) {
+            console.warn('Количество usersData не соответствует количеству telegramIds');
         }
 
         // Определяем режим парсинга (HTML, Markdown или текст)
@@ -137,6 +142,32 @@ app.post('/api/bot/broadcast', async (req, res) => {
             // HTML режим, но тегов нет - используем текст
             finalParseMode = undefined;
         } else if (parse_mode === 'Markdown') {
+            // Для Markdown конвертируем HTML в Markdown формат
+            // Сначала конвертируем HTML теги в Markdown синтаксис
+            messageText = text
+                .replace(/<br\s*\/?>/gi, '\n') // <br> -> новая строка
+                .replace(/<\/p>/gi, '\n\n') // </p> -> двойная новая строка
+                .replace(/<p>/gi, '') // <p> -> удаляем
+                .replace(/<\/div>/gi, '\n') // </div> -> новая строка
+                .replace(/<div[^>]*>/gi, '') // <div> -> удаляем
+                .replace(/<span[^>]*>(.*?)<\/span>/gi, '$1') // <span> -> удаляем
+                .replace(/<strong>(.*?)<\/strong>/gi, '*$1*') // <strong> -> жирный текст
+                .replace(/<b>(.*?)<\/b>/gi, '*$1*') // <b> -> жирный текст
+                .replace(/<em>(.*?)<\/em>/gi, '_$1_') // <em> -> курсив
+                .replace(/<i>(.*?)<\/i>/gi, '_$1_') // <i> -> курсив
+                .replace(/<u>(.*?)<\/u>/gi, '__$1__') // <u> -> подчеркивание
+                .replace(/<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi, '[$2]($1)') // <a> -> Markdown ссылка
+                .replace(/<code>(.*?)<\/code>/gi, '`$1`') // <code> -> код
+                .replace(/<pre>(.*?)<\/pre>/gis, '```\n$1\n```') // <pre> -> блок кода
+                .replace(/<[^>]+>/g, '') // Удаляем все остальные HTML теги
+                .replace(/&nbsp;/g, ' ') // &nbsp; -> пробел
+                .replace(/&amp;/g, '&') // &amp; -> &
+                .replace(/&lt;/g, '<') // &lt; -> <
+                .replace(/&gt;/g, '>') // &gt; -> >
+                .replace(/&quot;/g, '"') // &quot; -> "
+                .replace(/&#39;/g, "'") // &#39; -> '
+                .replace(/\n\s*\n\s*\n/g, '\n\n') // Убираем лишние пустые строки
+                .trim();
             finalParseMode = 'Markdown';
         } else {
             // Текстовый режим - конвертируем HTML в текст
@@ -154,14 +185,64 @@ app.post('/api/bot/broadcast', async (req, res) => {
         };
 
         console.log(`Начинаем рассылку для ${telegramIds.length} пользователей. Режим парсинга: ${finalParseMode || 'текст'}`);
+        if (imageUrl) {
+            console.log('Будет отправлено изображение:', imageUrl);
+        }
+        if (buttonText && buttonUrl) {
+            console.log('Будет добавлена inline кнопка:', buttonText);
+        }
+
+        // Функция для подстановки переменных в URL
+        const replaceUrlVariables = (url, userData) => {
+            if (!url || !userData) return url;
+            return url
+                .replace(/{telegramId}/g, userData.telegramId || '')
+                .replace(/{telegramUserName}/g, userData.telegramUserName || '')
+                .replace(/{profilePhotoUrl}/g, encodeURIComponent(userData.profilePhotoUrl || ''));
+        };
 
         for (let i = 0; i < telegramIds.length; i++) {
             const telegramId = telegramIds[i];
+            const userData = usersData && usersData[i] ? usersData[i] : { telegramId, telegramUserName: '', profilePhotoUrl: '' };
+            
             try {
-                // Отправляем сообщение с поддержкой HTML разметки
-                await bot.telegram.sendMessage(telegramId, messageText, {
+                // Формируем опции для отправки сообщения
+                const messageOptions = {
                     parse_mode: finalParseMode
-                });
+                };
+
+                // Добавляем inline кнопку, если указаны текст и URL
+                if (buttonText && buttonUrl) {
+                    const finalButtonUrl = replaceUrlVariables(buttonUrl, userData);
+                    messageOptions.reply_markup = {
+                        inline_keyboard: [[
+                            {
+                                text: buttonText,
+                                url: finalButtonUrl
+                            }
+                        ]]
+                    };
+                }
+
+                // Если есть изображение, отправляем фото с подписью
+                if (imageUrl) {
+                    // Формируем полный URL изображения
+                    // Если URL уже полный (начинается с http/https), используем как есть
+                    // Иначе добавляем базовый URL API сервера
+                    const API_BASE_URL = process.env.API_URL || process.env.BOT_API_URL || 'http://localhost:3002';
+                    const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`;
+                    
+                    console.log(`Отправка фото пользователю ${telegramId}, URL: ${fullImageUrl}`);
+                    
+                    await bot.telegram.sendPhoto(telegramId, fullImageUrl, {
+                        caption: messageText,
+                        parse_mode: finalParseMode,
+                        ...(messageOptions.reply_markup && { reply_markup: messageOptions.reply_markup })
+                    });
+                } else {
+                    // Отправляем обычное текстовое сообщение
+                    await bot.telegram.sendMessage(telegramId, messageText, messageOptions);
+                }
                 
                 results.success.push(telegramId);
                 

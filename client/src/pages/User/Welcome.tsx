@@ -90,7 +90,7 @@ export const Welcome = () => {
 
     useEffect(() => {
         setLoading(true);
-        const fetchUser = async () => {
+        const fetchContent = async () => {
             try {
                 const response = await api.get(`/api/welcome`);
                 setContent(response.data.data[0]);
@@ -100,7 +100,7 @@ export const Welcome = () => {
                 setLoading(false);
             }
         }
-        fetchUser();
+        fetchContent();
     }, []);
 
     if (loading) {

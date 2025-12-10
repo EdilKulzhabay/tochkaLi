@@ -4,7 +4,7 @@ import api from "../../api";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SecureKinescopePlayer } from "../../components/User/SecureKinescopePlayer";
-// import { Switch } from "../../components/User/Switch";
+import { Switch } from "../../components/User/Switch";
 
 // Функция для определения типа видео и извлечения ID
 const getVideoInfo = (url: string): { type: 'kinescope' | 'youtube' | 'rutube' | 'unknown', id: string, privateParam?: string } => {
@@ -108,7 +108,7 @@ export const ClientMeditation = () => {
     const [loading, setLoading] = useState(true);
     const rutubeIframeRef = useRef<HTMLIFrameElement>(null);
     const rutubeProgressIntervalRef = useRef<number | null>(null);
-    // const [locatedInRussia, setLocatedInRussia] = useState(false);
+    const [locatedInRussia, setLocatedInRussia] = useState(false);
 
     const fetchUserData = async () => {
         try {
@@ -120,7 +120,7 @@ export const ClientMeditation = () => {
             });
             if (response.data.success) {
                 setUser(response.data.user);
-                // setLocatedInRussia(response.data.user.locatedInRussia);
+                setLocatedInRussia(response.data.user.locatedInRussia);
                 
                 // Проверка на блокировку после получения данных с сервера
                 if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
@@ -135,13 +135,13 @@ export const ClientMeditation = () => {
         }
     }
 
-    // const updateUserData = async (field: string, value: boolean) => {
-    //     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    //     const response = await api.put(`/api/user/${user._id}`, { [field]: value });
-    //     if (response.data.success) {
-    //         setUser(response.data.user);
-    //     }
-    // }
+    const updateUserData = async (field: string, value: boolean) => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await api.put(`/api/user/${user._id}`, { [field]: value });
+        if (response.data.success) {
+            setUser(response.data.user);
+        }
+    }
 
     useEffect(() => {
         fetchUserData();
@@ -472,16 +472,13 @@ export const ClientMeditation = () => {
                     })()}
                     <p className="mt-6" dangerouslySetInnerHTML={{ __html: meditation?.fullDescription }}></p>
 
-                    {/* <div className="mt-4 flex items-center justify-between">
+                    <div className="mt-4 flex items-center justify-between">
                         <div>Просмотр видео в РФ без VPN</div>
                         <Switch checked={locatedInRussia} onChange={() => {
                             updateUserData('locatedInRussia', !locatedInRussia);
                             setLocatedInRussia(!locatedInRussia);
+                            window.location.reload();
                         }} />
-                    </div> */}
-
-                    <div className="mt-3">
-                        Обновите страницу после изменения настроек
                     </div>
                 </div>
             </UserLayout>

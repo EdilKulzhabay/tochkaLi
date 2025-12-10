@@ -246,12 +246,13 @@ export const codeConfirm = async (req, res) => {
 
 export const createUser = async (req, res) => {
     try {
-        const { telegramId, telegramUserName, referralTelegramId } = req.body;
+        const { telegramId, telegramUserName, referralTelegramId, profilePhotoUrl } = req.body;
         const candidate = await User.findOne({ telegramId });
 
         console.log("createUser req.body: ", req.body);
 
         if (candidate) {
+            await User.findByIdAndUpdate(candidate._id, { profilePhotoUrl });
             return res.status(200).json({
                 success: false,
                 message: "Пользователь существует, пропускаем создание пользователя",
@@ -714,6 +715,8 @@ export const activateSubscription = async (req, res) => {
             id,
             { 
                 subscriptionEndDate: new Date(subscriptionEndDate),
+                status: 'client',
+                previousStatus: user.status,
                 hasPaid: true
             },
             { new: true, runValidators: true }
@@ -749,6 +752,8 @@ export const deactivateSubscription = async (req, res) => {
             id,
             { 
                 subscriptionEndDate: null,
+                status: user.previousStatus,
+                previousStatus: null,
                 hasPaid: false
             },
             { new: true, runValidators: true }
@@ -928,7 +933,7 @@ export const updateUserByTelegramId = async (req, res) => {
             { telegramId },
             updateData,
             { new: true, runValidators: true }
-        ).select("-password -currentToken -refreshToken");
+        ).populate('invitedUser', 'fullName telegramUserName telegramId').select("-password -currentToken -refreshToken");
 
         if (!user) {
             return res.status(404).json({

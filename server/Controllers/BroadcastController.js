@@ -79,7 +79,7 @@ export const getFilteredUsers = async (req, res) => {
 // Отправить рассылку
 export const sendBroadcast = async (req, res) => {
     try {
-        const { message, status, search, userIds } = req.body;
+        const { message, status, search, userIds, imageUrl, parseMode, buttonText, buttonUrl } = req.body;
 
         if (!message) {
             return res.status(400).json({
@@ -106,7 +106,7 @@ export const sendBroadcast = async (req, res) => {
             filter.isBlocked = { $ne: true };
             // Только пользователи с разрешением на уведомления
             filter.notifyPermission = true;
-            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked');
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked profilePhotoUrl');
         } else {
             // Иначе используем фильтры по статусу и поиску
             
@@ -137,7 +137,7 @@ export const sendBroadcast = async (req, res) => {
                 ];
             }
 
-            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked');
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked profilePhotoUrl');
         }
 
         if (users.length === 0) {
@@ -170,11 +170,23 @@ export const sendBroadcast = async (req, res) => {
             console.warn('BOT_SERVER_URL не настроен или использует значение по умолчанию');
         }
 
+        // Подготавливаем данные пользователей для подстановки в URL кнопки
+        const usersData = users.map(user => ({
+            telegramId: user.telegramId,
+            telegramUserName: user.telegramUserName || '',
+            profilePhotoUrl: user.profilePhotoUrl || '',
+        }));
+
         // Отправляем запрос на бот сервер для рассылки
         try {
             const response = await axios.post(`${BOT_SERVER_URL}/api/bot/broadcast`, {
                 text: message,
                 telegramIds: telegramIds,
+                imageUrl: imageUrl || undefined,
+                parseMode: parseMode || 'HTML',
+                buttonText: buttonText || undefined,
+                buttonUrl: buttonUrl || undefined,
+                usersData: usersData, // Данные пользователей для подстановки в URL
             }, {
                 headers: {
                     "Content-Type": "application/json",

@@ -125,6 +125,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
+    previousStatus: {
+        type: String,
+        enum: ['guest', 'registered', 'active', 'client'],
+        default: null,
+    },
 }, {
     timestamps: true
 });

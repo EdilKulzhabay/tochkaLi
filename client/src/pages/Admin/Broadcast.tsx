@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/Admin/AdminLayout';
 import api from '../../api';
 import { toast } from 'react-toastify';
-import { Send, Users, MessageSquare, Search, X } from 'lucide-react';
+import { Send, Users, MessageSquare, Search, X, Image as ImageIcon } from 'lucide-react';
 import { RichTextEditor } from '../../components/Admin/RichTextEditor';
+import { ImageUpload } from '../../components/Admin/ImageUpload';
 
 interface BroadcastStats {
     sent: number;
@@ -32,6 +33,10 @@ export const BroadcastAdmin = () => {
     const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
     const [selectedUsersData, setSelectedUsersData] = useState<Map<string, User>>(new Map());
     const [lastStats, setLastStats] = useState<BroadcastStats | null>(null);
+    const [imageUrl, setImageUrl] = useState('');
+    const [parseMode, setParseMode] = useState<'HTML' | 'Markdown'>('HTML');
+    const [buttonText, setButtonText] = useState('');
+    const [buttonUrl, setButtonUrl] = useState('');
 
     const fetchUserCount = async () => {
         try {
@@ -143,7 +148,11 @@ export const BroadcastAdmin = () => {
             try {
                 const response = await api.post('/api/broadcast/send', { 
                     message,
-                    userIds: Array.from(selectedUsers)
+                    userIds: Array.from(selectedUsers),
+                    imageUrl: imageUrl || undefined,
+                    parseMode: parseMode,
+                    buttonText: buttonText || undefined,
+                    buttonUrl: buttonUrl || undefined,
                 });
                 
                 if (response.data.success) {
@@ -194,7 +203,11 @@ export const BroadcastAdmin = () => {
         try {
             const response = await api.post('/api/broadcast/send', { 
                 message,
-                status: status === 'all' ? undefined : status
+                status: status === 'all' ? undefined : status,
+                imageUrl: imageUrl || undefined,
+                parseMode: parseMode,
+                buttonText: buttonText || undefined,
+                buttonUrl: buttonUrl || undefined,
             });
             
             if (response.data.success) {
@@ -209,6 +222,11 @@ export const BroadcastAdmin = () => {
                 } else {
                     toast.success(`Рассылка завершена! Отправлено: ${response.data.sent} сообщений`);
                 }
+                // Очищаем форму после успешной отправки
+                setMessage('');
+                setImageUrl('');
+                setButtonText('');
+                setButtonUrl('');
             } else {
                 toast.error(response.data.message || 'Ошибка отправки рассылки');
             }
@@ -442,6 +460,57 @@ export const BroadcastAdmin = () => {
                         </div>
                     )}
 
+                    {/* Изображение */}
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                            <ImageIcon size={18} />
+                            Изображение (опционально)
+                        </label>
+                        <ImageUpload
+                            value={imageUrl}
+                            onChange={(url) => setImageUrl(url)}
+                            label="Изображение для рассылки"
+                        />
+                        {imageUrl && (
+                            <button
+                                onClick={() => setImageUrl('')}
+                                className="mt-2 text-sm text-red-600 hover:text-red-800"
+                            >
+                                Удалить изображение
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Режим парсинга */}
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                            <MessageSquare size={18} />
+                            Режим форматирования
+                        </label>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setParseMode('HTML')}
+                                className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                                    parseMode === 'HTML'
+                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                            >
+                                HTML
+                            </button>
+                            <button
+                                onClick={() => setParseMode('Markdown')}
+                                className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                                    parseMode === 'Markdown'
+                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                            >
+                                Markdown
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Текст сообщения */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium mb-2">
@@ -454,6 +523,38 @@ export const BroadcastAdmin = () => {
                             placeholder="Введите текст сообщения. "
                             height="350px"
                         />
+                    </div>
+
+                    {/* Inline кнопка */}
+                    <div className="border-t pt-4">
+                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                            Inline кнопка (опционально)
+                        </label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs text-gray-600 mb-1">Текст кнопки</label>
+                                <input
+                                    type="text"
+                                    value={buttonText}
+                                    onChange={(e) => setButtonText(e.target.value)}
+                                    placeholder="Например: Открыть приложение"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-600 mb-1">URL (с {`{telegramId}`}, {`{telegramUserName}`}, {`{profilePhotoUrl}`})</label>
+                                <input
+                                    type="text"
+                                    value={buttonUrl}
+                                    onChange={(e) => setButtonUrl(e.target.value)}
+                                    placeholder="https://example.com?telegramId={telegramId}&username={telegramUserName}"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Переменные будут заменены на реальные данные пользователя: {`{telegramId}`}, {`{telegramUserName}`}, {`{profilePhotoUrl}`}
+                        </p>
                     </div>
 
                     {/* Кнопки действий */}

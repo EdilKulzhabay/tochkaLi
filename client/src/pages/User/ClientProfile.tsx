@@ -11,6 +11,7 @@ import { MyLink } from "../../components/User/MyLink";
 import { Switch } from "../../components/User/Switch";
 import { BonusPolicyModal } from "../../components/User/ClientInsufficientBonusModal";
 import { X } from 'lucide-react';
+import { toast } from "react-toastify";
 
 export const ClientProfile = () => {
     const [userData, setUserData] = useState<any>(null);
@@ -90,9 +91,11 @@ export const ClientProfile = () => {
 
     const updateUserData = async (field: string, value: any) => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const response = await api.put(`/api/user/${user._id}`, { [field]: value });
+        const response = await api.patch(`/api/users/${user.telegramId}`, { [field]: value });
         if (response.data.success) {
             setUserData(response.data.data);
+        } else {
+            toast.error(response.data.message || 'Ошибка обновления данных пользователя');
         }
     }
 
@@ -249,11 +252,13 @@ export const ClientProfile = () => {
                                 )}
                             </div>
                             <div>
-                                <div 
-                                    className="text-xl font-medium cursor-pointer hover:opacity-80 transition-opacity"
-                                    onClick={handleEditNameClick}
-                                >
-                                    {userData?.fullName || 'Не указано'}
+                                <div className="flex items-center gap-x-1" onClick={handleEditNameClick}>
+                                    <div 
+                                        className="text-xl font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                                    >
+                                        {userData?.fullName || 'Не указано'}
+                                    </div>
+                                    <img src={copyLink} alt="edit" className="w-5 h-5 object-cover" />
                                 </div>
                                 <div>{userData?.mail || ""}</div>
                             </div>

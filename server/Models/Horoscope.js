@@ -67,7 +67,10 @@ HoroscopeSchema.statics.getCurrent = async function() {
   const currentDay = String(now.getDate()).padStart(2, '0');
   const currentDate = `${currentMonth}-${currentDay}`;
   
-  const allHoroscopes = await this.find();
+  // Исключаем гороскопы, у которых в title содержится слово "коридор"
+  const allHoroscopes = await this.find({
+    title: { $not: /коридор/i }
+  });
   
   for (const horoscope of allHoroscopes) {
     const start = horoscope.startDate;
