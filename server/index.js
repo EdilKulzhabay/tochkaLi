@@ -181,7 +181,7 @@ app.put("/api/schumann/:id", SchumannController.update);
 app.delete("/api/schumann/:id", SchumannController.remove);
 
 // ==================== Broadcast маршруты ====================
-app.get("/api/broadcast/users", BroadcastController.getFilteredUsers);
+app.post("/api/broadcast/users", BroadcastController.getFilteredUsers);
 app.post("/api/broadcast/send", BroadcastController.sendBroadcast);
 app.post("/api/broadcast/test", BroadcastController.sendTestMessage);
 

@@ -40,10 +40,9 @@ export const BroadcastAdmin = () => {
 
     const fetchUserCount = async () => {
         try {
-            const response = await api.get('/api/broadcast/users', {
-                params: { 
-                    status: status
-                }
+            const response = await api.post('/api/broadcast/users', {
+                    status: status,
+                    search: ""
             });
             setUserCount(response.data.count);
         } catch (error: any) {
@@ -69,11 +68,9 @@ export const BroadcastAdmin = () => {
 
         setSearchLoading(true);
         try {
-            const response = await api.get('/api/broadcast/users', {
-                params: { 
-                    status: status,
-                    search: search 
-                }
+            const response = await api.post('/api/broadcast/users', {
+                status: status,
+                search: search 
             });
             setFoundUsers(response.data.data || []);
             if (response.data.data.length === 0) {
