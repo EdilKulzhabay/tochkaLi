@@ -192,13 +192,25 @@ app.post('/api/bot/broadcast', async (req, res) => {
             console.log('Будет добавлена inline кнопка:', buttonText);
         }
 
-        // Функция для подстановки переменных в URL
-        const replaceUrlVariables = (url, userData) => {
-            if (!url || !userData) return url;
-            return url
-                .replace(/{telegramId}/g, userData.telegramId || '')
-                .replace(/{telegramUserName}/g, userData.telegramUserName || '')
-                .replace(/{profilePhotoUrl}/g, encodeURIComponent(userData.profilePhotoUrl || ''));
+        // Функция для формирования URL кнопки с базовым URL и параметрами
+        const buildButtonUrl = (userData) => {
+            if (!userData) return 'https://kulzhabay.kz/';
+            
+            const baseUrl = 'https://kulzhabay.kz/';
+            const params = new URLSearchParams();
+            
+            // Всегда добавляем telegramId
+            if (userData.telegramId) {
+                params.append('telegramId', userData.telegramId);
+            }
+            
+            // Добавляем profilePhotoUrl только если он не пустой
+            if (userData.profilePhotoUrl && userData.profilePhotoUrl.trim() !== '') {
+                params.append('profilePhotoUrl', userData.profilePhotoUrl);
+            }
+            
+            // Формируем финальный URL с параметрами
+            return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
         };
 
         for (let i = 0; i < telegramIds.length; i++) {
@@ -211,9 +223,9 @@ app.post('/api/bot/broadcast', async (req, res) => {
                     parse_mode: finalParseMode
                 };
 
-                // Добавляем inline кнопку, если указаны текст и URL
-                if (buttonText && buttonUrl) {
-                    const finalButtonUrl = replaceUrlVariables(buttonUrl, userData);
+                // Добавляем inline кнопку, если указан текст
+                if (buttonText) {
+                    const finalButtonUrl = buildButtonUrl(userData);
                     messageOptions.reply_markup = {
                         inline_keyboard: [[
                             {

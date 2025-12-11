@@ -532,30 +532,18 @@ export const BroadcastAdmin = () => {
                         <label className="flex items-center gap-2 text-sm font-medium mb-2">
                             Inline кнопка (опционально)
                         </label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs text-gray-600 mb-1">Текст кнопки</label>
-                                <input
-                                    type="text"
-                                    value={buttonText}
-                                    onChange={(e) => setButtonText(e.target.value)}
-                                    placeholder="Например: Открыть приложение"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs text-gray-600 mb-1">URL (с {`{telegramId}`}, {`{telegramUserName}`}, {`{profilePhotoUrl}`})</label>
-                                <input
-                                    type="text"
-                                    value={buttonUrl}
-                                    onChange={(e) => setButtonUrl(e.target.value)}
-                                    placeholder="https://example.com?telegramId={telegramId}&username={telegramUserName}"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Текст кнопки</label>
+                            <input
+                                type="text"
+                                value={buttonText}
+                                onChange={(e) => setButtonText(e.target.value)}
+                                placeholder="Например: Открыть приложение"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                            Переменные будут заменены на реальные данные пользователя: {`{telegramId}`}, {`{telegramUserName}`}, {`{profilePhotoUrl}`}
+                            URL кнопки будет автоматически сформирован как <code className="bg-gray-100 px-1 rounded">https://kulzhabay.kz/</code> с параметрами <code className="bg-gray-100 px-1 rounded">telegramId</code> и <code className="bg-gray-100 px-1 rounded">profilePhotoUrl</code> (если указан) для каждого пользователя.
                         </p>
                     </div>
 
