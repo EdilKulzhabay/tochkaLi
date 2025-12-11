@@ -347,15 +347,13 @@ export const ClientProfile = () => {
                                 <div className="font-medium text-sm">Телеграм канал проекта .li</div>
                                 <img src={linkArrow} alt="linkArrow" className="w-5 h-5 object-cover shrink-0" />
                             </a>
-                            <a
-                                href="https://t.me/tochka_li"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                to="/about"
                                 className="basis-1/2 bg-[#333333] rounded-lg p-4 flex items-center gap-x-2.5"
                             >
                                 <div className="font-medium text-sm">Телеграм канал клуба .li</div>
                                 <img src={linkArrow} alt="linkArrow" className="w-5 h-5 object-cover shrink-0" />
-                            </a>
+                            </Link>
                         </div>
 
                         <div className="mt-4 flex items-center justify-between">
