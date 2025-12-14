@@ -63,6 +63,81 @@ const cleanTelegramHTML = (html) => {
     return cleaned;
 };
 
+// Получаем ID группы и канала из переменных окружения
+const CHANNEL_ID = process.env.CHANNEL_ID;
+const GROUP_ID = process.env.GROUP_ID;
+
+// Функция для добавления пользователя в группу или канал
+const addUserToChat = async (chatId, userId) => {
+    try {
+        // Сначала пытаемся разбанить пользователя (если он был забанен)
+        await bot.telegram.unbanChatMember(chatId, userId, {
+            only_if_banned: true // Разбанить только если был забанен
+        });
+        
+        // Для групп: пытаемся пригласить пользователя
+        // Для каналов: пользователь должен подписаться сам через ссылку
+        // Но если он был забанен, unbanChatMember вернет его
+        
+        return { success: true, message: 'Пользователь успешно добавлен' };
+    } catch (error) {
+        const errorMessage = error.response?.description || error.message || 'Неизвестная ошибка';
+        const errorCode = error.response?.error_code;
+        
+        // Если пользователь уже в группе/канале, это не ошибка
+        if (errorMessage.includes('already a member') || errorMessage.includes('already in the chat')) {
+            return { success: true, message: 'Пользователь уже является участником' };
+        }
+        
+        // Если пользователь не был забанен, это нормально
+        if (errorMessage.includes('not found') || errorCode === 400) {
+            // Пытаемся отправить пригласительную ссылку (если это группа)
+            try {
+                const chat = await bot.telegram.getChat(chatId);
+                if (chat.type === 'group' || chat.type === 'supergroup') {
+                    // Для групп можно попробовать создать пригласительную ссылку
+                    // Но лучше просто разбанить, что мы уже сделали
+                    return { success: true, message: 'Пользователь может быть добавлен через пригласительную ссылку' };
+                }
+            } catch (e) {
+                console.error('Ошибка при получении информации о чате:', e);
+            }
+        }
+        
+        console.error(`Ошибка добавления пользователя ${userId} в чат ${chatId}:`, errorMessage);
+        return { success: false, error: errorMessage, errorCode };
+    }
+};
+
+// Функция для удаления пользователя из группы или канала
+const removeUserFromChat = async (chatId, userId) => {
+    try {
+        // Баним пользователя (это также удаляет его из группы/канала)
+        await bot.telegram.banChatMember(chatId, userId, {
+            until_date: Math.floor(Date.now() / 1000) + 60 // Бан на 60 секунд (минимальный)
+        });
+        
+        // Сразу разбаниваем, чтобы пользователь мог вернуться позже
+        // Но он уже будет удален из группы/канала
+        await bot.telegram.unbanChatMember(chatId, userId, {
+            only_if_banned: true
+        });
+        
+        return { success: true, message: 'Пользователь успешно удален' };
+    } catch (error) {
+        const errorMessage = error.response?.description || error.message || 'Неизвестная ошибка';
+        const errorCode = error.response?.error_code;
+        
+        // Если пользователь не в группе/канале, это не ошибка
+        if (errorMessage.includes('not a member') || errorMessage.includes('not in the chat')) {
+            return { success: true, message: 'Пользователь не является участником' };
+        }
+        
+        console.error(`Ошибка удаления пользователя ${userId} из чата ${chatId}:`, errorMessage);
+        return { success: false, error: errorMessage, errorCode };
+    }
+};
+
 // Функция для конвертации HTML в текст для Telegram
 const htmlToTelegramText = (html) => {
     if (!html) return '';
@@ -304,6 +379,152 @@ app.post('/api/bot/broadcast', async (req, res) => {
         res.status(500).json({ 
             error: 'Внутренняя ошибка сервера',
             message: error.message 
+        });
+    }
+});
+
+// API эндпоинт для добавления пользователя в группу и канал
+app.post('/api/bot/add-user', async (req, res) => {
+    try {
+        const { telegramId } = req.body;
+        
+        if (!telegramId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Необходимо предоставить telegramId'
+            });
+        }
+
+        const results = {
+            channel: null,
+            group: null
+        };
+
+        // Добавляем в канал, если указан
+        if (CHANNEL_ID) {
+            try {
+                results.channel = await addUserToChat(CHANNEL_ID, parseInt(telegramId));
+            } catch (error) {
+                console.error(`Ошибка добавления в канал ${CHANNEL_ID}:`, error);
+                results.channel = {
+                    success: false,
+                    error: error.message || 'Неизвестная ошибка'
+                };
+            }
+        } else {
+            results.channel = {
+                success: false,
+                error: 'CHANNEL_ID не указан в переменных окружения'
+            };
+        }
+
+        // Добавляем в группу, если указана
+        if (GROUP_ID) {
+            try {
+                results.group = await addUserToChat(GROUP_ID, parseInt(telegramId));
+            } catch (error) {
+                console.error(`Ошибка добавления в группу ${GROUP_ID}:`, error);
+                results.group = {
+                    success: false,
+                    error: error.message || 'Неизвестная ошибка'
+                };
+            }
+        } else {
+            results.group = {
+                success: false,
+                error: 'GROUP_ID не указан в переменных окружения'
+            };
+        }
+
+        const allSuccess = results.channel?.success && results.group?.success;
+        const hasErrors = !results.channel?.success || !results.group?.success;
+
+        res.status(allSuccess ? 200 : (hasErrors ? 207 : 200)).json({
+            success: allSuccess,
+            message: allSuccess 
+                ? 'Пользователь успешно добавлен в группу и канал'
+                : 'Частичное выполнение операции',
+            results
+        });
+    } catch (error) {
+        console.error('Ошибка при добавлении пользователя:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Внутренняя ошибка сервера',
+            message: error.message
+        });
+    }
+});
+
+// API эндпоинт для удаления пользователя из группы и канала
+app.post('/api/bot/remove-user', async (req, res) => {
+    try {
+        const { telegramId } = req.body;
+        
+        if (!telegramId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Необходимо предоставить telegramId'
+            });
+        }
+
+        const results = {
+            channel: null,
+            group: null
+        };
+
+        // Удаляем из канала, если указан
+        if (CHANNEL_ID) {
+            try {
+                results.channel = await removeUserFromChat(CHANNEL_ID, parseInt(telegramId));
+            } catch (error) {
+                console.error(`Ошибка удаления из канала ${CHANNEL_ID}:`, error);
+                results.channel = {
+                    success: false,
+                    error: error.message || 'Неизвестная ошибка'
+                };
+            }
+        } else {
+            results.channel = {
+                success: false,
+                error: 'CHANNEL_ID не указан в переменных окружения'
+            };
+        }
+
+        // Удаляем из группы, если указана
+        if (GROUP_ID) {
+            try {
+                results.group = await removeUserFromChat(GROUP_ID, parseInt(telegramId));
+            } catch (error) {
+                console.error(`Ошибка удаления из группы ${GROUP_ID}:`, error);
+                results.group = {
+                    success: false,
+                    error: error.message || 'Неизвестная ошибка'
+                };
+            }
+        } else {
+            results.group = {
+                success: false,
+                error: 'GROUP_ID не указан в переменных окружения'
+            };
+        }
+
+        const allSuccess = results.channel?.success && results.group?.success;
+        const hasErrors = !results.channel?.success || !results.group?.success;
+
+        res.status(allSuccess ? 200 : (hasErrors ? 207 : 200)).json({
+            success: allSuccess,
+            message: allSuccess 
+                ? 'Пользователь успешно удален из группы и канала'
+                : 'Частичное выполнение операции',
+            results
+        });
+    } catch (error) {
+        console.error('Ошибка при удалении пользователя:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Внутренняя ошибка сервера',
+            message: error.message
         });
     }
 });

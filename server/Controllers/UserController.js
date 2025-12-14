@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import XLSX from "xlsx";
+import axios from "axios";
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -28,6 +29,9 @@ const generateCode = () => {
 const codes = {};
 const lastSentTime = {}; // Отслеживание времени последней отправки
 const sendingInProgress = new Set(); // Отслеживание отправок в процессе
+
+// URL бот сервера для управления группой и каналом
+const BOT_SERVER_URL = process.env.BOT_SERVER_URL || 'http://localhost:5011';
 
 export const sendMail = async (req, res) => {
     const { mail } = req.body;
@@ -711,22 +715,49 @@ export const activateSubscription = async (req, res) => {
             });
         }
 
+        // Сначала находим пользователя, чтобы получить текущий статус
+        const existingUser = await User.findById(id);
+        if (!existingUser) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        const previousStatus = existingUser.status;
+
         const user = await User.findByIdAndUpdate(
             id,
             { 
                 subscriptionEndDate: new Date(subscriptionEndDate),
                 status: 'client',
-                previousStatus: user.status,
+                previousStatus: previousStatus,
                 hasPaid: true
             },
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "Пользователь не найден",
-            });
+        // Добавляем пользователя в группу и канал через бота
+        if (user.telegramId) {
+            try {
+                const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/add-user`, {
+                    telegramId: user.telegramId
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    timeout: 10000, // 10 секунд таймаут
+                });
+
+                if (botResponse.data.success) {
+                    console.log(`Пользователь ${user.telegramId} успешно добавлен в группу и канал`);
+                } else {
+                    console.warn(`Частичное выполнение при добавлении пользователя ${user.telegramId}:`, botResponse.data);
+                }
+            } catch (botError) {
+                console.error(`Ошибка при добавлении пользователя ${user.telegramId} в группу/канал:`, botError.message);
+                // Не прерываем выполнение, если ошибка с ботом
+            }
         }
 
         res.json({
@@ -748,22 +779,49 @@ export const deactivateSubscription = async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Сначала находим пользователя, чтобы получить previousStatus
+        const existingUser = await User.findById(id);
+        if (!existingUser) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+
+        const previousStatus = existingUser.previousStatus || 'registered';
+
         const user = await User.findByIdAndUpdate(
             id,
             { 
                 subscriptionEndDate: null,
-                status: user.previousStatus,
+                status: previousStatus,
                 previousStatus: null,
                 hasPaid: false
             },
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "Пользователь не найден",
-            });
+        // Удаляем пользователя из группы и канала через бота
+        if (user.telegramId) {
+            try {
+                const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/remove-user`, {
+                    telegramId: user.telegramId
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    timeout: 10000, // 10 секунд таймаут
+                });
+
+                if (botResponse.data.success) {
+                    console.log(`Пользователь ${user.telegramId} успешно удален из группы и канала`);
+                } else {
+                    console.warn(`Частичное выполнение при удалении пользователя ${user.telegramId}:`, botResponse.data);
+                }
+            } catch (botError) {
+                console.error(`Ошибка при удалении пользователя ${user.telegramId} из группы/канала:`, botError.message);
+                // Не прерываем выполнение, если ошибка с ботом
+            }
         }
 
         res.json({
