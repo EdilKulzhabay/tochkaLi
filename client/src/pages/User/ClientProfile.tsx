@@ -6,6 +6,7 @@ import api from "../../api";
 import profile from "../../assets/profile.png";
 import profileStar from "../../assets/profileStar.png";
 import copyLink from "../../assets/copyLink.png";
+import edit from "../../assets/edit.png";
 import linkArrow from "../../assets/linkArrow.png";
 import { MyLink } from "../../components/User/MyLink";
 import { Switch } from "../../components/User/Switch";
@@ -258,7 +259,7 @@ export const ClientProfile = () => {
                                     >
                                         {userData?.fullName || 'Не указано'}
                                     </div>
-                                    <img src={copyLink} alt="edit" className="w-5 h-5 object-cover" />
+                                    <img src={edit} alt="edit" className="w-5 h-5 object-cover" />
                                 </div>
                                 <div>{userData?.mail || ""}</div>
                             </div>

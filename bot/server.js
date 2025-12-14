@@ -230,7 +230,9 @@ app.post('/api/bot/broadcast', async (req, res) => {
                         inline_keyboard: [[
                             {
                                 text: buttonText,
-                                url: finalButtonUrl
+                                web_app: {
+                                    url: finalButtonUrl
+                                }
                             }
                         ]]
                     };

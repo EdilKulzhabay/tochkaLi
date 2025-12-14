@@ -15,6 +15,7 @@ interface HoroscopeEntity {
     image?: string;
     lines: any[];
     accessType: string;
+    energyCorridor: boolean;
 }
 
 export const ClientHoroscopesList = () => {
@@ -154,7 +155,7 @@ export const ClientHoroscopesList = () => {
 
     const handleHoroscopeClick = async (horoscope: HoroscopeEntity) => {
         // Проверяем, активен ли гороскоп (startDate <= currentDate <= endDate)
-        if (horoscope.title.toLowerCase().includes('коридоры')) {
+        if (horoscope?.energyCorridor && horoscope?.energyCorridor === true) {
             setCorridorsModalOpen(true);
             return;
         }

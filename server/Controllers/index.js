@@ -15,3 +15,4 @@ export * as RobokassaController from "./RobokassaController.js";
 export * as UploadController from "./UploadController.js";
 export * as DiaryController from "./DiaryController.js";
 export * as VideoProgressController from "./VideoProgressController.js";
+export * as SubscriptionController from "./SubscriptionController.js";

@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
+import cron from 'node-cron';
 
 import { 
     UserController,
@@ -24,7 +25,8 @@ import {
     RobokassaController,
     UploadController,
     DiaryController,
-    VideoProgressController
+    VideoProgressController,
+    SubscriptionController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
@@ -115,6 +117,7 @@ app.get("/api/horoscope/:id", HoroscopeController.getById);
 app.put("/api/horoscope/:id", HoroscopeController.update);
 app.delete("/api/horoscope/:id", HoroscopeController.remove);
 app.post("/api/horoscope/correct-dates", HoroscopeController.correctHoroscopeDates);
+app.get("/api/horoscope/fill-energy-corridor", HoroscopeController.fillEnergyCorridor);
 
 // ==================== Meditation маршруты ====================
 app.post("/api/meditation", MeditationController.create);
@@ -184,6 +187,12 @@ app.delete("/api/schumann/:id", SchumannController.remove);
 app.post("/api/broadcast/users", BroadcastController.getFilteredUsers);
 app.post("/api/broadcast/send", BroadcastController.sendBroadcast);
 app.post("/api/broadcast/test", BroadcastController.sendTestMessage);
+// Маршруты для сохраненных рассылок
+app.post("/api/broadcast", BroadcastController.createBroadcast);
+app.get("/api/broadcast", BroadcastController.getAllBroadcasts);
+app.get("/api/broadcast/:id", BroadcastController.getBroadcastById);
+app.put("/api/broadcast/:id", BroadcastController.updateBroadcast);
+app.delete("/api/broadcast/:id", BroadcastController.deleteBroadcast);
 
 // ==================== Robokassa ====================
 app.post("/api/robres", RobokassaController.handleResult);
@@ -219,6 +228,46 @@ app.get("/api/video-progress/:userId/:contentType/:contentId", VideoProgressCont
 app.get("/api/video-progress/user/:userId/:contentType", VideoProgressController.getUserProgresses);
 app.post("/api/video-progress/batch/:userId/:contentType", VideoProgressController.getProgressesForContents);
 
+// ==================== Subscription ====================
+// Ручной запуск проверки истекших подписок (для тестирования и администрирования)
+app.post("/api/subscription/check-expired", authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+            return res.status(403).json({
+                success: false,
+                message: "Доступ запрещен. Требуется роль admin или manager"
+            });
+        }
+        
+        const result = await SubscriptionController.checkExpiredSubscriptions();
+        res.json(result);
+    } catch (error) {
+        console.error("Ошибка при ручной проверке подписок:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при проверке подписок",
+            error: error.message
+        });
+    }
+});
+
+
+// Настройка cron задачи для проверки истекших подписок
+// Запускается каждый день в 12:00 (по времени сервера)
+cron.schedule('0 12 * * *', async () => {
+    console.log(`[${new Date().toISOString()}] Запуск автоматической проверки истекших подписок...`);
+    const result = await SubscriptionController.checkExpiredSubscriptions();
+    if (result.success) {
+        console.log(`[${new Date().toISOString()}] Проверка завершена успешно. Обновлено пользователей: ${result.updatedCount}`);
+    } else {
+        console.error(`[${new Date().toISOString()}] Ошибка при проверке подписок:`, result.error);
+    }
+}, {
+    timezone: "Asia/Almaty" // Устанавливаем часовой пояс (можно изменить на нужный)
+});
+
+console.log('Cron задача для проверки подписок настроена: каждый день в 12:00');
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);

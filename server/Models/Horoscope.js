@@ -54,6 +54,10 @@ const HoroscopeSchema = new mongoose.Schema(
       default: 'subscription',
       required: true,
     },
+    energyCorridor: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -69,7 +73,7 @@ HoroscopeSchema.statics.getCurrent = async function() {
   
   // Исключаем гороскопы, у которых в title содержится слово "коридор"
   const allHoroscopes = await this.find({
-    title: { $not: /коридор/i }
+    energyCorridor: false
   });
   
   for (const horoscope of allHoroscopes) {

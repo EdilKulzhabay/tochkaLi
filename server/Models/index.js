@@ -11,6 +11,7 @@ import Welcome from './Welcome.js';
 import AboutClub from './AboutClub.js';
 import Schumann from './Schumann.js';
 import VideoProgress from './VideoProgress.js';
+import Broadcast from './Broadcast.js';
 
 export {
     User,
@@ -25,6 +26,7 @@ export {
     Welcome,
     AboutClub,
     Schumann,
-    VideoProgress
+    VideoProgress,
+    Broadcast
 };
 

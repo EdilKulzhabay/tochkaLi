@@ -117,8 +117,8 @@ export const Main = () => {
                 if (!updatedUser && user._id) {
                     try {
                         const response = await api.get(`/api/user/${user._id}`);
-                        if (response.data.success && response.data.user) {
-                            updatedUser = response.data.user;
+                        if (response.data.success && response.data.data) {
+                            updatedUser = response.data.data;
                             if (!updatedUser.fullName || updatedUser.fullName.trim() === '') {
                                 navigate('/');
                                 return;

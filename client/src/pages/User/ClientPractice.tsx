@@ -102,30 +102,32 @@ const getRuTubeEmbedUrl = (url: string): string => {
 export const ClientPractice = () => {
     const { id } = useParams();
     const [practice, setPractice] = useState<any>(null);
-    const [showPoster, setShowPoster] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const rutubeIframeRef = useRef<HTMLIFrameElement>(null);
     const rutubeProgressIntervalRef = useRef<number | null>(null);
+    const youtubeIframeRef = useRef<HTMLIFrameElement>(null);
     const [locatedInRussia, setLocatedInRussia] = useState(false);
 
-    useEffect(() => {
-        // Получаем данные пользователя из localStorage
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            try {
-                const user = JSON.parse(userData);
-                setUser(user);
-                setLocatedInRussia(user.locatedInRussia);
-                // Проверка на блокировку пользователя
-                if (user && user.isBlocked && user.role !== 'admin') {
+    const fetchUserData = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const response = await api.get(`/api/user/${user._id}`);
+            if (response.data.success) {
+                setUser(response.data.data);
+                setLocatedInRussia(response.data.data.locatedInRussia);
+                if (response.data.data && response.data.data.isBlocked && response.data.data.role !== 'admin') {
                     window.location.href = '/client/blocked-user';
                     return;
                 }
-            } catch (e) {
-                console.error('Ошибка парсинга user из localStorage:', e);
             }
+        } catch (error) {
+            console.error('Ошибка загрузки данных пользователя:', error);
         }
+    }
+
+    useEffect(() => {
+        fetchUserData();
         fetchPractice();
     }, []);
 
@@ -174,25 +176,6 @@ export const ClientPractice = () => {
         }
     };
 
-    const handlePosterClick = async () => {
-        setShowPoster(false);
-        
-        // Начисляем бонус при клике на обложку
-        await awardBonusOnPlay();
-        
-        // Если это бесплатный контент, устанавливаем прогресс в 100%
-        if (practice?.accessType === 'free' && id) {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user._id) {
-                    const duration = practice?.duration || 100;
-                    await saveProgressToServer(duration, duration);
-                }
-            } catch (error) {
-                console.error('Ошибка при установке прогресса:', error);
-            }
-        }
-    }
 
     const updateUserData = async (field: string, value: boolean) => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -204,7 +187,7 @@ export const ClientPractice = () => {
 
     // Отслеживание прогресса для RuTube через postMessage
     useEffect(() => {
-        if (!rutubeIframeRef.current || showPoster) return;
+        if (!rutubeIframeRef.current) return;
 
         const handleMessage = (event: MessageEvent) => {
             if (!event.origin.includes('rutube.ru')) return;
@@ -246,7 +229,17 @@ export const ClientPractice = () => {
                 clearInterval(rutubeProgressIntervalRef.current);
             }
         };
-    }, [showPoster, practice?.duration, practice?.accessType, id, saveProgressToServer]);
+    }, [practice?.duration, practice?.accessType, id, saveProgressToServer]);
+
+    const handleLocatedInRussiaChange = async () => {
+        try {
+            await updateUserData('locatedInRussia', !locatedInRussia);
+            setLocatedInRussia(!locatedInRussia);
+            window.location.reload();
+        } catch (error) {
+            console.error('Ошибка при изменении просмотра видео в РФ без VPN:', error);
+        }
+    }
 
     if (loading) {
         return (
@@ -325,43 +318,28 @@ export const ClientPractice = () => {
                             );
                         }
                         
-                        // Для YouTube используем стандартный iframe (обратная совместимость)
+                        // Для YouTube используем стандартный iframe
                         return (
                             <div className="mt-6">
                                 <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-                                    {!showPoster && (
-                                        <iframe
-                                            src={getYouTubeEmbedUrl(videoUrl)}
-                                            title="YouTube video player"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                            allowFullScreen
-                                            className="absolute top-0 left-0 w-full h-full rounded-lg"
-                                        />
-                                    )}
-                                    {showPoster && practice?.imageUrl && (
-                                        <div 
-                                            className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
-                                            onClick={handlePosterClick}
-                                        >
-                                            <img 
-                                                src={`${import.meta.env.VITE_API_URL}${practice.imageUrl}`} 
-                                                alt={practice.title}
-                                                className="w-full h-full object-cover rounded-lg"
-                                            />
-                                            {/* Кнопка воспроизведения */}
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
-                                                    <svg 
-                                                        className="w-8 h-8 text-white ml-1" 
-                                                        fill="currentColor" 
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path d="M8 5v14l11-7z"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <iframe
+                                        ref={youtubeIframeRef}
+                                        src={`${getYouTubeEmbedUrl(videoUrl)}?enablejsapi=1`}
+                                        title="YouTube video player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        allowFullScreen
+                                        className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                        onLoad={() => {
+                                            // Начисляем бонус при загрузке iframe (готовности к воспроизведению)
+                                            awardBonusOnPlay();
+                                            
+                                            // Если бесплатный контент, сразу устанавливаем прогресс в 100%
+                                            if (practice?.accessType === 'free' && id) {
+                                                const duration = practice?.duration || 100;
+                                                saveProgressToServer(duration, duration);
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </div>
                         );
@@ -369,11 +347,7 @@ export const ClientPractice = () => {
                     <p className="mt-6" dangerouslySetInnerHTML={{ __html: practice?.fullDescription }}></p>
                     <div className="mt-4 flex items-center justify-between">
                         <div>Просмотр видео в РФ без VPN</div>
-                        <Switch checked={locatedInRussia} onChange={() => {
-                            updateUserData('locatedInRussia', !locatedInRussia);
-                            setLocatedInRussia(!locatedInRussia);
-                            window.location.reload();
-                        }} />
+                        <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
                     </div>
                 </div>
             </UserLayout>

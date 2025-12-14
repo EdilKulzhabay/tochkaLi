@@ -2,7 +2,7 @@ import { UserLayout } from "../../components/User/UserLayout";
 import { BackNav } from "../../components/User/BackNav";
 import api from "../../api";
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { SecureKinescopePlayer } from "../../components/User/SecureKinescopePlayer";
 import { Switch } from "../../components/User/Switch";
 
@@ -101,37 +101,28 @@ const getRuTubeEmbedUrl = (url: string): string => {
 
 export const ClientMeditation = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const [meditation, setMeditation] = useState<any>(null);
-    const [showPoster, setShowPoster] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const rutubeIframeRef = useRef<HTMLIFrameElement>(null);
     const rutubeProgressIntervalRef = useRef<number | null>(null);
+    const youtubeIframeRef = useRef<HTMLIFrameElement>(null);
     const [locatedInRussia, setLocatedInRussia] = useState(false);
 
     const fetchUserData = async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const response = await api.post('/api/user/profile', { userId: user._id }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            const response = await api.get(`/api/user/${user._id}`);
             if (response.data.success) {
-                setUser(response.data.user);
-                setLocatedInRussia(response.data.user.locatedInRussia);
-                
-                // Проверка на блокировку после получения данных с сервера
-                if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
-                    navigate('/client/blocked-user');
+                setUser(response.data.data);
+                setLocatedInRussia(response.data.data.locatedInRussia);
+                if (response.data.data && response.data.data.isBlocked && response.data.data.role !== 'admin') {
+                    window.location.href = '/client/blocked-user';
                     return;
                 }
             }
         } catch (error) {
             console.error('Ошибка загрузки данных пользователя:', error);
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -140,6 +131,16 @@ export const ClientMeditation = () => {
         const response = await api.put(`/api/user/${user._id}`, { [field]: value });
         if (response.data.success) {
             setUser(response.data.user);
+        }
+    }
+
+    const handleLocatedInRussiaChange = async () => {
+        try {
+            await updateUserData('locatedInRussia', !locatedInRussia);
+            setLocatedInRussia(!locatedInRussia);
+            window.location.reload();
+        } catch (error) {
+            console.error('Ошибка при изменении просмотра видео в РФ без VPN:', error);
         }
     }
 
@@ -193,29 +194,10 @@ export const ClientMeditation = () => {
         }
     };
 
-    const handlePosterClick = async () => {
-        setShowPoster(false);
-        
-        // Начисляем бонус при клике на обложку (для YouTube)
-        await awardBonusOnPlay();
-        
-        // Если это бесплатный контент, устанавливаем прогресс в 100%
-        if (meditation?.accessType === 'free' && id) {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user._id) {
-                    const duration = meditation?.duration || 100;
-                    await saveProgressToServer(duration, duration);
-                }
-            } catch (error) {
-                console.error('Ошибка при установке прогресса:', error);
-            }
-        }
-    }
 
     // Отслеживание прогресса для RuTube через postMessage
     useEffect(() => {
-        if (!rutubeIframeRef.current || showPoster) return;
+        if (!rutubeIframeRef.current) return;
 
         const handleMessage = (event: MessageEvent) => {
             // Проверяем источник сообщения (RuTube)
@@ -262,7 +244,7 @@ export const ClientMeditation = () => {
                 clearInterval(rutubeProgressIntervalRef.current);
             }
         };
-    }, [showPoster, meditation?.duration, meditation?.accessType, id, saveProgressToServer]);
+    }, [meditation?.duration, meditation?.accessType, id, saveProgressToServer]);
 
     if (loading) {
         return (
@@ -297,38 +279,21 @@ export const ClientMeditation = () => {
                                 return (
                                     <div className="mt-6">
                                         <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-                                            {!showPoster && (
-                                                <iframe
-                                                    src={getYouTubeEmbedUrl(meditation.videoUrl)}
-                                                    title="YouTube video player"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                    allowFullScreen
-                                                    className="absolute top-0 left-0 w-full h-full rounded-lg"
-                                                />
-                                            )}
-                                            {showPoster && meditation?.imageUrl && (
-                                                <div 
-                                                    className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
-                                                    onClick={handlePosterClick}
-                                                >
-                                                    <img 
-                                                        src={`${import.meta.env.VITE_API_URL}${meditation.imageUrl}`} 
-                                                        alt={meditation.title}
-                                                        className="w-full h-full object-cover rounded-lg"
-                                                    />
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <div className="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
-                                                            <svg 
-                                                                className="w-8 h-8 text-white ml-1" 
-                                                                fill="currentColor" 
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path d="M8 5v14l11-7z"/>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <iframe
+                                                ref={youtubeIframeRef}
+                                                src={`${getYouTubeEmbedUrl(meditation.videoUrl)}?enablejsapi=1`}
+                                                title="YouTube video player"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                                className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                                onLoad={() => {
+                                                    awardBonusOnPlay();
+                                                    if (meditation?.accessType === 'free' && id) {
+                                                        const duration = meditation?.duration || 100;
+                                                        saveProgressToServer(duration, duration);
+                                                    }
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 );
@@ -364,38 +329,21 @@ export const ClientMeditation = () => {
                                     return (
                                         <div className="mt-6">
                                             <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-                                                {!showPoster && (
-                                                    <iframe
-                                                        src={getYouTubeEmbedUrl(meditation.videoUrl)}
-                                                        title="YouTube video player"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                        allowFullScreen
-                                                        className="absolute top-0 left-0 w-full h-full rounded-lg"
-                                                    />
-                                                )}
-                                                {showPoster && meditation?.imageUrl && (
-                                                    <div 
-                                                        className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
-                                                        onClick={handlePosterClick}
-                                                    >
-                                                        <img 
-                                                            src={`${import.meta.env.VITE_API_URL}${meditation.imageUrl}`} 
-                                                            alt={meditation.title}
-                                                            className="w-full h-full object-cover rounded-lg"
-                                                        />
-                                                        <div className="absolute inset-0 flex items-center justify-center">
-                                                            <div className="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
-                                                                <svg 
-                                                                    className="w-8 h-8 text-white ml-1" 
-                                                                    fill="currentColor" 
-                                                                    viewBox="0 0 24 24"
-                                                                >
-                                                                    <path d="M8 5v14l11-7z"/>
-                                                                </svg>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                <iframe
+                                                    ref={youtubeIframeRef}
+                                                    src={`${getYouTubeEmbedUrl(meditation.videoUrl)}?enablejsapi=1`}
+                                                    title="YouTube video player"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                    allowFullScreen
+                                                    className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                                    onLoad={() => {
+                                                        awardBonusOnPlay();
+                                                        if (meditation?.accessType === 'free' && id) {
+                                                            const duration = meditation?.duration || 100;
+                                                            saveProgressToServer(duration, duration);
+                                                        }
+                                                    }}
+                                                />
                                             </div>
                                         </div>
                                     );
@@ -429,43 +377,28 @@ export const ClientMeditation = () => {
                             );
                         }
                         
-                        // Для YouTube используем стандартный iframe (обратная совместимость)
+                        // Для YouTube используем стандартный iframe
                         return (
                             <div className="mt-6">
                                 <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-                                    {!showPoster && (
-                                        <iframe
-                                            src={getYouTubeEmbedUrl(videoUrl)}
-                                            title="YouTube video player"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                            allowFullScreen
-                                            className="absolute top-0 left-0 w-full h-full rounded-lg"
-                                        />
-                                    )}
-                                    {showPoster && meditation?.imageUrl && (
-                                        <div 
-                                            className="absolute top-0 left-0 w-full h-full cursor-pointer z-10"
-                                            onClick={handlePosterClick}
-                                        >
-                                            <img 
-                                                src={`${import.meta.env.VITE_API_URL}${meditation.imageUrl}`} 
-                                                alt={meditation.title}
-                                                className="w-full h-full object-cover rounded-lg"
-                                            />
-                                            {/* Кнопка воспроизведения */}
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors">
-                                                    <svg 
-                                                        className="w-8 h-8 text-white ml-1" 
-                                                        fill="currentColor" 
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path d="M8 5v14l11-7z"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <iframe
+                                        ref={youtubeIframeRef}
+                                        src={`${getYouTubeEmbedUrl(videoUrl)}?enablejsapi=1`}
+                                        title="YouTube video player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        allowFullScreen
+                                        className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                        onLoad={() => {
+                                            // Начисляем бонус при загрузке iframe (готовности к воспроизведению)
+                                            awardBonusOnPlay();
+                                            
+                                            // Если бесплатный контент, сразу устанавливаем прогресс в 100%
+                                            if (meditation?.accessType === 'free' && id) {
+                                                const duration = meditation?.duration || 100;
+                                                saveProgressToServer(duration, duration);
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </div>
                         );
@@ -474,11 +407,7 @@ export const ClientMeditation = () => {
 
                     <div className="mt-4 flex items-center justify-between">
                         <div>Просмотр видео в РФ без VPN</div>
-                        <Switch checked={locatedInRussia} onChange={() => {
-                            updateUserData('locatedInRussia', !locatedInRussia);
-                            setLocatedInRussia(!locatedInRussia);
-                            window.location.reload();
-                        }} />
+                        <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
                     </div>
                 </div>
             </UserLayout>

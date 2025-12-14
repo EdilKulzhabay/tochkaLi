@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/Admin/AdminLayout';
 import api from '../../api';
 import { toast } from 'react-toastify';
-import { Send, Users, MessageSquare, Search, X, Image as ImageIcon } from 'lucide-react';
+import { Send, Users, MessageSquare, Search, X, Image as ImageIcon, Save, BookOpen, Edit, Trash2 } from 'lucide-react';
 import { RichTextEditor } from '../../components/Admin/RichTextEditor';
 import { ImageUpload } from '../../components/Admin/ImageUpload';
 
@@ -22,6 +22,16 @@ interface User {
     isBlocked?: boolean;
 }
 
+interface SavedBroadcast {
+    _id: string;
+    title: string;
+    imgUrl?: string;
+    content: string;
+    buttonText?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export const BroadcastAdmin = () => {
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState('all');
@@ -37,6 +47,12 @@ export const BroadcastAdmin = () => {
     const [parseMode, setParseMode] = useState<'HTML' | 'Markdown'>('HTML');
     const [buttonText, setButtonText] = useState('');
     const [buttonUrl, setButtonUrl] = useState('');
+    const [savedBroadcasts, setSavedBroadcasts] = useState<SavedBroadcast[]>([]);
+    const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);
+    const [showSaveModal, setShowSaveModal] = useState(false);
+    const [showManageModal, setShowManageModal] = useState(false);
+    const [saveTitle, setSaveTitle] = useState('');
+    const [editingBroadcast, setEditingBroadcast] = useState<SavedBroadcast | null>(null);
 
     const fetchUserCount = async () => {
         try {
@@ -52,6 +68,7 @@ export const BroadcastAdmin = () => {
 
     useEffect(() => {
         fetchUserCount();
+        fetchSavedBroadcasts();
         // При изменении статуса очищаем поиск и найденных пользователей
         setSearch('');
         setFoundUsers([]);
@@ -59,6 +76,17 @@ export const BroadcastAdmin = () => {
         setSelectedUsersData(new Map());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
+
+    const fetchSavedBroadcasts = async () => {
+        try {
+            const response = await api.get('/api/broadcast');
+            if (response.data.success) {
+                setSavedBroadcasts(response.data.data || []);
+            }
+        } catch (error: any) {
+            console.error('Ошибка загрузки сохраненных рассылок:', error);
+        }
+    };
 
     const handleSearch = async () => {
         if (!search.trim()) {
@@ -130,9 +158,112 @@ export const BroadcastAdmin = () => {
         }
     };
 
-    const handleSendBroadcast = async () => {
+    const handleLoadBroadcast = (broadcast: SavedBroadcast) => {
+        setMessage(broadcast.content);
+        setImageUrl(broadcast.imgUrl || '');
+        setButtonText(broadcast.buttonText || '');
+        setSelectedBroadcastId(broadcast._id);
+        setShowManageModal(false);
+        toast.success(`Рассылка "${broadcast.title}" загружена`);
+    };
+
+    const handleSaveBroadcast = async () => {
+        if (!saveTitle.trim()) {
+            toast.warning('Введите название рассылки');
+            return;
+        }
         if (!message.trim()) {
-            toast.warning('Введите сообщение');
+            toast.warning('Введите сообщение для сохранения');
+            return;
+        }
+
+        try {
+            const response = await api.post('/api/broadcast', {
+                title: saveTitle,
+                imgUrl: imageUrl || '',
+                content: message,
+                buttonText: buttonText || '',
+            });
+
+            if (response.data.success) {
+                toast.success('Рассылка успешно сохранена');
+                setShowSaveModal(false);
+                setSaveTitle('');
+                fetchSavedBroadcasts();
+            } else {
+                toast.error(response.data.message || 'Ошибка сохранения рассылки');
+            }
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'Ошибка сохранения рассылки';
+            toast.error(errorMessage);
+        }
+    };
+
+    const handleUpdateBroadcast = async () => {
+        if (!editingBroadcast) return;
+        if (!saveTitle.trim()) {
+            toast.warning('Введите название рассылки');
+            return;
+        }
+
+        try {
+            const response = await api.put(`/api/broadcast/${editingBroadcast._id}`, {
+                title: saveTitle,
+                imgUrl: imageUrl || '',
+                content: message,
+                buttonText: buttonText || '',
+            });
+
+            if (response.data.success) {
+                toast.success('Рассылка успешно обновлена');
+                setShowSaveModal(false);
+                setEditingBroadcast(null);
+                setSaveTitle('');
+                fetchSavedBroadcasts();
+            } else {
+                toast.error(response.data.message || 'Ошибка обновления рассылки');
+            }
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'Ошибка обновления рассылки';
+            toast.error(errorMessage);
+        }
+    };
+
+    const handleDeleteBroadcast = async (id: string) => {
+        if (!confirm('Вы уверены, что хотите удалить эту рассылку?')) return;
+
+        try {
+            const response = await api.delete(`/api/broadcast/${id}`);
+            if (response.data.success) {
+                toast.success('Рассылка успешно удалена');
+                fetchSavedBroadcasts();
+                if (selectedBroadcastId === id) {
+                    setSelectedBroadcastId(null);
+                }
+            } else {
+                toast.error(response.data.message || 'Ошибка удаления рассылки');
+            }
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'Ошибка удаления рассылки';
+            toast.error(errorMessage);
+        }
+    };
+
+    const handleEditBroadcast = (broadcast: SavedBroadcast) => {
+        setEditingBroadcast(broadcast);
+        setSaveTitle(broadcast.title);
+        setMessage(broadcast.content);
+        setImageUrl(broadcast.imgUrl || '');
+        setButtonText(broadcast.buttonText || '');
+        setSelectedBroadcastId(broadcast._id);
+        setShowManageModal(false);
+        setShowSaveModal(true);
+    };
+
+    const handleSendBroadcast = async () => {
+        const finalMessage = message.trim();
+        if (!finalMessage && !selectedBroadcastId) {
+            toast.warning('Введите сообщение или выберите сохраненную рассылку');
             return;
         }
 
@@ -144,7 +275,8 @@ export const BroadcastAdmin = () => {
             setLoading(true);
             try {
                 const response = await api.post('/api/broadcast/send', { 
-                    message,
+                    message: finalMessage || undefined,
+                    broadcastId: selectedBroadcastId || undefined,
                     userIds: Array.from(selectedUsers),
                     imageUrl: imageUrl || undefined,
                     parseMode: parseMode,
@@ -204,7 +336,8 @@ export const BroadcastAdmin = () => {
         setLoading(true);
         try {
             const response = await api.post('/api/broadcast/send', { 
-                message,
+                message: finalMessage || undefined,
+                broadcastId: selectedBroadcastId || undefined,
                 status: status === 'all' ? undefined : status,
                 imageUrl: imageUrl || undefined,
                 parseMode: parseMode,
@@ -291,6 +424,64 @@ export const BroadcastAdmin = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Управление сохраненными рассылками */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-gray-900">Сохраненные рассылки</h2>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowManageModal(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                <BookOpen size={18} />
+                                Управление
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!message.trim()) {
+                                        toast.warning('Сначала заполните форму рассылки');
+                                        return;
+                                    }
+                                    setEditingBroadcast(null);
+                                    setSaveTitle('');
+                                    setShowSaveModal(true);
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                <Save size={18} />
+                                Сохранить текущую
+                            </button>
+                        </div>
+                    </div>
+                    {savedBroadcasts.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {savedBroadcasts.map((broadcast) => (
+                                <div
+                                    key={broadcast._id}
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                        selectedBroadcastId === broadcast._id
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                    onClick={() => handleLoadBroadcast(broadcast)}
+                                >
+                                    <div className="font-semibold text-gray-900 mb-1">{broadcast.title}</div>
+                                    <div className="text-sm text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: broadcast.content.substring(0, 100) }} />
+                                    {broadcast.imgUrl && (
+                                        <div className="mt-2 text-xs text-gray-500">📷 Есть изображение</div>
+                                    )}
+                                    {broadcast.buttonText && (
+                                        <div className="mt-1 text-xs text-gray-500">🔘 Кнопка: {broadcast.buttonText}</div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {savedBroadcasts.length === 0 && (
+                        <p className="text-gray-500 text-center py-4">Нет сохраненных рассылок</p>
+                    )}
+                </div>
 
                 {/* Форма рассылки */}
                 <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
@@ -466,8 +657,12 @@ export const BroadcastAdmin = () => {
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium mb-2">
                             <ImageIcon size={18} />
-                            Изображение (опционально)
+                            Изображение
+                            <span className="text-xs text-gray-500 font-normal">(необязательно)</span>
                         </label>
+                        {/* <p className="text-xs text-gray-500 mb-2">
+                            Если изображение не загружено, будет отправлено только текстовое сообщение
+                        </p> */}
                         <ImageUpload
                             value={imageUrl}
                             onChange={(url) => setImageUrl(url)}
@@ -551,7 +746,7 @@ export const BroadcastAdmin = () => {
                     <div className="flex gap-3 pt-4 border-t">
                         <button
                             onClick={handleSendBroadcast}
-                            disabled={loading || !message.trim() || (selectedUsers.size === 0 && userCount === 0)}
+                            disabled={loading || (!message.trim() && !selectedBroadcastId) || (selectedUsers.size === 0 && userCount === 0)}
                             className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-1"
                         >
                             <Send size={20} />
@@ -561,18 +756,132 @@ export const BroadcastAdmin = () => {
                             }
                         </button>
                     </div>
+                    {selectedBroadcastId && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-blue-900">
+                                    Используется сохраненная рассылка: <strong>{savedBroadcasts.find(b => b._id === selectedBroadcastId)?.title}</strong>
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        setSelectedBroadcastId(null);
+                                        setMessage('');
+                                        setImageUrl('');
+                                        setButtonText('');
+                                    }}
+                                    className="text-sm text-blue-700 hover:text-blue-900 underline"
+                                >
+                                    Очистить
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Инструкция */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-yellow-900 mb-2">⚠️ Важно</h3>
-                    <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
-                        {/* <li>Убедитесь, что в переменных окружения сервера указан <code className="bg-yellow-100 px-1">TELEGRAM_BOT_TOKEN</code></li> */}
-                        <li>Рассылка отправляется только пользователям, у которых есть привязанный Telegram аккаунт</li>
-                        {/* <li>Перед массовой рассылкой рекомендуется отправить тестовое сообщение себе</li> */}
-                        {/* <li>Скорость отправки ограничена (20 сообщений в секунду) для соблюдения лимитов Telegram API</li> */}
-                    </ul>
-                </div>
+                {/* Модальное окно сохранения рассылки */}
+                {showSaveModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                {editingBroadcast ? 'Редактировать рассылку' : 'Сохранить рассылку'}
+                            </h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Название рассылки *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={saveTitle}
+                                        onChange={(e) => setSaveTitle(e.target.value)}
+                                        placeholder="Введите название для сохранения"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={editingBroadcast ? handleUpdateBroadcast : handleSaveBroadcast}
+                                        disabled={!saveTitle.trim()}
+                                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {editingBroadcast ? 'Обновить' : 'Сохранить'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowSaveModal(false);
+                                            setEditingBroadcast(null);
+                                            setSaveTitle('');
+                                        }}
+                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                    >
+                                        Отмена
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Модальное окно управления рассылками */}
+                {showManageModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900">Управление сохраненными рассылками</h2>
+                                <button
+                                    onClick={() => setShowManageModal(false)}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            {savedBroadcasts.length > 0 ? (
+                                <div className="space-y-3">
+                                    {savedBroadcasts.map((broadcast) => (
+                                        <div
+                                            key={broadcast._id}
+                                            className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <h3 className="font-semibold text-gray-900 mb-2">{broadcast.title}</h3>
+                                                    <div className="text-sm text-gray-600 mb-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: broadcast.content.substring(0, 150) }} />
+                                                    <div className="flex gap-4 text-xs text-gray-500">
+                                                        {broadcast.imgUrl && <span>📷 Есть изображение</span>}
+                                                        {broadcast.buttonText && <span>🔘 Кнопка: {broadcast.buttonText}</span>}
+                                                        <span>Создано: {new Date(broadcast.createdAt).toLocaleDateString('ru-RU')}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2 ml-4">
+                                                    <button
+                                                        onClick={() => handleLoadBroadcast(broadcast)}
+                                                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                                    >
+                                                        Загрузить
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEditBroadcast(broadcast)}
+                                                        className="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteBroadcast(broadcast._id)}
+                                                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 text-center py-8">Нет сохраненных рассылок</p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </AdminLayout>
     );

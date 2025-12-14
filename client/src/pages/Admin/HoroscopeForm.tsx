@@ -23,6 +23,7 @@ interface FormData {
     image: string;
     lines: Line[];
     accessType: string;
+    energyCorridor: boolean;
 }
 
 export const HoroscopeForm = () => {
@@ -36,7 +37,8 @@ export const HoroscopeForm = () => {
         subtitle: '',
         image: '',
         lines: [],
-        accessType: 'subscription',
+        accessType: 'subscription', 
+        energyCorridor: false,
     });
 
     useEffect(() => {
@@ -57,6 +59,7 @@ export const HoroscopeForm = () => {
                 image: data.image || '',
                 lines: data.lines || [],
                 accessType: data.accessType || 'free',
+                energyCorridor: data.energyCorridor || false,
             });
         } catch (error) {
             toast.error('Ошибка загрузки гороскопа');
@@ -146,6 +149,19 @@ export const HoroscopeForm = () => {
                                 placeholder="Выберите конечную дату"
                                 min={formData.startDate || undefined}
                             />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="energyCorridor"
+                                checked={formData.energyCorridor}
+                                onChange={(e) => setFormData({ ...formData, energyCorridor: e.target.checked })}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="energyCorridor" className="text-sm font-medium text-gray-700">
+                                Энергетический коридор
+                            </label>
                         </div>
                     </div>
 

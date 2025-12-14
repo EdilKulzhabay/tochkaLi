@@ -54,8 +54,8 @@ export const VideoLessonAdmin = () => {
         { key: 'accessType', label: 'Доступ' },
         { 
             key: 'allowRepeatBonus', 
-            label: 'Повторные бонусы',
-            render: (value: boolean) => value ? '✅ Да' : '❌ Нет'
+            label: 'Повторные звёзды',
+            render: (value: boolean) => value ? 'Да' : 'Нет'
         },
     ];
 

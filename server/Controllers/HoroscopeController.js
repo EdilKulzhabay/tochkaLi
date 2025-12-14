@@ -262,3 +262,19 @@ export const correctHoroscopeDates = async (req, res) => {
         });
     }
 };
+
+export const fillEnergyCorridor = async (req, res) => {
+    try {
+        await Horoscope.updateMany({}, { energyCorridor: false });
+        res.json({
+            success: true,
+            message: "Энергетический коридор обновлен",
+        });
+    } catch (error) {
+        console.log("Ошибка в HoroscopeController.fillEnergyCorridor:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при обновлении энергетических коридоров",
+        });
+    }
+};

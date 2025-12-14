@@ -1,4 +1,5 @@
 import User from "../Models/User.js";
+import Broadcast from "../Models/Broadcast.js";
 import axios from "axios";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -81,9 +82,34 @@ export const getFilteredUsers = async (req, res) => {
 // Отправить рассылку
 export const sendBroadcast = async (req, res) => {
     try {
-        const { message, status, search, userIds, imageUrl, parseMode, buttonText, buttonUrl } = req.body;
+        const { message, status, search, userIds, imageUrl, parseMode, buttonText, buttonUrl, broadcastId, broadcastTitle } = req.body;
+        
+        // Если передан broadcastId или broadcastTitle, загружаем сохраненную рассылку
+        let savedBroadcast = null;
+        if (broadcastId) {
+            savedBroadcast = await Broadcast.findById(broadcastId);
+            if (!savedBroadcast) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Сохраненная рассылка не найдена",
+                });
+            }
+        } else if (broadcastTitle) {
+            savedBroadcast = await Broadcast.findOne({ title: broadcastTitle });
+            if (!savedBroadcast) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Сохраненная рассылка не найдена",
+                });
+            }
+        }
+        
+        // Используем данные из сохраненной рассылки, если они есть
+        const finalMessage = message || savedBroadcast?.content || '';
+        const finalImageUrl = imageUrl || savedBroadcast?.imgUrl || undefined;
+        const finalButtonText = buttonText || savedBroadcast?.buttonText || undefined;
 
-        if (!message) {
+        if (!finalMessage) {
             return res.status(400).json({
                 success: false,
                 message: "Сообщение обязательно для отправки",
@@ -182,11 +208,11 @@ export const sendBroadcast = async (req, res) => {
         // Отправляем запрос на бот сервер для рассылки
         try {
             const response = await axios.post(`${BOT_SERVER_URL}/api/bot/broadcast`, {
-                text: message,
+                text: finalMessage,
                 telegramIds: telegramIds,
-                imageUrl: imageUrl || undefined,
+                imageUrl: finalImageUrl,
                 parseMode: parseMode || 'HTML',
-                buttonText: buttonText || undefined,
+                buttonText: finalButtonText,
                 buttonUrl: buttonUrl || undefined,
                 usersData: usersData, // Данные пользователей для подстановки в URL
             }, {
@@ -310,6 +336,187 @@ export const sendTestMessage = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка при отправке тестового сообщения",
+        });
+    }
+};
+
+// Создать сохраненную рассылку
+export const createBroadcast = async (req, res) => {
+    try {
+        const { title, imgUrl, content, buttonText } = req.body;
+
+        if (!title || !content) {
+            return res.status(400).json({
+                success: false,
+                message: "Название и содержание рассылки обязательны",
+            });
+        }
+
+        // Проверяем, существует ли уже рассылка с таким названием
+        const existingBroadcast = await Broadcast.findOne({ title });
+        if (existingBroadcast) {
+            return res.status(400).json({
+                success: false,
+                message: "Рассылка с таким названием уже существует",
+            });
+        }
+
+        const broadcast = new Broadcast({
+            title,
+            imgUrl: imgUrl || '',
+            content,
+            buttonText: buttonText || '',
+        });
+
+        await broadcast.save();
+
+        res.status(201).json({
+            success: true,
+            message: "Рассылка успешно сохранена",
+            data: broadcast,
+        });
+    } catch (error) {
+        console.log("Ошибка в createBroadcast:", error);
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: "Рассылка с таким названием уже существует",
+            });
+        }
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при сохранении рассылки",
+            error: error.message,
+        });
+    }
+};
+
+// Получить все сохраненные рассылки
+export const getAllBroadcasts = async (req, res) => {
+    try {
+        const broadcasts = await Broadcast.find()
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            data: broadcasts,
+            count: broadcasts.length,
+        });
+    } catch (error) {
+        console.log("Ошибка в getAllBroadcasts:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка получения сохраненных рассылок",
+        });
+    }
+};
+
+// Получить сохраненную рассылку по ID
+export const getBroadcastById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const broadcast = await Broadcast.findById(id);
+
+        if (!broadcast) {
+            return res.status(404).json({
+                success: false,
+                message: "Сохраненная рассылка не найдена",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: broadcast,
+        });
+    } catch (error) {
+        console.log("Ошибка в getBroadcastById:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка получения сохраненной рассылки",
+        });
+    }
+};
+
+// Обновить сохраненную рассылку
+export const updateBroadcast = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, imgUrl, content, buttonText } = req.body;
+
+        const broadcast = await Broadcast.findById(id);
+
+        if (!broadcast) {
+            return res.status(404).json({
+                success: false,
+                message: "Сохраненная рассылка не найдена",
+            });
+        }
+
+        // Если изменяется title, проверяем уникальность
+        if (title && title !== broadcast.title) {
+            const existingBroadcast = await Broadcast.findOne({ title });
+            if (existingBroadcast) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Рассылка с таким названием уже существует",
+                });
+            }
+            broadcast.title = title;
+        }
+
+        if (imgUrl !== undefined) broadcast.imgUrl = imgUrl;
+        if (content !== undefined) broadcast.content = content;
+        if (buttonText !== undefined) broadcast.buttonText = buttonText;
+
+        await broadcast.save();
+
+        res.json({
+            success: true,
+            message: "Рассылка успешно обновлена",
+            data: broadcast,
+        });
+    } catch (error) {
+        console.log("Ошибка в updateBroadcast:", error);
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: "Рассылка с таким названием уже существует",
+            });
+        }
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при обновлении рассылки",
+            error: error.message,
+        });
+    }
+};
+
+// Удалить сохраненную рассылку
+export const deleteBroadcast = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const broadcast = await Broadcast.findById(id);
+
+        if (!broadcast) {
+            return res.status(404).json({
+                success: false,
+                message: "Сохраненная рассылка не найдена",
+            });
+        }
+
+        await Broadcast.findByIdAndDelete(id);
+
+        res.json({
+            success: true,
+            message: "Рассылка успешно удалена",
+        });
+    } catch (error) {
+        console.log("Ошибка в deleteBroadcast:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при удалении рассылки",
         });
     }
 };
