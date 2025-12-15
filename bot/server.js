@@ -71,45 +71,83 @@ const cleanTelegramHTML = (html) => {
 const CHANNEL_ID = process.env.CHANNEL_ID;
 const GROUP_ID = process.env.GROUP_ID;
 
-// Функция для добавления пользователя в группу или канал
-const addUserToChat = async (chatId, userId) => {
+/**
+ * КРИТИЧЕСКОЕ ПРАВИЛО TELEGRAM BOT API:
+ * 
+ * ❌ Бот НЕ МОЖЕТ добавить пользователя в канал или супергруппу напрямую по userId
+ * ✅ Единственный допустимый способ «добавления» — создание одноразовой пригласительной ссылки
+ * ✅ Пользователь сам должен перейти по invite-ссылке
+ * 
+ * Эта функция НЕ добавляет пользователя, а только отправляет ему пригласительную ссылку.
+ * 
+ * @param {number|string} chatId - ID канала или супергруппы
+ * @param {number|string} userId - Telegram ID пользователя
+ * @returns {Promise<Object>} Результат операции с invite-ссылкой
+ */
+const sendInviteLinkToUser = async (chatId, userId) => {
     try {
-        // 1. Сначала разбаниваем пользователя, если он был забанен
+        console.log(`📤 [sendInviteLinkToUser] Начало отправки invite-ссылки для пользователя ${userId} в чат ${chatId}`);
+        
+        // ШАГ 1: Проверка типа чата (ОБЯЗАТЕЛЬНО)
+        // Telegram Bot API поддерживает только supergroup и channel для invite-ссылок
+        // Обычные группы (group) не поддерживаются
+        let chat;
         try {
-            await bot.telegram.unbanChatMember(chatId, userId, {
-                only_if_banned: true
+            chat = await bot.telegram.getChat(chatId);
+            console.log(`✅ [sendInviteLinkToUser] Тип чата ${chatId}: ${chat.type}`);
+        } catch (chatError) {
+            const errorMsg = chatError.response?.description || chatError.message || 'Неизвестная ошибка';
+            console.error(`❌ [sendInviteLinkToUser] Ошибка получения информации о чате ${chatId}:`, errorMsg);
+            return {
+                success: false,
+                error: `Не удалось получить информацию о чате: ${errorMsg}`,
+                errorCode: chatError.response?.error_code,
+                inviteSent: false
+            };
+        }
+        
+        // Проверяем, что чат является каналом или супергруппой
+        if (!['supergroup', 'channel'].includes(chat.type)) {
+            const errorMsg = `Неподдерживаемый тип чата: ${chat.type}. Поддерживаются только 'supergroup' и 'channel'`;
+            console.error(`❌ [sendInviteLinkToUser] ${errorMsg}`);
+            return {
+                success: false,
+                error: errorMsg,
+                inviteSent: false
+            };
+        }
+        
+        // ШАГ 2: Создание одноразовой пригласительной ссылки
+        // ❌ НЕ вызываем unbanChatMember до вступления пользователя
+        // ❌ НЕ проверяем getChatMember как обязательную проверку
+        // ✅ Создаем invite-ссылку с ограничениями:
+        //    - member_limit: 1 (одноразовая ссылка)
+        //    - expire_date: текущее время + 1 час
+        const expireDate = Math.floor(Date.now() / 1000) + 60 * 60; // Текущее время + 1 час в Unix timestamp
+        
+        let inviteLink;
+        try {
+            inviteLink = await bot.telegram.createChatInviteLink(chatId, {
+                member_limit: 1, // Одноразовая ссылка - может быть использована только одним пользователем
+                expire_date: expireDate // Ссылка действительна 1 час
             });
-            console.log(`Пользователь ${userId} разбанен в чате ${chatId}`);
-        } catch (unbanError) {
-            // Это нормально, если пользователь не был забанен
-            if (!unbanError.response?.description?.includes('not found')) {
-                console.log(`Пользователь ${userId} не был забанен в чате ${chatId}`);
-            }
+            console.log(`✅ [sendInviteLinkToUser] Создана invite-ссылка для пользователя ${userId}: ${inviteLink.invite_link}`);
+            console.log(`   Ссылка истекает: ${new Date(expireDate * 1000).toISOString()}`);
+        } catch (inviteError) {
+            const errorMsg = inviteError.response?.description || inviteError.message || 'Неизвестная ошибка';
+            const errorCode = inviteError.response?.error_code;
+            console.error(`❌ [sendInviteLinkToUser] Ошибка создания invite-ссылки для чата ${chatId}:`, errorMsg);
+            return {
+                success: false,
+                error: `Не удалось создать invite-ссылку: ${errorMsg}`,
+                errorCode,
+                inviteSent: false,
+                details: 'Проверьте, что бот является администратором в группе/канале с правами на создание пригласительных ссылок'
+            };
         }
         
-        // 2. Проверяем, является ли пользователь уже участником
-        try {
-            const member = await bot.telegram.getChatMember(chatId, userId);
-            if (member && ['member', 'administrator', 'creator'].includes(member.status)) {
-                return { 
-                    success: true, 
-                    message: 'Пользователь уже является участником',
-                    alreadyMember: true
-                };
-            }
-        } catch (memberError) {
-            // Пользователь не является участником, продолжаем
-            console.log(`Пользователь ${userId} не является участником ${chatId}`);
-        }
-        
-        // 3. Создаем одноразовую пригласительную ссылку
-        const inviteLink = await bot.telegram.createChatInviteLink(chatId, {
-            member_limit: 1, // Одноразовая ссылка
-        });
-        
-        console.log(`Создана пригласительная ссылка для пользователя ${userId}: ${inviteLink.invite_link}`);
-        
-        // 4. Отправляем пригласительную ссылку пользователю в личку
+        // ШАГ 3: Отправка invite-ссылки пользователю в личные сообщения
+        // Пользователь должен сам перейти по ссылке - автоматического добавления нет
         try {
             await bot.telegram.sendMessage(userId, 
                 `🎉 Вам открыт доступ к закрытым материалам!\n\n` +
@@ -128,100 +166,184 @@ const addUserToChat = async (chatId, userId) => {
                 }
             );
             
-            return { 
-                success: true, 
-                message: 'Пригласительная ссылка отправлена пользователю',
-                inviteLink: inviteLink.invite_link
+            console.log(`✅ [sendInviteLinkToUser] Invite-ссылка успешно отправлена пользователю ${userId}`);
+            
+            return {
+                success: true,
+                inviteSent: true,
+                inviteLink: inviteLink.invite_link,
+                expireDate: expireDate,
+                message: 'Пригласительная ссылка отправлена пользователю'
             };
         } catch (sendError) {
-            // Если не удалось отправить в личку, возвращаем ссылку
-            console.error(`Не удалось отправить ссылку пользователю ${userId}:`, sendError.message);
-            return { 
-                success: true, 
-                message: 'Пригласительная ссылка создана, но не удалось отправить в личку',
+            // Если не удалось отправить в личку, это не критическая ошибка
+            // Ссылка все равно создана и может быть использована
+            const errorMsg = sendError.response?.description || sendError.message || 'Неизвестная ошибка';
+            const errorCode = sendError.response?.error_code;
+            
+            console.warn(`⚠️ [sendInviteLinkToUser] Invite-ссылка создана, но не удалось отправить пользователю ${userId}:`, errorMsg);
+            
+            return {
+                success: true, // Ссылка создана успешно
+                inviteSent: false, // Но не отправлена
                 inviteLink: inviteLink.invite_link,
-                warning: 'Пользователь заблокировал бота или не начал диалог'
+                expireDate: expireDate,
+                warning: 'Пользователь заблокировал бота или не начал диалог',
+                error: errorMsg,
+                errorCode,
+                message: 'Пригласительная ссылка создана, но не удалось отправить в личку'
             };
         }
     } catch (error) {
         const errorMessage = error.response?.description || error.message || 'Неизвестная ошибка';
         const errorCode = error.response?.error_code;
         
-        console.error(`Ошибка добавления пользователя ${userId} в чат ${chatId}:`, errorMessage);
-        return { 
-            success: false, 
-            error: errorMessage, 
+        console.error(`❌ [sendInviteLinkToUser] Критическая ошибка для пользователя ${userId} в чат ${chatId}:`, errorMessage);
+        return {
+            success: false,
+            inviteSent: false,
+            error: errorMessage,
             errorCode,
             details: 'Проверьте, что бот является администратором в группе/канале с правами на создание пригласительных ссылок'
         };
     }
 };
 
-// Функция для удаления пользователя из группы или канала
+/**
+ * Удаление пользователя из канала или супергруппы
+ * 
+ * КОРРЕКТНАЯ ЛОГИКА УДАЛЕНИЯ:
+ * 1. banChatMember - удаляет пользователя из чата
+ * 2. unbanChatMember - разбанивает, чтобы пользователь мог вернуться по новой invite-ссылке
+ * 
+ * ⚠️ Ошибки USER_NOT_PARTICIPANT считаются успехом (пользователь уже не участник)
+ * 
+ * @param {number|string} chatId - ID канала или супергруппы
+ * @param {number|string} userId - Telegram ID пользователя
+ * @returns {Promise<Object>} Результат операции удаления
+ */
 const removeUserFromChat = async (chatId, userId) => {
     try {
-        // 1. Проверяем, является ли пользователь участником
+        console.log(`🗑️ [removeUserFromChat] Начало удаления пользователя ${userId} из чата ${chatId}`);
+        
+        // ШАГ 1: Проверка типа чата (ОБЯЗАТЕЛЬНО)
+        // Telegram Bot API поддерживает только supergroup и channel для ban/unban операций
+        let chat;
         try {
-            const member = await bot.telegram.getChatMember(chatId, userId);
-            if (member && ['left', 'kicked'].includes(member.status)) {
-                return { 
-                    success: true, 
-                    message: 'Пользователь уже не является участником',
-                    alreadyRemoved: true
-                };
-            }
-        } catch (memberError) {
-            // Пользователь не найден - уже не участник
-            return { 
-                success: true, 
-                message: 'Пользователь не является участником',
-                alreadyRemoved: true
+            chat = await bot.telegram.getChat(chatId);
+            console.log(`✅ [removeUserFromChat] Тип чата ${chatId}: ${chat.type}`);
+        } catch (chatError) {
+            const errorMsg = chatError.response?.description || chatError.message || 'Неизвестная ошибка';
+            console.error(`❌ [removeUserFromChat] Ошибка получения информации о чате ${chatId}:`, errorMsg);
+            return {
+                success: false,
+                error: `Не удалось получить информацию о чате: ${errorMsg}`,
+                errorCode: chatError.response?.error_code,
+                removed: false
             };
         }
         
-        // 2. Баним пользователя (это удаляет его из группы/канала)
-        await bot.telegram.banChatMember(chatId, userId);
-        console.log(`Пользователь ${userId} забанен (удален) из чата ${chatId}`);
+        // Проверяем, что чат является каналом или супергруппой
+        if (!['supergroup', 'channel'].includes(chat.type)) {
+            const errorMsg = `Неподдерживаемый тип чата: ${chat.type}. Поддерживаются только 'supergroup' и 'channel'`;
+            console.error(`❌ [removeUserFromChat] ${errorMsg}`);
+            return {
+                success: false,
+                error: errorMsg,
+                removed: false
+            };
+        }
         
-        // 3. Сразу разбаниваем, чтобы пользователь мог вернуться позже по новой ссылке
-        // Но он уже будет удален из группы/канала
-        await bot.telegram.unbanChatMember(chatId, userId);
-        console.log(`Пользователь ${userId} разбанен (может вернуться по ссылке) в чате ${chatId}`);
+        // ШАГ 2: Удаление пользователя через banChatMember
+        // banChatMember удаляет пользователя из группы/канала
+        // revoke_messages: false - не удаляем сообщения пользователя
+        try {
+            await bot.telegram.banChatMember(chatId, userId, {
+                revoke_messages: false // Не удаляем сообщения пользователя
+            });
+            console.log(`✅ [removeUserFromChat] Пользователь ${userId} забанен (удален) из чата ${chatId}`);
+        } catch (banError) {
+            const errorMsg = banError.response?.description || banError.message || 'Неизвестная ошибка';
+            const errorCode = banError.response?.error_code;
+            
+            // Если пользователь не является участником, это не ошибка
+            if (errorMsg.includes('not a member') || 
+                errorMsg.includes('not in the chat') || 
+                errorMsg.includes('USER_NOT_PARTICIPANT') ||
+                errorCode === 400) {
+                console.log(`ℹ️ [removeUserFromChat] Пользователь ${userId} уже не является участником чата ${chatId}`);
+                return {
+                    success: true,
+                    removed: false,
+                    alreadyRemoved: true,
+                    message: 'Пользователь не является участником'
+                };
+            }
+            
+            console.error(`❌ [removeUserFromChat] Ошибка бана пользователя ${userId} из чата ${chatId}:`, errorMsg);
+            return {
+                success: false,
+                removed: false,
+                error: `Не удалось удалить пользователя: ${errorMsg}`,
+                errorCode,
+                details: 'Проверьте, что бот является администратором в группе/канале с правами на удаление пользователей'
+            };
+        }
         
-        // 4. Уведомляем пользователя о завершении подписки (опционально)
+        // ШАГ 3: Разбан пользователя
+        // unbanChatMember разбанивает пользователя, чтобы он мог вернуться по новой invite-ссылке
+        // Но пользователь уже удален из группы/канала
+        try {
+            await bot.telegram.unbanChatMember(chatId, userId);
+            console.log(`✅ [removeUserFromChat] Пользователь ${userId} разбанен (может вернуться по новой invite-ссылке) в чате ${chatId}`);
+        } catch (unbanError) {
+            // Ошибка разбана не критична - пользователь уже удален
+            const errorMsg = unbanError.response?.description || unbanError.message || 'Неизвестная ошибка';
+            console.warn(`⚠️ [removeUserFromChat] Не удалось разбанить пользователя ${userId} из чата ${chatId}:`, errorMsg);
+            // Продолжаем выполнение - пользователь уже удален
+        }
+        
+        // ШАГ 4: Уведомление пользователя о завершении подписки (опционально)
+        // Это не критично для успешного удаления
         try {
             await bot.telegram.sendMessage(userId, 
                 `⏰ Ваша подписка завершена.\n\n` +
                 `Вы были удалены из закрытых групп и каналов.\n\n` +
                 `Для возобновления доступа, пожалуйста, продлите подписку.`
             );
+            console.log(`✅ [removeUserFromChat] Уведомление отправлено пользователю ${userId}`);
         } catch (sendError) {
             // Если не удалось отправить уведомление, это не критично
-            console.log(`Не удалось отправить уведомление пользователю ${userId}:`, sendError.message);
+            console.log(`ℹ️ [removeUserFromChat] Не удалось отправить уведомление пользователю ${userId}:`, sendError.message);
         }
         
-        return { 
-            success: true, 
-            message: 'Пользователь успешно удален',
-            notified: true
+        return {
+            success: true,
+            removed: true,
+            message: 'Пользователь успешно удален'
         };
     } catch (error) {
         const errorMessage = error.response?.description || error.message || 'Неизвестная ошибка';
         const errorCode = error.response?.error_code;
         
         // Если пользователь не в группе/канале, это не ошибка
-        if (errorMessage.includes('not a member') || errorMessage.includes('not in the chat') || errorMessage.includes('USER_NOT_PARTICIPANT')) {
-            return { 
-                success: true, 
-                message: 'Пользователь не является участником',
-                alreadyRemoved: true
+        if (errorMessage.includes('not a member') || 
+            errorMessage.includes('not in the chat') || 
+            errorMessage.includes('USER_NOT_PARTICIPANT')) {
+            console.log(`ℹ️ [removeUserFromChat] Пользователь ${userId} не является участником чата ${chatId}`);
+            return {
+                success: true,
+                removed: false,
+                alreadyRemoved: true,
+                message: 'Пользователь не является участником'
             };
         }
         
-        console.error(`Ошибка удаления пользователя ${userId} из чата ${chatId}:`, errorMessage);
-        return { 
-            success: false, 
-            error: errorMessage, 
+        console.error(`❌ [removeUserFromChat] Критическая ошибка удаления пользователя ${userId} из чата ${chatId}:`, errorMessage);
+        return {
+            success: false,
+            removed: false,
+            error: errorMessage,
             errorCode,
             details: 'Проверьте, что бот является администратором в группе/канале с правами на удаление пользователей'
         };
@@ -473,90 +595,136 @@ app.post('/api/bot/broadcast', async (req, res) => {
     }
 });
 
-// API эндпоинт для добавления пользователя в группу и канал
+/**
+ * API эндпоинт для отправки пригласительных ссылок пользователю
+ * 
+ * ⚠️ ВАЖНО: Этот эндпоинт НЕ добавляет пользователя напрямую!
+ * Он только отправляет invite-ссылки. Пользователь должен сам перейти по ссылке.
+ * 
+ * POST /api/bot/add-user
+ * Body: { telegramId: number }
+ * 
+ * Возвращает статус 200 всегда, ошибки внутри JSON
+ */
 app.post('/api/bot/add-user', async (req, res) => {
     try {
         const { telegramId } = req.body;
         
         if (!telegramId) {
-            return res.status(400).json({
+            return res.status(200).json({
                 success: false,
-                error: 'Необходимо предоставить telegramId'
+                error: 'Необходимо предоставить telegramId',
+                channel: null,
+                group: null
             });
         }
+
+        console.log(`📥 [API] Запрос на отправку invite-ссылок для пользователя ${telegramId}`);
 
         const results = {
             channel: null,
             group: null
         };
 
-        // Добавляем в канал, если указан
+        // Отправляем invite-ссылку для канала, если указан
         if (CHANNEL_ID) {
             try {
-                results.channel = await addUserToChat(CHANNEL_ID, parseInt(telegramId));
+                console.log(`📤 [API] Отправка invite-ссылки для канала ${CHANNEL_ID}`);
+                results.channel = await sendInviteLinkToUser(CHANNEL_ID, parseInt(telegramId));
             } catch (error) {
-                console.error(`Ошибка добавления в канал ${CHANNEL_ID}:`, error);
+                console.error(`❌ [API] Ошибка отправки invite-ссылки для канала ${CHANNEL_ID}:`, error);
                 results.channel = {
                     success: false,
+                    inviteSent: false,
                     error: error.message || 'Неизвестная ошибка'
                 };
             }
         } else {
+            console.warn(`⚠️ [API] CHANNEL_ID не указан в переменных окружения`);
             results.channel = {
                 success: false,
+                inviteSent: false,
                 error: 'CHANNEL_ID не указан в переменных окружения'
             };
         }
 
-        // Добавляем в группу, если указана
+        // Отправляем invite-ссылку для группы, если указана
         if (GROUP_ID) {
             try {
-                results.group = await addUserToChat(GROUP_ID, parseInt(telegramId));
+                console.log(`📤 [API] Отправка invite-ссылки для группы ${GROUP_ID}`);
+                results.group = await sendInviteLinkToUser(GROUP_ID, parseInt(telegramId));
             } catch (error) {
-                console.error(`Ошибка добавления в группу ${GROUP_ID}:`, error);
+                console.error(`❌ [API] Ошибка отправки invite-ссылки для группы ${GROUP_ID}:`, error);
                 results.group = {
                     success: false,
+                    inviteSent: false,
                     error: error.message || 'Неизвестная ошибка'
                 };
             }
         } else {
+            console.warn(`⚠️ [API] GROUP_ID не указан в переменных окружения`);
             results.group = {
                 success: false,
+                inviteSent: false,
                 error: 'GROUP_ID не указан в переменных окружения'
             };
         }
 
-        const allSuccess = results.channel?.success && results.group?.success;
-        const hasErrors = !results.channel?.success || !results.group?.success;
+        // Определяем общий статус успеха
+        const channelSuccess = results.channel?.success === true;
+        const groupSuccess = results.group?.success === true;
+        const allSuccess = channelSuccess && groupSuccess;
+        const anySuccess = channelSuccess || groupSuccess;
 
-        res.status(allSuccess ? 200 : (hasErrors ? 207 : 200)).json({
+        // Всегда возвращаем статус 200, ошибки внутри JSON
+        res.status(200).json({
             success: allSuccess,
             message: allSuccess 
-                ? 'Пользователь успешно добавлен в группу и канал'
-                : 'Частичное выполнение операции',
+                ? 'Пригласительные ссылки успешно отправлены для канала и группы'
+                : anySuccess
+                    ? 'Пригласительные ссылки отправлены частично'
+                    : 'Не удалось отправить пригласительные ссылки',
             results
         });
     } catch (error) {
-        console.error('Ошибка при добавлении пользователя:', error);
-        res.status(500).json({
+        console.error('❌ [API] Критическая ошибка при отправке invite-ссылок:', error);
+        res.status(200).json({
             success: false,
             error: 'Внутренняя ошибка сервера',
-            message: error.message
+            message: error.message,
+            results: {
+                channel: null,
+                group: null
+            }
         });
     }
 });
 
-// API эндпоинт для удаления пользователя из группы и канала
+/**
+ * API эндпоинт для удаления пользователя из группы и канала
+ * 
+ * Этот эндпоинт реально удаляет пользователя через banChatMember + unbanChatMember
+ * 
+ * POST /api/bot/remove-user
+ * Body: { telegramId: number }
+ * 
+ * Возвращает статус 200 всегда, ошибки внутри JSON
+ * Ошибки USER_NOT_PARTICIPANT считаются успехом
+ */
 app.post('/api/bot/remove-user', async (req, res) => {
     try {
         const { telegramId } = req.body;
         
         if (!telegramId) {
-            return res.status(400).json({
+            return res.status(200).json({
                 success: false,
-                error: 'Необходимо предоставить telegramId'
+                error: 'Необходимо предоставить telegramId',
+                channel: null,
+                group: null
             });
         }
+
+        console.log(`🗑️ [API] Запрос на удаление пользователя ${telegramId}`);
 
         const results = {
             channel: null,
@@ -566,17 +734,21 @@ app.post('/api/bot/remove-user', async (req, res) => {
         // Удаляем из канала, если указан
         if (CHANNEL_ID) {
             try {
+                console.log(`🗑️ [API] Удаление пользователя из канала ${CHANNEL_ID}`);
                 results.channel = await removeUserFromChat(CHANNEL_ID, parseInt(telegramId));
             } catch (error) {
-                console.error(`Ошибка удаления из канала ${CHANNEL_ID}:`, error);
+                console.error(`❌ [API] Ошибка удаления из канала ${CHANNEL_ID}:`, error);
                 results.channel = {
                     success: false,
+                    removed: false,
                     error: error.message || 'Неизвестная ошибка'
                 };
             }
         } else {
+            console.warn(`⚠️ [API] CHANNEL_ID не указан в переменных окружения`);
             results.channel = {
                 success: false,
+                removed: false,
                 error: 'CHANNEL_ID не указан в переменных окружения'
             };
         }
@@ -584,37 +756,52 @@ app.post('/api/bot/remove-user', async (req, res) => {
         // Удаляем из группы, если указана
         if (GROUP_ID) {
             try {
+                console.log(`🗑️ [API] Удаление пользователя из группы ${GROUP_ID}`);
                 results.group = await removeUserFromChat(GROUP_ID, parseInt(telegramId));
             } catch (error) {
-                console.error(`Ошибка удаления из группы ${GROUP_ID}:`, error);
+                console.error(`❌ [API] Ошибка удаления из группы ${GROUP_ID}:`, error);
                 results.group = {
                     success: false,
+                    removed: false,
                     error: error.message || 'Неизвестная ошибка'
                 };
             }
         } else {
+            console.warn(`⚠️ [API] GROUP_ID не указан в переменных окружения`);
             results.group = {
                 success: false,
+                removed: false,
                 error: 'GROUP_ID не указан в переменных окружения'
             };
         }
 
-        const allSuccess = results.channel?.success && results.group?.success;
-        const hasErrors = !results.channel?.success || !results.group?.success;
+        // Определяем общий статус успеха
+        // Ошибки USER_NOT_PARTICIPANT считаются успехом (пользователь уже не участник)
+        const channelSuccess = results.channel?.success === true;
+        const groupSuccess = results.group?.success === true;
+        const allSuccess = channelSuccess && groupSuccess;
+        const anySuccess = channelSuccess || groupSuccess;
 
-        res.status(allSuccess ? 200 : (hasErrors ? 207 : 200)).json({
+        // Всегда возвращаем статус 200, ошибки внутри JSON
+        res.status(200).json({
             success: allSuccess,
             message: allSuccess 
-                ? 'Пользователь успешно удален из группы и канала'
-                : 'Частичное выполнение операции',
+                ? 'Пользователь успешно удален из канала и группы'
+                : anySuccess
+                    ? 'Пользователь удален частично'
+                    : 'Не удалось удалить пользователя',
             results
         });
     } catch (error) {
-        console.error('Ошибка при удалении пользователя:', error);
-        res.status(500).json({
+        console.error('❌ [API] Критическая ошибка при удалении пользователя:', error);
+        res.status(200).json({
             success: false,
             error: 'Внутренняя ошибка сервера',
-            message: error.message
+            message: error.message,
+            results: {
+                channel: null,
+                group: null
+            }
         });
     }
 });
