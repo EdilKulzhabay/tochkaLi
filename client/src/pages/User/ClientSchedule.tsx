@@ -182,69 +182,33 @@ export const ClientSchedule = () => {
     };
 
     // Функция для добавления события в календарь
-    const addToCalendar = async () => {
+    const addToCalendar = () => {
         if (!selectedSchedule || isAddingToCalendar) return;
 
         setIsAddingToCalendar(true);
 
-        try {
-            // Используем fetch для получения .ics файла
-            const response = await api.get(`/api/schedule/${selectedSchedule._id}/calendar`, {
-                responseType: 'blob',
-            });
-
-            // Создаем blob URL из ответа с правильным MIME типом
-            const blob = new Blob([response.data], { type: 'text/calendar;charset=utf-8' });
-            const blobUrl = window.URL.createObjectURL(blob);
-            
-            // Определяем, мобильное ли устройство
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                // Для мобильных устройств открываем файл напрямую, чтобы календарь предложил добавить событие
-                // Создаем ссылку БЕЗ атрибута download, чтобы система открыла файл в календаре
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                // НЕ используем download - это позволит системе открыть файл в календаре
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                // Для Desktop: сначала пробуем открыть в календаре, если не получится - скачиваем
-                // Создаем ссылку БЕЗ download для открытия в календаре
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                
-                // Пробуем открыть в календаре
-                try {
-                    link.click();
-                } catch (e) {
-                    // Если не получилось, пробуем скачать
-                    link.download = `schedule_${selectedSchedule._id}.ics`;
-                    link.click();
-                }
-                
-                document.body.removeChild(link);
-            }
-            
-            // Очищаем blob URL после использования
-            setTimeout(() => {
-                window.URL.revokeObjectURL(blobUrl);
-            }, 1000);
-
-            // Закрываем модальное окно после начала загрузки
-            setTimeout(() => {
-                closeModal();
-                setIsAddingToCalendar(false);
-            }, 500);
-        } catch (error) {
-            console.error('Ошибка при добавлении в календарь:', error);
-            alert('Не удалось добавить событие в календарь. Попробуйте еще раз.');
-            setIsAddingToCalendar(false);
+        // Формируем URL для получения .ics файла (публичный endpoint)
+        const baseURL = import.meta.env.VITE_API_URL || '';
+        const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
+        
+        // Определяем, мобильное ли устройство
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // Для мобильных устройств: прямой переход по URL
+            // Браузер автоматически откроет файл в календаре благодаря Content-Type: text/calendar
+            window.location.href = calendarUrl;
+        } else {
+            // Для Desktop: открываем в новом окне
+            // Браузер/система автоматически откроет файл в календарном приложении
+            window.open(calendarUrl, '_blank');
         }
+        
+        // Закрываем модальное окно после перехода
+        setTimeout(() => {
+            closeModal();
+            setIsAddingToCalendar(false);
+        }, 300);
     };
 
     if (loading) {
