@@ -4,8 +4,8 @@ import {
     Italic, 
     Underline, 
     Strikethrough,
-    Code,
-    FileCode,
+    List,
+    ListOrdered,
     EyeOff,
     Quote,
     Link as LinkIcon
@@ -45,40 +45,14 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
         }
     };
 
-    // Вставка моноширинного кода (inline)
-    const insertCode = () => {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const text = range.toString();
-            if (text) {
-                const code = document.createElement('code');
-                code.textContent = text;
-                range.deleteContents();
-                range.insertNode(code);
-                selection.removeAllRanges();
-            }
-        }
-        editorRef.current?.focus();
+    // Вставка маркированного списка
+    const insertUnorderedList = () => {
+        execCommand('insertUnorderedList');
     };
 
-    // Вставка блока кода
-    const insertCodeBlock = () => {
-        const code = prompt('Введите код:');
-        if (code) {
-            const pre = document.createElement('pre');
-            pre.textContent = code;
-            
-            const selection = window.getSelection();
-            if (selection && selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                range.insertNode(pre);
-                range.collapse(false);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        }
-        editorRef.current?.focus();
+    // Вставка нумерованного списка
+    const insertOrderedList = () => {
+        execCommand('insertOrderedList');
     };
 
     // Вставка спойлера
@@ -152,16 +126,16 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
             telegram: '<s>текст</s> или <del>текст</del>'
         },
         { 
-            icon: Code, 
-            action: insertCode, 
-            title: 'Моноширинный код (inline)',
-            telegram: '<code>код</code>'
+            icon: List, 
+            action: insertUnorderedList, 
+            title: 'Маркированный список',
+            telegram: '• Элемент 1\n• Элемент 2'
         },
         { 
-            icon: FileCode, 
-            action: insertCodeBlock, 
-            title: 'Блок кода',
-            telegram: '<pre>код</pre>'
+            icon: ListOrdered, 
+            action: insertOrderedList, 
+            title: 'Нумерованный список',
+            telegram: '1. Элемент 1\n2. Элемент 2'
         },
         { 
             icon: EyeOff, 
@@ -208,7 +182,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
 
             {/* Info banner */}
             <div className="bg-blue-50 border-b border-blue-200 px-3 py-2 text-xs text-blue-800">
-                💡 <strong>Telegram HTML:</strong> Поддерживает жирный, курсив, подчеркнутый, зачеркнутый, код, спойлер, цитату и ссылки
+                💡 <strong>Telegram HTML:</strong> Поддерживает жирный, курсив, подчеркнутый, зачеркнутый, списки, спойлер, цитату и ссылки
             </div>
 
             {/* Editor */}
@@ -301,6 +275,19 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
                 }
                 [contenteditable] a:hover {
                     color: #1d4ed8;
+                }
+                [contenteditable] ul {
+                    list-style-type: disc;
+                    margin-left: 1.5em;
+                    padding-left: 0.5em;
+                }
+                [contenteditable] ol {
+                    list-style-type: decimal;
+                    margin-left: 1.5em;
+                    padding-left: 0.5em;
+                }
+                [contenteditable] li {
+                    margin: 0.25em 0;
                 }
             `}</style>
         </div>

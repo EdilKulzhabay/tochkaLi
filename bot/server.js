@@ -110,7 +110,7 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         if (!['supergroup', 'channel'].includes(chat.type)) {
             const errorMsg = `Неподдерживаемый тип чата: ${chat.type}. Поддерживаются только 'supergroup' и 'channel'`;
             console.error(`❌ [sendInviteLinkToUser] ${errorMsg}`);
-            return {
+                return { 
                 success: false,
                 error: errorMsg,
                 inviteSent: false
@@ -166,8 +166,8 @@ const sendInviteLinkToUser = async (chatId, userId) => {
             
             console.log(`✅ [sendInviteLinkToUser] Invite-ссылка успешно отправлена пользователю ${userId}`);
             
-            return {
-                success: true,
+            return { 
+                success: true, 
                 inviteSent: true,
                 inviteLink: inviteLink.invite_link,
                 expireDate: expireDate,
@@ -181,7 +181,7 @@ const sendInviteLinkToUser = async (chatId, userId) => {
             
             console.warn(`⚠️ [sendInviteLinkToUser] Invite-ссылка создана, но не удалось отправить пользователю ${userId}:`, errorMsg);
             
-            return {
+            return { 
                 success: true, // Ссылка создана успешно
                 inviteSent: false, // Но не отправлена
                 inviteLink: inviteLink.invite_link,
@@ -197,10 +197,10 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         const errorCode = error.response?.error_code;
         
         console.error(`❌ [sendInviteLinkToUser] Критическая ошибка для пользователя ${userId} в чат ${chatId}:`, errorMessage);
-        return {
-            success: false,
+        return { 
+            success: false, 
             inviteSent: false,
-            error: errorMessage,
+            error: errorMessage, 
             errorCode,
             details: 'Проверьте, что бот является администратором в группе/канале с правами на создание пригласительных ссылок'
         };
@@ -270,8 +270,8 @@ const removeUserFromChat = async (chatId, userId) => {
                 errorMsg.includes('USER_NOT_PARTICIPANT') ||
                 errorCode === 400) {
                 console.log(`ℹ️ [removeUserFromChat] Пользователь ${userId} уже не является участником чата ${chatId}`);
-                return {
-                    success: true,
+                return { 
+                    success: true, 
                     removed: false,
                     alreadyRemoved: true,
                     message: 'Пользователь не является участником'
@@ -279,7 +279,7 @@ const removeUserFromChat = async (chatId, userId) => {
             }
             
             console.error(`❌ [removeUserFromChat] Ошибка бана пользователя ${userId} из чата ${chatId}:`, errorMsg);
-            return {
+            return { 
                 success: false,
                 removed: false,
                 error: `Не удалось удалить пользователя: ${errorMsg}`,
@@ -302,8 +302,8 @@ const removeUserFromChat = async (chatId, userId) => {
             console.log(`ℹ️ [removeUserFromChat] Не удалось отправить уведомление пользователю ${userId}:`, sendError.message);
         }
         
-        return {
-            success: true,
+        return { 
+            success: true, 
             removed: true,
             message: 'Пользователь успешно удален'
         };
@@ -316,8 +316,8 @@ const removeUserFromChat = async (chatId, userId) => {
             errorMessage.includes('not in the chat') || 
             errorMessage.includes('USER_NOT_PARTICIPANT')) {
             console.log(`ℹ️ [removeUserFromChat] Пользователь ${userId} не является участником чата ${chatId}`);
-            return {
-                success: true,
+            return { 
+                success: true, 
                 removed: false,
                 alreadyRemoved: true,
                 message: 'Пользователь не является участником'
@@ -325,10 +325,10 @@ const removeUserFromChat = async (chatId, userId) => {
         }
         
         console.error(`❌ [removeUserFromChat] Критическая ошибка удаления пользователя ${userId} из чата ${chatId}:`, errorMessage);
-        return {
-            success: false,
+        return { 
+            success: false, 
             removed: false,
-            error: errorMessage,
+            error: errorMessage, 
             errorCode,
             details: 'Проверьте, что бот является администратором в группе/канале с правами на удаление пользователей'
         };
@@ -368,7 +368,7 @@ const htmlToTelegramText = (html) => {
 
 app.post('/api/bot/broadcast', async (req, res) => {
     try {
-        const { text, telegramIds, parseMode, imageUrl, buttonText, buttonUrl, usersData } = req.body;
+        const { text, telegramIds, parseMode, imageUrl, buttonText, buttonUrl, usersData, backgroundColor } = req.body;
         
         // Валидация входных данных
         if (!text || !telegramIds || !Array.isArray(telegramIds)) {
@@ -480,6 +480,11 @@ app.post('/api/bot/broadcast', async (req, res) => {
             if (userData.profilePhotoUrl && userData.profilePhotoUrl.trim() !== '') {
                 params.append('profilePhotoUrl', userData.profilePhotoUrl);
             }
+            
+            // Добавляем backgroundColor (фон рассылки): 'blue' (дефолт) или 'orange'
+            // Если не указан, используется 'blue' по умолчанию
+            const bgColor = backgroundColor === 'orange' ? 'orange' : 'blue';
+            params.append('backgroundColor', bgColor);
             
             // Формируем финальный URL с параметрами
             return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
