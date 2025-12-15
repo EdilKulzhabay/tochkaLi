@@ -7,9 +7,13 @@ const __dirname = path.dirname(__filename);
 
 // Константа для CRLF (всегда использовать \r\n)
 const CRLF = '\r\n';
+// BOM для UTF-8 (для лучшей совместимости с календарями)
+const UTF8_BOM = '\uFEFF';
 
 /**
  * Экранирует специальные символы для iCalendar формата
+ * Экранирует только: \ , ;
+ * Переносы строк → \n
  * @param {string} text - Текст для экранирования
  * @returns {string} - Экранированный текст
  */
@@ -20,40 +24,25 @@ const escapeICS = (text) => {
         .replace(/\\/g, '\\\\')  // Обратный слэш
         .replace(/;/g, '\\;')     // Точка с запятой
         .replace(/,/g, '\\,')     // Запятая
-        .replace(/\n/g, '\\n')    // Перенос строки
-        .replace(/\r/g, '')       // Удаляем \r
-        .trim();
+        .replace(/\r\n/g, '\\n')  // CRLF → \n
+        .replace(/\n/g, '\\n')    // Перенос строки → \n
+        .replace(/\r/g, '\\n');   // \r → \n
 };
 
 /**
- * Разбивает длинные строки на несколько строк (максимум 75 символов на строку)
- * Согласно RFC 5545, строки длиннее 75 символов должны быть разбиты
- * @param {string} line - Строка для разбивки
- * @returns {string[]} - Массив строк
+ * Проверяет, есть ли время в дате (часы, минуты, секунды, миллисекунды не равны 0)
+ * @param {Date} date - Дата для проверки
+ * @returns {boolean} - true если время указано
  */
-const foldLine = (line) => {
-    const maxLength = 75;
-    if (line.length <= maxLength) {
-        return [line];
+const hasTime = (date) => {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+        return false;
     }
     
-    const lines = [];
-    let currentLine = '';
-    
-    for (let i = 0; i < line.length; i++) {
-        if (currentLine.length >= maxLength) {
-            lines.push(currentLine);
-            currentLine = ' ' + line[i]; // Продолжение строки начинается с пробела
-        } else {
-            currentLine += line[i];
-        }
-    }
-    
-    if (currentLine) {
-        lines.push(currentLine);
-    }
-    
-    return lines;
+    return date.getUTCHours() !== 0 || 
+           date.getUTCMinutes() !== 0 || 
+           date.getUTCSeconds() !== 0 ||
+           date.getUTCMilliseconds() !== 0;
 };
 
 /**
@@ -95,27 +84,10 @@ const formatICSDateTime = (date) => {
 };
 
 /**
- * Проверяет, находятся ли две даты в один календарный день
- * @param {Date} date1 - Первая дата
- * @param {Date} date2 - Вторая дата
- * @returns {boolean} - true если в один день
- */
-const isSameDay = (date1, date2) => {
-    if (!date1 || !date2) return false;
-    
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-    
-    return d1.getUTCFullYear() === d2.getUTCFullYear() &&
-           d1.getUTCMonth() === d2.getUTCMonth() &&
-           d1.getUTCDate() === d2.getUTCDate();
-};
-
-/**
  * Генерирует содержимое .ics файла для события расписания
  * Строго следует стандарту iCalendar (RFC 5545)
  * @param {Object} schedule - Объект события расписания
- * @returns {string} - Содержимое .ics файла
+ * @returns {string} - Содержимое .ics файла с BOM
  */
 export const generateICSContent = (schedule) => {
     if (!schedule || !schedule._id) {
@@ -137,8 +109,8 @@ export const generateICSContent = (schedule) => {
     const endDate = schedule.endDate ? new Date(schedule.endDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
     
     // Определяем, является ли событие ALL DAY
-    // Если startDate и endDate в разные календарные дни → ALL DAY
-    const isAllDay = !isSameDay(startDate, endDate);
+    // ALL DAY ТОЛЬКО если в startDate и endDate НЕТ времени
+    const isAllDay = !hasTime(startDate) && !hasTime(endDate);
     
     // Формируем DTSTART и DTEND
     let dtstart, dtend;
@@ -152,22 +124,14 @@ export const generateICSContent = (schedule) => {
         dtend = `DTEND;VALUE=DATE:${formatICSDateOnly(endDatePlusOne)}`;
     } else {
         // Обычное событие: DTSTART:YYYYMMDDTHHmmssZ, DTEND:YYYYMMDDTHHmmssZ
-        // Если время не указано, устанавливаем 10:00 по умолчанию
-        const startHasTime = startDate.getUTCHours() !== 0 || 
-                            startDate.getUTCMinutes() !== 0 || 
-                            startDate.getUTCSeconds() !== 0;
-        
-        const endHasTime = endDate.getUTCHours() !== 0 || 
-                          endDate.getUTCMinutes() !== 0 || 
-                          endDate.getUTCSeconds() !== 0;
-        
         let finalStartDate = new Date(startDate);
         let finalEndDate = new Date(endDate);
         
-        if (!startHasTime) {
+        // Если время не указано, устанавливаем 10:00 по умолчанию
+        if (!hasTime(finalStartDate)) {
             finalStartDate.setUTCHours(10, 0, 0, 0);
         }
-        if (!endHasTime) {
+        if (!hasTime(finalEndDate)) {
             // Если endDate равен startDate или меньше, добавляем 1 час
             if (finalEndDate.getTime() <= finalStartDate.getTime()) {
                 finalEndDate = new Date(finalStartDate.getTime() + 60 * 60 * 1000);
@@ -180,10 +144,10 @@ export const generateICSContent = (schedule) => {
         dtend = `DTEND:${formatICSDateTime(finalEndDate)}`;
     }
     
-    // SUMMARY: из eventTitle, экранировать спецсимволы
+    // SUMMARY: из eventTitle, экранировать \ , ;
     const summary = escapeICS(schedule.eventTitle || 'Событие');
     
-    // DESCRIPTION: из description, переносы строк заменять на \n
+    // DESCRIPTION: из description, переносы строк → \n
     // Если есть eventLink — добавить в конец
     let description = escapeICS(schedule.description || '');
     if (schedule.eventLink) {
@@ -195,7 +159,7 @@ export const generateICSContent = (schedule) => {
         }
     }
     
-    // Генерируем .ics содержимое (всегда использовать CRLF)
+    // Генерируем .ics содержимое (всегда использовать CRLF, НЕ использовать line folding)
     const icsLines = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
@@ -208,14 +172,14 @@ export const generateICSContent = (schedule) => {
         dtend,
     ];
     
-    // Добавляем SUMMARY с разбивкой длинных строк
-    const summaryLines = foldLine(`SUMMARY:${summary}`);
-    icsLines.push(...summaryLines);
+    // Добавляем SUMMARY (без line folding)
+    if (summary) {
+        icsLines.push(`SUMMARY:${summary}`);
+    }
     
-    // Добавляем DESCRIPTION с разбивкой длинных строк
+    // Добавляем DESCRIPTION (без line folding)
     if (description) {
-        const descLines = foldLine(`DESCRIPTION:${description}`);
-        icsLines.push(...descLines);
+        icsLines.push(`DESCRIPTION:${description}`);
     }
     
     // STATUS: CONFIRMED
@@ -227,7 +191,8 @@ export const generateICSContent = (schedule) => {
     );
     
     // Всегда использовать CRLF для разделения строк
-    return icsLines.join(CRLF);
+    // Добавляем BOM в начало файла
+    return UTF8_BOM + icsLines.join(CRLF);
 };
 
 /**
