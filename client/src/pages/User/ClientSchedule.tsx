@@ -187,14 +187,15 @@ export const ClientSchedule = () => {
 
         setIsAddingToCalendar(true);
 
-        // Формируем URL для получения .ics файла
-        const baseURL = api.defaults.baseURL || '';
+        // Формируем URL для получения .ics файла (публичный endpoint)
+        const baseURL = import.meta.env.VITE_API_URL || '';
         const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
         
         // Создаем временную ссылку для скачивания
         const link = document.createElement('a');
         link.href = calendarUrl;
         link.download = `schedule_${selectedSchedule._id}.ics`;
+        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -244,12 +245,7 @@ export const ClientSchedule = () => {
                                 className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
                                 onClick={() => handleScheduleClick(schedule)}
                             >
-                                <div onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (schedule?.eventLink) {
-                                        window.open(schedule.eventLink, '_blank', 'noopener,noreferrer');
-                                    }
-                                }} className="flex items-center justify-between">
+                                <div onClick={() => {}} className="flex items-center justify-between">
                                     <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
                                     <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />
                                 </div>
@@ -314,6 +310,15 @@ export const ClientSchedule = () => {
                                                 </p>
                                             )}
                                         </div>
+
+                                        {selectedSchedule?.eventLink && (
+                                            <div className="mt-4 flex items-center justify-between">
+                                                <div>Ссылка на событие</div>
+                                                <a href={selectedSchedule?.eventLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+                                                    {selectedSchedule?.eventLink}
+                                                </a>
+                                            </div>
+                                        )}
 
                                         <div className="pt-4 border-t border-gray-600 flex gap-3">
                                             <button

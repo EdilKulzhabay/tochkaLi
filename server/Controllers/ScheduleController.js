@@ -222,6 +222,7 @@ export const remove = async (req, res) => {
 export const getCalendarFile = async (req, res) => {
     try {
         const { id } = req.params;
+        const { telegramId } = req.query; // Опциональный параметр для логирования
 
         const schedule = await Schedule.findById(id);
 
@@ -230,6 +231,11 @@ export const getCalendarFile = async (req, res) => {
                 success: false,
                 message: "Событие не найдено",
             });
+        }
+
+        // Логируем запрос (если передан telegramId)
+        if (telegramId) {
+            console.log(`[Schedule] Запрос .ics файла для события ${id} от пользователя telegramId: ${telegramId}`);
         }
 
         // Импортируем утилиту для генерации .ics
