@@ -218,3 +218,44 @@ export const remove = async (req, res) => {
     }
 };
 
+// Получить .ics файл для события
+export const getCalendarFile = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const schedule = await Schedule.findById(id);
+
+        if (!schedule) {
+            return res.status(404).json({
+                success: false,
+                message: "Событие не найдено",
+            });
+        }
+
+        // Импортируем утилиту для генерации .ics
+        const { generateICSContent } = await import('../utils/icsGenerator.js');
+        
+        // Генерируем содержимое .ics файла
+        const icsContent = generateICSContent(schedule);
+        
+        // Устанавливаем заголовки для скачивания .ics файла
+        const filename = `schedule_${schedule._id}.ics`;
+        
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        
+        // Отправляем содержимое файла
+        res.send(icsContent);
+    } catch (error) {
+        console.log("Ошибка в ScheduleController.getCalendarFile:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при получении файла календаря",
+            error: error.message,
+        });
+    }
+};
+

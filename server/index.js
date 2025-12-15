@@ -144,6 +144,7 @@ app.delete("/api/video-lesson/:id", VideoLessonController.remove);
 app.post("/api/schedule", ScheduleController.create);
 app.get("/api/schedule", ScheduleController.getAll);
 app.get("/api/schedule/:id", ScheduleController.getById);
+app.get("/api/schedule/:id/calendar", ScheduleController.getCalendarFile);
 app.put("/api/schedule/:id", ScheduleController.update);
 app.delete("/api/schedule/:id", ScheduleController.remove);
 

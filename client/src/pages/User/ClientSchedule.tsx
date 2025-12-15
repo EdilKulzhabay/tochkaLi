@@ -170,10 +170,10 @@ export const ClientSchedule = () => {
         }
     }
 
-    // const handleScheduleClick = (schedule: any) => {
-    //     setSelectedSchedule(schedule);
-    //     setIsModalOpen(true);
-    // };
+    const handleScheduleClick = (schedule: any) => {
+        setSelectedSchedule(schedule);
+        setIsModalOpen(true);
+    };
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -181,140 +181,29 @@ export const ClientSchedule = () => {
         setIsAddingToCalendar(false);
     };
 
-    // Функция для форматирования даты в формат YYYYMMDDTHHmmss
-    const formatDateForICS = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return `${year}${month}${day}T${hours}${minutes}${seconds}`;
-    };
-
-    // Функция для добавления в календарь (универсальная для всех устройств)
+    // Функция для добавления события в календарь
     const addToCalendar = () => {
         if (!selectedSchedule || isAddingToCalendar) return;
 
         setIsAddingToCalendar(true);
 
-        const startDate = selectedSchedule.startDate ? new Date(selectedSchedule.startDate) : new Date();
-        const endDate = selectedSchedule.endDate ? new Date(selectedSchedule.endDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+        // Формируем URL для получения .ics файла
+        const baseURL = api.defaults.baseURL || '';
+        const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
         
-        // Устанавливаем время начала на 10:00, если не указано
-        if (!selectedSchedule.startTime) {
-            startDate.setHours(10, 0, 0, 0);
-        }
-        // Устанавливаем время окончания на 11:00, если не указано
-        if (!selectedSchedule.endTime) {
-            endDate.setHours(11, 0, 0, 0);
-        }
+        // Создаем временную ссылку для скачивания
+        const link = document.createElement('a');
+        link.href = calendarUrl;
+        link.download = `schedule_${selectedSchedule._id}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-        // Генерируем .ics файл
-        const icsContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'PRODID:-//Tochka.li//Event//EN',
-            'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH',
-            'BEGIN:VEVENT',
-            `UID:${selectedSchedule._id}@tochka.li`,
-            `DTSTART:${formatDateForICS(startDate)}`,
-            `DTEND:${formatDateForICS(endDate)}`,
-            `SUMMARY:${selectedSchedule.eventTitle || 'Событие'}`,
-            `DESCRIPTION:${(selectedSchedule.description || '').replace(/\n/g, '\\n').replace(/,/g, '\\,')}`,
-            'STATUS:CONFIRMED',
-            'SEQUENCE:0',
-            'END:VEVENT',
-            'END:VCALENDAR'
-        ].join('\r\n');
-
-        // Определяем, мобильное ли устройство
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Создаем blob для файла
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const blobUrl = URL.createObjectURL(blob);
-        
-        if (isMobile) {
-            // Для мобильных устройств используем специальный подход
-            // Создаем видимую ссылку, которую пользователь может нажать
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = `${selectedSchedule.eventTitle || 'event'}.ics`;
-            link.style.position = 'fixed';
-            link.style.top = '-1000px';
-            link.style.left = '-1000px';
-            link.style.width = '1px';
-            link.style.height = '1px';
-            link.style.opacity = '0';
-            
-            document.body.appendChild(link);
-            
-            // Используем несколько попыток для надежности
-            const tryOpen = () => {
-                try {
-                    // Пробуем программно кликнуть по ссылке
-                    link.click();
-                    
-                    // Также пробуем открыть через window.open как fallback
-                    setTimeout(() => {
-                        try {
-                            const newWindow = window.open(blobUrl, '_blank');
-                            if (!newWindow) {
-                                // Если popup заблокирован, пробуем data URI
-                                const dataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-                                window.location.href = dataUri;
-                            }
-                        } catch (e) {
-                            console.log('Ошибка при открытии календаря:', e);
-                        }
-                    }, 200);
-                } catch (e) {
-                    console.error('Ошибка при клике по ссылке:', e);
-                }
-            };
-            
-            // Используем requestAnimationFrame для гарантии, что элемент добавлен в DOM
-            requestAnimationFrame(() => {
-                tryOpen();
-                
-                // Повторная попытка через небольшую задержку
-                setTimeout(() => {
-                    tryOpen();
-                }, 300);
-            });
-            
-            // Удаляем ссылку и очищаем blob URL через задержку
-            setTimeout(() => {
-                if (document.body.contains(link)) {
-                    document.body.removeChild(link);
-                }
-                URL.revokeObjectURL(blobUrl);
-                setIsAddingToCalendar(false);
-            }, 3000);
-            
-            // Закрываем модальное окно через 2 секунды
-            setTimeout(() => {
-                closeModal();
-            }, 2000);
-        } else {
-            // На десктопе используем стандартное скачивание
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = `${selectedSchedule.eventTitle || 'event'}.ics`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            setTimeout(() => {
-                URL.revokeObjectURL(blobUrl);
-                setIsAddingToCalendar(false);
-            }, 100);
-            
-            // Закрываем модальное окно
+        // Закрываем модальное окно после начала загрузки
+        setTimeout(() => {
             closeModal();
-        }
+            setIsAddingToCalendar(false);
+        }, 500);
     };
 
     if (loading) {
@@ -353,9 +242,10 @@ export const ClientSchedule = () => {
                             <div 
                                 key={schedule._id}
                                 className="bg-[#333333] rounded-lg p-4 cursor-pointer hover:bg-[#3a3a3a] transition-colors"
-                                // onClick={() => handleScheduleClick(schedule)}
+                                onClick={() => handleScheduleClick(schedule)}
                             >
-                                <div onClick={() => {
+                                <div onClick={(e) => {
+                                    e.stopPropagation();
                                     if (schedule?.eventLink) {
                                         window.open(schedule.eventLink, '_blank', 'noopener,noreferrer');
                                     }
@@ -401,7 +291,10 @@ export const ClientSchedule = () => {
                                 <div className="bg-[#858585] px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                     <div className="space-y-4">
                                         <div className="text-white/80">
-                                            <p className="mb-2">{selectedSchedule.description}</p>
+                                            <p className="mb-4 text-lg font-medium">Добавить событие в календарь?</p>
+                                            {selectedSchedule.description && (
+                                                <p className="mb-2">{selectedSchedule.description}</p>
+                                            )}
                                             {selectedSchedule.startDate && (
                                                 <p className="text-sm text-white/60">
                                                     Дата начала: {new Date(selectedSchedule.startDate).toLocaleDateString('ru-RU', {
@@ -422,20 +315,22 @@ export const ClientSchedule = () => {
                                             )}
                                         </div>
 
-                                        <div className="pt-4 border-t border-gray-600">
+                                        <div className="pt-4 border-t border-gray-600 flex gap-3">
+                                            <button
+                                                onClick={closeModal}
+                                                disabled={isAddingToCalendar}
+                                                className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Отмена
+                                            </button>
                                             <button
                                                 onClick={addToCalendar}
                                                 disabled={isAddingToCalendar}
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#EC1313] hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#EC1313] hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Calendar size={20} />
-                                                {isAddingToCalendar ? 'Добавление...' : 'Добавить в календарь'}
+                                                {isAddingToCalendar ? 'Добавление...' : 'Добавить'}
                                             </button>
-                                            {isAddingToCalendar && (
-                                                <p className="text-sm text-white/60 mt-2 text-center">
-                                                    Откройте файл календаря, если он не открылся автоматически
-                                                </p>
-                                            )}
                                         </div>
                                     </div>
                                 </div>

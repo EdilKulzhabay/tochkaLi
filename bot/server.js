@@ -113,9 +113,7 @@ const addUserToChat = async (chatId, userId) => {
 const removeUserFromChat = async (chatId, userId) => {
     try {
         // Баним пользователя (это также удаляет его из группы/канала)
-        await bot.telegram.banChatMember(chatId, userId, {
-            until_date: Math.floor(Date.now() / 1000) + 60 // Бан на 60 секунд (минимальный)
-        });
+        await bot.telegram.banChatMember(chatId, userId);
         
         // Сразу разбаниваем, чтобы пользователь мог вернуться позже
         // Но он уже будет удален из группы/канала

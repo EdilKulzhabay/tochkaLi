@@ -343,10 +343,12 @@ export const ClientVideoLesson = () => {
                         );
                     })()}
                     <p className="mt-6" dangerouslySetInnerHTML={{ __html: videoLesson?.fullDescription }}></p>
-                    <div className="mt-4 flex items-center justify-between">
-                        <div>Просмотр видео в РФ без VPN</div>
-                        <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
-                    </div>
+                    {videoLesson?.ruTubeUrl && (
+                        <div className="mt-4 flex items-center justify-between">
+                            <div>Просмотр видео в РФ без VPN</div>
+                            <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
+                        </div>
+                    )}
                 </div>
             </UserLayout>
         </div>

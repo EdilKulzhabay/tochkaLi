@@ -405,10 +405,12 @@ export const ClientMeditation = () => {
                     })()}
                     <p className="mt-6" dangerouslySetInnerHTML={{ __html: meditation?.fullDescription }}></p>
 
-                    <div className="mt-4 flex items-center justify-between">
-                        <div>Просмотр видео в РФ без VPN</div>
-                        <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
-                    </div>
+                    {meditation.ruTubeUrl && (
+                        <div className="mt-4 flex items-center justify-between">
+                            <div>Просмотр видео в РФ без VPN</div>
+                            <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
+                        </div>
+                    )}
                 </div>
             </UserLayout>
         </div>

@@ -345,10 +345,12 @@ export const ClientPractice = () => {
                         );
                     })()}
                     <p className="mt-6" dangerouslySetInnerHTML={{ __html: practice?.fullDescription }}></p>
-                    <div className="mt-4 flex items-center justify-between">
-                        <div>Просмотр видео в РФ без VPN</div>
-                        <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
-                    </div>
+                    {practice.ruTubeUrl && (
+                        <div className="mt-4 flex items-center justify-between">
+                            <div>Просмотр видео в РФ без VPN</div>
+                            <Switch checked={locatedInRussia} onChange={handleLocatedInRussiaChange} />
+                        </div>
+                    )}
                 </div>
             </UserLayout>
         </div>
