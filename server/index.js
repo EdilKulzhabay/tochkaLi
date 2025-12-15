@@ -50,8 +50,16 @@ app.use(express.text());
 app.use(cors({ 
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Content-Disposition']
+    allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'X-Requested-With',
+        'X-Telegram-WebApp',
+        'X-Telegram-Platform',
+        'X-Telegram-Init-Data'
+    ],
+    exposedHeaders: ['Content-Disposition'],
+    credentials: true
 }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
