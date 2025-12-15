@@ -129,10 +129,8 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         try {
             inviteLink = await bot.telegram.createChatInviteLink(chatId, {
                 member_limit: 1, // Одноразовая ссылка - может быть использована только одним пользователем
-                expire_date: expireDate // Ссылка действительна 1 час
             });
             console.log(`✅ [sendInviteLinkToUser] Создана invite-ссылка для пользователя ${userId}: ${inviteLink.invite_link}`);
-            console.log(`   Ссылка истекает: ${new Date(expireDate * 1000).toISOString()}`);
         } catch (inviteError) {
             const errorMsg = inviteError.response?.description || inviteError.message || 'Неизвестная ошибка';
             const errorCode = inviteError.response?.error_code;
@@ -290,20 +288,7 @@ const removeUserFromChat = async (chatId, userId) => {
             };
         }
         
-        // ШАГ 3: Разбан пользователя
-        // unbanChatMember разбанивает пользователя, чтобы он мог вернуться по новой invite-ссылке
-        // Но пользователь уже удален из группы/канала
-        try {
-            await bot.telegram.unbanChatMember(chatId, userId);
-            console.log(`✅ [removeUserFromChat] Пользователь ${userId} разбанен (может вернуться по новой invite-ссылке) в чате ${chatId}`);
-        } catch (unbanError) {
-            // Ошибка разбана не критична - пользователь уже удален
-            const errorMsg = unbanError.response?.description || unbanError.message || 'Неизвестная ошибка';
-            console.warn(`⚠️ [removeUserFromChat] Не удалось разбанить пользователя ${userId} из чата ${chatId}:`, errorMsg);
-            // Продолжаем выполнение - пользователь уже удален
-        }
-        
-        // ШАГ 4: Уведомление пользователя о завершении подписки (опционально)
+        // ШАГ 3: Уведомление пользователя о завершении подписки (опционально)
         // Это не критично для успешного удаления
         try {
             await bot.telegram.sendMessage(userId, 
@@ -629,6 +614,24 @@ app.post('/api/bot/add-user', async (req, res) => {
         // Отправляем invite-ссылку для канала, если указан
         if (CHANNEL_ID) {
             try {
+                await bot.telegram.unbanChatMember(CHANNEL_ID, telegramId, {
+                    only_if_banned: true
+                });
+            
+                console.log(
+                    `✅ Пользователь ${telegramId} был разбанен (если находился в бане)`
+                );
+            } catch (error) {
+                const errorMsg = error.response?.description || error.message;
+            
+                // Здесь ошибка действительно нетипичная
+                console.warn(
+                    `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
+                    errorMsg
+                );
+            }
+            
+            try {
                 console.log(`📤 [API] Отправка invite-ссылки для канала ${CHANNEL_ID}`);
                 results.channel = await sendInviteLinkToUser(CHANNEL_ID, parseInt(telegramId));
             } catch (error) {
@@ -650,6 +653,24 @@ app.post('/api/bot/add-user', async (req, res) => {
 
         // Отправляем invite-ссылку для группы, если указана
         if (GROUP_ID) {
+            try {
+                await bot.telegram.unbanChatMember(GROUP_ID, telegramId, {
+                    only_if_banned: true
+                });
+            
+                console.log(
+                    `✅ Пользователь ${telegramId} был разбанен (если находился в бане)`
+                );
+            } catch (error) {
+                const errorMsg = error.response?.description || error.message;
+            
+                // Здесь ошибка действительно нетипичная
+                console.warn(
+                    `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
+                    errorMsg
+                );
+            }
+            
             try {
                 console.log(`📤 [API] Отправка invite-ссылки для группы ${GROUP_ID}`);
                 results.group = await sendInviteLinkToUser(GROUP_ID, parseInt(telegramId));
