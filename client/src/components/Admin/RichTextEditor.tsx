@@ -3,12 +3,12 @@ import {
     Bold, 
     Italic, 
     Underline, 
-    List, 
-    ListOrdered, 
-    Link as LinkIcon,
-    Heading1,
-    Heading2,
-    Heading3
+    Strikethrough,
+    Code,
+    FileCode,
+    EyeOff,
+    Quote,
+    Link as LinkIcon
 } from 'lucide-react';
 
 interface RichTextEditorProps {
@@ -38,10 +38,6 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
         editorRef.current?.focus();
     };
 
-    const insertHeading = (level: number) => {
-        execCommand('formatBlock', `h${level}`);
-    };
-
     const insertLink = () => {
         const url = prompt('Введите URL:');
         if (url) {
@@ -49,16 +45,142 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
         }
     };
 
+    // Вставка моноширинного кода (inline)
+    const insertCode = () => {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const text = range.toString();
+            if (text) {
+                const code = document.createElement('code');
+                code.textContent = text;
+                range.deleteContents();
+                range.insertNode(code);
+                selection.removeAllRanges();
+            }
+        }
+        editorRef.current?.focus();
+    };
+
+    // Вставка блока кода
+    const insertCodeBlock = () => {
+        const code = prompt('Введите код:');
+        if (code) {
+            const pre = document.createElement('pre');
+            pre.textContent = code;
+            
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.insertNode(pre);
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+        editorRef.current?.focus();
+    };
+
+    // Вставка спойлера
+    const insertSpoiler = () => {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const text = range.toString();
+            if (text) {
+                const span = document.createElement('span');
+                span.className = 'tg-spoiler';
+                span.textContent = text;
+                span.style.backgroundColor = '#000';
+                span.style.color = '#000';
+                span.style.cursor = 'pointer';
+                span.title = 'Спойлер (наведите для просмотра)';
+                range.deleteContents();
+                range.insertNode(span);
+                selection.removeAllRanges();
+            } else {
+                alert('Выделите текст для создания спойлера');
+            }
+        }
+        editorRef.current?.focus();
+    };
+
+    // Вставка цитаты (blockquote)
+    const insertBlockquote = () => {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const blockquote = document.createElement('blockquote');
+            blockquote.style.borderLeft = '4px solid #ccc';
+            blockquote.style.paddingLeft = '1em';
+            blockquote.style.marginLeft = '0';
+            
+            // Извлекаем содержимое выделения
+            const contents = range.extractContents();
+            blockquote.appendChild(contents);
+            range.insertNode(blockquote);
+            
+            selection.removeAllRanges();
+        }
+        editorRef.current?.focus();
+    };
+
+    // Кнопки панели инструментов (специально для Telegram)
     const toolbarButtons = [
-        { icon: Heading1, action: () => insertHeading(1), title: 'Заголовок 1' },
-        { icon: Heading2, action: () => insertHeading(2), title: 'Заголовок 2' },
-        { icon: Heading3, action: () => insertHeading(3), title: 'Заголовок 3' },
-        { icon: Bold, action: () => execCommand('bold'), title: 'Жирный' },
-        { icon: Italic, action: () => execCommand('italic'), title: 'Курсив' },
-        { icon: Underline, action: () => execCommand('underline'), title: 'Подчёркивание' },
-        { icon: ListOrdered, action: () => execCommand('insertOrderedList'), title: 'Нумерованный список' },
-        { icon: List, action: () => execCommand('insertUnorderedList'), title: 'Маркированный список' },
-        { icon: LinkIcon, action: insertLink, title: 'Вставить ссылку' },
+        { 
+            icon: Bold, 
+            action: () => execCommand('bold'), 
+            title: 'Жирный (Ctrl+B)',
+            telegram: '<b>текст</b> или <strong>текст</strong>'
+        },
+        { 
+            icon: Italic, 
+            action: () => execCommand('italic'), 
+            title: 'Курсив (Ctrl+I)',
+            telegram: '<i>текст</i> или <em>текст</em>'
+        },
+        { 
+            icon: Underline, 
+            action: () => execCommand('underline'), 
+            title: 'Подчеркнутый (Ctrl+U)',
+            telegram: '<u>текст</u>'
+        },
+        { 
+            icon: Strikethrough, 
+            action: () => execCommand('strikeThrough'), 
+            title: 'Зачеркнутый',
+            telegram: '<s>текст</s> или <del>текст</del>'
+        },
+        { 
+            icon: Code, 
+            action: insertCode, 
+            title: 'Моноширинный код (inline)',
+            telegram: '<code>код</code>'
+        },
+        { 
+            icon: FileCode, 
+            action: insertCodeBlock, 
+            title: 'Блок кода',
+            telegram: '<pre>код</pre>'
+        },
+        { 
+            icon: EyeOff, 
+            action: insertSpoiler, 
+            title: 'Спойлер (скрытый текст)',
+            telegram: '<span class="tg-spoiler">текст</span>'
+        },
+        { 
+            icon: Quote, 
+            action: insertBlockquote, 
+            title: 'Цитата',
+            telegram: '<blockquote>текст</blockquote>'
+        },
+        { 
+            icon: LinkIcon, 
+            action: insertLink, 
+            title: 'Вставить ссылку',
+            telegram: '<a href="url">текст</a>'
+        },
     ];
 
     return (
@@ -72,13 +194,21 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
                             key={index}
                             type="button"
                             onClick={button.action}
-                            title={button.title}
-                            className="p-2 hover:bg-gray-200 rounded transition-colors"
+                            title={`${button.title}\nTelegram: ${button.telegram}`}
+                            className="p-2 hover:bg-gray-200 rounded transition-colors group relative"
                         >
                             <Icon size={18} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                {button.title}
+                            </span>
                         </button>
                     );
                 })}
+            </div>
+
+            {/* Info banner */}
+            <div className="bg-blue-50 border-b border-blue-200 px-3 py-2 text-xs text-blue-800">
+                💡 <strong>Telegram HTML:</strong> Поддерживает жирный, курсив, подчеркнутый, зачеркнутый, код, спойлер, цитату и ссылки
             </div>
 
             {/* Editor */}
@@ -99,32 +229,78 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
                 }
                 [contenteditable] {
                     cursor: text;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
                 }
                 [contenteditable]:focus {
                     outline: none;
                 }
-                [contenteditable] h1 {
-                    font-size: 2em;
+                
+                /* Telegram поддерживаемые теги */
+                [contenteditable] b, 
+                [contenteditable] strong {
                     font-weight: bold;
-                    margin: 0.67em 0;
                 }
-                [contenteditable] h2 {
-                    font-size: 1.5em;
-                    font-weight: bold;
-                    margin: 0.75em 0;
+                [contenteditable] i, 
+                [contenteditable] em {
+                    font-style: italic;
                 }
-                [contenteditable] h3 {
-                    font-size: 1.17em;
-                    font-weight: bold;
-                    margin: 0.83em 0;
+                [contenteditable] u, 
+                [contenteditable] ins {
+                    text-decoration: underline;
                 }
-                [contenteditable] ul, [contenteditable] ol {
-                    margin: 1em 0;
-                    padding-left: 2em;
+                [contenteditable] s, 
+                [contenteditable] strike, 
+                [contenteditable] del {
+                    text-decoration: line-through;
+                }
+                [contenteditable] code {
+                    background-color: #f3f4f6;
+                    padding: 2px 4px;
+                    border-radius: 3px;
+                    font-family: 'Courier New', Courier, monospace;
+                    font-size: 0.9em;
+                    color: #e11d48;
+                }
+                [contenteditable] pre {
+                    background-color: #1f2937;
+                    color: #f9fafb;
+                    padding: 12px;
+                    border-radius: 6px;
+                    font-family: 'Courier New', Courier, monospace;
+                    font-size: 0.9em;
+                    overflow-x: auto;
+                    margin: 0.5em 0;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                }
+                [contenteditable] .tg-spoiler {
+                    background-color: #000;
+                    color: #000;
+                    cursor: pointer;
+                    border-radius: 2px;
+                    padding: 0 2px;
+                    transition: all 0.2s;
+                }
+                [contenteditable] .tg-spoiler:hover {
+                    background-color: transparent;
+                    color: inherit;
+                }
+                [contenteditable] blockquote {
+                    border-left: 4px solid #3b82f6;
+                    padding-left: 1em;
+                    margin-left: 0;
+                    margin-right: 0;
+                    color: #4b5563;
+                    font-style: italic;
                 }
                 [contenteditable] a {
                     color: #2563eb;
                     text-decoration: underline;
+                    cursor: pointer;
+                }
+                [contenteditable] a:hover {
+                    color: #1d4ed8;
                 }
             `}</style>
         </div>

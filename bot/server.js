@@ -16,7 +16,8 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const DELAY_BETWEEN_MESSAGES = 50;
 
 // Функция для очистки HTML от недопустимых тегов Telegram
-// Telegram поддерживает только: <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <del>, <a>, <code>, <pre>, <span class="tg-spoiler">
+// Telegram поддерживает: <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <del>, 
+// <a>, <code>, <pre>, <span class="tg-spoiler">, <blockquote>, <tg-emoji>
 const cleanTelegramHTML = (html) => {
     if (!html) return '';
     
@@ -24,7 +25,6 @@ const cleanTelegramHTML = (html) => {
     
     // Сначала сохраняем правильные <span class="tg-spoiler">, заменяя их временным маркером
     const spoilerPlaceholders = [];
-    // Более точное регулярное выражение для поиска spoiler тегов
     cleaned = cleaned.replace(/<span\s+class\s*=\s*["']tg-spoiler["'][^>]*>(.*?)<\/span>/gis, (match, content) => {
         const placeholder = `__SPOILER_${spoilerPlaceholders.length}__`;
         spoilerPlaceholders.push(`<span class="tg-spoiler">${content}</span>`);
@@ -32,18 +32,20 @@ const cleanTelegramHTML = (html) => {
     });
     
     // Удаляем ВСЕ остальные <span> теги (включая вложенные и с другими атрибутами)
-    // Используем более агрессивный подход - удаляем все <span> и </span>, кроме уже сохраненных spoiler
     // Повторяем несколько раз для надежности (на случай вложенных тегов)
     for (let i = 0; i < 5; i++) {
-        cleaned = cleaned.replace(/<span[^>]*>(.*?)<\/span>/gis, '$1'); // Удаляем парные <span>...</span>
+        cleaned = cleaned.replace(/<span[^>]*>(.*?)<\/span>/gis, '$1');
     }
-    cleaned = cleaned.replace(/<span[^>]*>/gi, ''); // Удаляем все оставшиеся открывающие <span>
-    cleaned = cleaned.replace(/<\/span>/gi, ''); // Удаляем все оставшиеся закрывающие </span>
+    cleaned = cleaned.replace(/<span[^>]*>/gi, '');
+    cleaned = cleaned.replace(/<\/span>/gi, '');
     
     // Восстанавливаем правильные spoiler теги
     spoilerPlaceholders.forEach((spoiler, index) => {
         cleaned = cleaned.replace(`__SPOILER_${index}__`, spoiler);
     });
+    
+    // Удаляем style атрибуты из blockquote (Telegram их не поддерживает)
+    cleaned = cleaned.replace(/<blockquote[^>]*>/gi, '<blockquote>');
     
     // Удаляем другие недопустимые теги
     cleaned = cleaned
@@ -53,12 +55,14 @@ const cleanTelegramHTML = (html) => {
         .replace(/<\/p>/gi, '\n\n') // </p> -> двойная новая строка
         .replace(/<br\s*\/?>/gi, '\n') // <br> -> новая строка
         // Удаляем все остальные недопустимые теги (кроме разрешенных Telegram)
-        // Разрешенные: b, strong, i, em, u, ins, s, strike, del, a, code, pre, span (только с class="tg-spoiler")
-        .replace(/<(?!\/?(?:b|strong|i|em|u|ins|s|strike|del|a|code|pre|span)\b)[^>]+>/gi, '')
+        // Разрешенные: b, strong, i, em, u, ins, s, strike, del, a, code, pre, span (только tg-spoiler), blockquote, tg-emoji
+        .replace(/<(?!\/?(?:b|strong|i|em|u|ins|s|strike|del|a|code|pre|span|blockquote|tg-emoji)\b)[^>]+>/gi, '')
         // Нормализуем пробелы
         .replace(/&nbsp;/g, ' ') // &nbsp; -> пробел
         .replace(/\n\s*\n\s*\n/g, '\n\n') // Убираем лишние пустые строки
         .trim();
+    
+    console.log('🧹 HTML очищен для Telegram (первые 300 символов):', cleaned.substring(0, 300));
     
     return cleaned;
 };
