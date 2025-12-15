@@ -244,19 +244,26 @@ export const getCalendarFile = async (req, res) => {
         // Генерируем содержимое .ics файла
         const icsContent = generateICSContent(schedule);
         
-        // Устанавливаем заголовки для открытия .ics файла в календаре (НЕ для скачивания)
-        // Content-Type обязателен для правильной обработки календарем
-        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        // Формируем безопасное имя файла (только латиница, цифры, тире)
+        const safeTitle = (schedule.eventTitle || 'event')
+            .replace(/[^a-zA-Zа-яА-Я0-9\s-]/g, '')
+            .trim()
+            .substring(0, 50);
+        const filename = `${safeTitle || 'event'}_${schedule._id}.ics`;
         
-        // НЕ устанавливаем Content-Disposition - браузер сам определит, что делать с файлом
-        // Благодаря Content-Type: text/calendar система откроет файл в календаре
+        // Устанавливаем заголовки для СКАЧИВАНИЯ .ics файла
+        // После скачивания пользователь сможет открыть файл в календаре
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         
         // Кэширование отключаем для актуальности данных
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
         
-        // Отправляем содержимое файла как страницу (не как attachment)
+        console.log(`[Calendar] Отправка .ics файла: ${filename}`);
+        
+        // Отправляем содержимое файла для скачивания
         res.send(icsContent);
     } catch (error) {
         console.log("Ошибка в ScheduleController.getCalendarFile:", error);

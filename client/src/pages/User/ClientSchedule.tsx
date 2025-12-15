@@ -182,36 +182,66 @@ export const ClientSchedule = () => {
     };
 
     // Функция для добавления события в календарь
-    const addToCalendar = () => {
+    const addToCalendar = async () => {
         if (!selectedSchedule || isAddingToCalendar) return;
 
         setIsAddingToCalendar(true);
 
-        // Формируем URL для получения .ics файла (публичный endpoint)
-        // Этот URL отдает страницу с .ics данными, которые браузер обработает как календарь
-        const baseURL = import.meta.env.VITE_API_URL || '';
-        const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
-        
-        console.log('Переход на страницу календаря:', calendarUrl);
-        
-        // Определяем, мобильное ли устройство
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-            // Для мобильных устройств: прямой переход на страницу с .ics данными
-            // Браузер получит страницу с Content-Type: text/calendar
-            // Система автоматически предложит открыть файл в календаре
-            window.location.href = calendarUrl;
-            // НЕ закрываем модальное окно - пользователь увидит переход на страницу
-        } else {
-            // Для Desktop: открываем страницу с .ics данными в новом окне
-            // Браузер/система автоматически откроет файл в календарном приложении
-            window.open(calendarUrl, '_blank');
-            // Закрываем модальное окно после открытия
+        try {
+            // Формируем URL для получения .ics файла
+            const baseURL = import.meta.env.VITE_API_URL || '';
+            const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
+            
+            console.log('📅 Скачивание .ics файла:', calendarUrl);
+            
+            // Скачиваем .ics файл через fetch
+            const response = await fetch(calendarUrl);
+            
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке файла календаря');
+            }
+            
+            // Получаем blob с правильным MIME типом
+            const blob = await response.blob();
+            const icsBlob = new Blob([blob], { type: 'text/calendar; charset=utf-8' });
+            
+            // Получаем имя файла из заголовка Content-Disposition или используем дефолтное
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'event.ics';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+            
+            // Создаем временную ссылку для скачивания
+            const url = window.URL.createObjectURL(icsBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            
+            // Добавляем в DOM, кликаем и удаляем
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Освобождаем память
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            
+            console.log('✅ Файл скачан:', filename);
+            console.log('💡 Откройте скачанный файл для добавления в календарь');
+            
+            // Закрываем модальное окно
             setTimeout(() => {
                 closeModal();
                 setIsAddingToCalendar(false);
             }, 500);
+            
+        } catch (error) {
+            console.error('❌ Ошибка при скачивании файла календаря:', error);
+            alert('Ошибка при добавлении в календарь. Попробуйте позже.');
+            setIsAddingToCalendar(false);
         }
     };
 
