@@ -246,12 +246,14 @@ export const getCalendarFile = async (req, res) => {
         
         // Устанавливаем заголовки для скачивания .ics файла
         const filename = `schedule_${schedule._id}.ics`;
+        const safeFilename = encodeURIComponent(filename);
         
         res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${safeFilename}`);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
         
         // Отправляем содержимое файла
         res.send(icsContent);

@@ -23,6 +23,37 @@ const escapeICS = (text) => {
 };
 
 /**
+ * Разбивает длинные строки на несколько строк (максимум 75 символов на строку)
+ * Согласно RFC 5545, строки длиннее 75 символов должны быть разбиты
+ * @param {string} line - Строка для разбивки
+ * @returns {string[]} - Массив строк
+ */
+const foldLine = (line) => {
+    const maxLength = 75;
+    if (line.length <= maxLength) {
+        return [line];
+    }
+    
+    const lines = [];
+    let currentLine = '';
+    
+    for (let i = 0; i < line.length; i++) {
+        if (currentLine.length >= maxLength) {
+            lines.push(currentLine);
+            currentLine = ' ' + line[i]; // Продолжение строки начинается с пробела
+        } else {
+            currentLine += line[i];
+        }
+    }
+    
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    
+    return lines;
+};
+
+/**
  * Форматирует дату в формат iCalendar (YYYYMMDDTHHmmssZ)
  * @param {Date} date - Дата для форматирования
  * @returns {string} - Отформатированная дата в UTC
@@ -104,6 +135,8 @@ export const generateICSContent = (schedule) => {
     const dtstart = formatICSDate(startDate);
     const dtend = formatICSDate(endDate);
     const dtstamp = formatICSDate(new Date());
+    const created = formatICSDate(schedule.createdAt ? new Date(schedule.createdAt) : new Date());
+    const lastModified = formatICSDate(schedule.updatedAt ? new Date(schedule.updatedAt) : new Date());
     
     // Генерируем .ics содержимое
     const icsLines = [
@@ -114,19 +147,41 @@ export const generateICSContent = (schedule) => {
         'METHOD:PUBLISH',
         'BEGIN:VEVENT',
         `UID:${uid}`,
+        `DTSTAMP:${dtstamp}`,
         `DTSTART:${dtstart}`,
         `DTEND:${dtend}`,
-        `DTSTAMP:${dtstamp}`,
-        `SUMMARY:${summary}`,
+        `CREATED:${created}`,
+        `LAST-MODIFIED:${lastModified}`,
     ];
     
+    // Добавляем SUMMARY с разбивкой длинных строк
+    const summaryLines = foldLine(`SUMMARY:${summary}`);
+    icsLines.push(...summaryLines);
+    
+    // Добавляем DESCRIPTION с разбивкой длинных строк
     if (description) {
-        icsLines.push(`DESCRIPTION:${description}`);
+        const descLines = foldLine(`DESCRIPTION:${description}`);
+        icsLines.push(...descLines);
+    }
+    
+    // Добавляем LOCATION если есть eventLink
+    if (schedule.eventLink) {
+        const location = escapeICS(schedule.eventLink);
+        const locationLines = foldLine(`LOCATION:${location}`);
+        icsLines.push(...locationLines);
+    }
+    
+    // Добавляем URL если есть eventLink
+    if (schedule.eventLink) {
+        const url = escapeICS(schedule.eventLink);
+        const urlLines = foldLine(`URL:${url}`);
+        icsLines.push(...urlLines);
     }
     
     icsLines.push(
         'STATUS:CONFIRMED',
         'SEQUENCE:0',
+        'TRANSP:OPAQUE',
         'END:VEVENT',
         'END:VCALENDAR'
     );
