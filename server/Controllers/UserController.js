@@ -737,28 +737,28 @@ export const activateSubscription = async (req, res) => {
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 
-        // Добавляем пользователя в группу и канал через бота
-        if (user.telegramId) {
-            try {
-                const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/add-user`, {
-                    telegramId: user.telegramId
-                }, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    timeout: 10000, // 10 секунд таймаут
-                });
+        // // Добавляем пользователя в группу и канал через бота
+        // if (user.telegramId) {
+        //     try {
+        //         const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/add-user`, {
+        //             telegramId: user.telegramId
+        //         }, {
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //             },
+        //             timeout: 10000, // 10 секунд таймаут
+        //         });
 
-                if (botResponse.data.success) {
-                    console.log(`Пользователь ${user.telegramId} успешно добавлен в группу и канал`);
-                } else {
-                    console.warn(`Частичное выполнение при добавлении пользователя ${user.telegramId}:`, botResponse.data);
-                }
-            } catch (botError) {
-                console.error(`Ошибка при добавлении пользователя ${user.telegramId} в группу/канал:`, botError.message);
-                // Не прерываем выполнение, если ошибка с ботом
-            }
-        }
+        //         if (botResponse.data.success) {
+        //             console.log(`Пользователь ${user.telegramId} успешно добавлен в группу и канал`);
+        //         } else {
+        //             console.warn(`Частичное выполнение при добавлении пользователя ${user.telegramId}:`, botResponse.data);
+        //         }
+        //     } catch (botError) {
+        //         console.error(`Ошибка при добавлении пользователя ${user.telegramId} в группу/канал:`, botError.message);
+        //         // Не прерываем выполнение, если ошибка с ботом
+        //     }
+        // }
 
         res.json({
             success: true,
@@ -801,28 +801,28 @@ export const deactivateSubscription = async (req, res) => {
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 
-        // Удаляем пользователя из группы и канала через бота
-        if (user.telegramId) {
-            try {
-                const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/remove-user`, {
-                    telegramId: user.telegramId
-                }, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    timeout: 10000, // 10 секунд таймаут
-                });
+        // // Удаляем пользователя из группы и канала через бота
+        // if (user.telegramId) {
+        //     try {
+        //         const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/remove-user`, {
+        //             telegramId: user.telegramId
+        //         }, {
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //             },
+        //             timeout: 10000, // 10 секунд таймаут
+        //         });
 
-                if (botResponse.data.success) {
-                    console.log(`Пользователь ${user.telegramId} успешно удален из группы и канала`);
-                } else {
-                    console.warn(`Частичное выполнение при удалении пользователя ${user.telegramId}:`, botResponse.data);
-                }
-            } catch (botError) {
-                console.error(`Ошибка при удалении пользователя ${user.telegramId} из группы/канала:`, botError.message);
-                // Не прерываем выполнение, если ошибка с ботом
-            }
-        }
+        //         if (botResponse.data.success) {
+        //             console.log(`Пользователь ${user.telegramId} успешно удален из группы и канала`);
+        //         } else {
+        //             console.warn(`Частичное выполнение при удалении пользователя ${user.telegramId}:`, botResponse.data);
+        //         }
+        //     } catch (botError) {
+        //         console.error(`Ошибка при удалении пользователя ${user.telegramId} из группы/канала:`, botError.message);
+        //         // Не прерываем выполнение, если ошибка с ботом
+        //     }
+        // }
 
         res.json({
             success: true,
