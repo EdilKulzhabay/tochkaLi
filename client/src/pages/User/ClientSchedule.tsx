@@ -188,27 +188,31 @@ export const ClientSchedule = () => {
         setIsAddingToCalendar(true);
 
         // Формируем URL для получения .ics файла (публичный endpoint)
+        // Этот URL отдает страницу с .ics данными, которые браузер обработает как календарь
         const baseURL = import.meta.env.VITE_API_URL || '';
         const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
+        
+        console.log('Переход на страницу календаря:', calendarUrl);
         
         // Определяем, мобильное ли устройство
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
         if (isMobile) {
-            // Для мобильных устройств: прямой переход по URL
-            // Браузер автоматически откроет файл в календаре благодаря Content-Type: text/calendar
+            // Для мобильных устройств: прямой переход на страницу с .ics данными
+            // Браузер получит страницу с Content-Type: text/calendar
+            // Система автоматически предложит открыть файл в календаре
             window.location.href = calendarUrl;
+            // НЕ закрываем модальное окно - пользователь увидит переход на страницу
         } else {
-            // Для Desktop: открываем в новом окне
+            // Для Desktop: открываем страницу с .ics данными в новом окне
             // Браузер/система автоматически откроет файл в календарном приложении
             window.open(calendarUrl, '_blank');
+            // Закрываем модальное окно после открытия
+            setTimeout(() => {
+                closeModal();
+                setIsAddingToCalendar(false);
+            }, 500);
         }
-        
-        // Закрываем модальное окно после перехода
-        setTimeout(() => {
-            closeModal();
-            setIsAddingToCalendar(false);
-        }, 300);
     };
 
     if (loading) {
