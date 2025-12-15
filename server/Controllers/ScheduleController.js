@@ -244,26 +244,33 @@ export const getCalendarFile = async (req, res) => {
         // Генерируем содержимое .ics файла
         const icsContent = generateICSContent(schedule);
         
-        // Формируем безопасное имя файла (только латиница, цифры, тире)
+        // Формируем имя файла (только латиница для совместимости)
         const safeTitle = (schedule.eventTitle || 'event')
-            .replace(/[^a-zA-Zа-яА-Я0-9\s-]/g, '')
+            .replace(/[^a-zA-Z0-9\s-]/g, '') // Убираем кириллицу и спецсимволы
+            .replace(/\s+/g, '_') // Пробелы в подчеркивания
             .trim()
-            .substring(0, 50);
-        const filename = `${safeTitle || 'event'}_${schedule._id}.ics`;
+            .substring(0, 30) || 'event';
+        const filename = `${safeTitle}_${schedule._id}.ics`;
         
-        // Устанавливаем заголовки для СКАЧИВАНИЯ .ics файла
-        // После скачивания пользователь сможет открыть файл в календаре
+        // Устанавливаем заголовки для ОТКРЫТИЯ .ics файла (НЕ скачивания)
+        // Content-Type говорит системе, что это календарный файл
         res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        // inline - открыть в браузере, система предложит добавить в календарь
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+        
+        // Дополнительные заголовки для календаря
+        res.setHeader('Content-Description', 'Calendar Event');
         
         // Кэширование отключаем для актуальности данных
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
         
-        console.log(`[Calendar] Отправка .ics файла: ${filename}`);
+        console.log(`[Calendar] Отправка .ics файла для открытия: ${filename}`);
+        console.log(`[Calendar] User-Agent: ${req.headers['user-agent']}`);
         
-        // Отправляем содержимое файла для скачивания
+        // Отправляем содержимое файла для открытия в системном календаре
         res.send(icsContent);
     } catch (error) {
         console.log("Ошибка в ScheduleController.getCalendarFile:", error);

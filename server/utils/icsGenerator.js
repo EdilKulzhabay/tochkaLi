@@ -159,31 +159,43 @@ export const generateICSContent = (schedule) => {
         }
     }
     
-    // Генерируем .ics содержимое (всегда использовать CRLF, НЕ использовать line folding)
+    // Добавляем дополнительные метаданные для лучшей совместимости
+    const now = new Date();
+    const created = formatICSDateTime(now);
+    const lastModified = formatICSDateTime(now);
+    
+    // Генерируем .ics содержимое (всегда использовать CRLF)
     const icsLines = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//Tochka.li//Event//EN',
+        'PRODID:-//Tochka.li//NONSGML Event Calendar//EN',
         'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:Tochka.li Events',
+        'X-WR-TIMEZONE:UTC',
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `DTSTAMP:${dtstamp}`,
+        `CREATED:${created}`,
+        `LAST-MODIFIED:${lastModified}`,
         dtstart,
         dtend,
     ];
     
-    // Добавляем SUMMARY (без line folding)
+    // Добавляем SUMMARY
     if (summary) {
         icsLines.push(`SUMMARY:${summary}`);
     }
     
-    // Добавляем DESCRIPTION (без line folding)
+    // Добавляем DESCRIPTION
     if (description) {
         icsLines.push(`DESCRIPTION:${description}`);
     }
     
-    // STATUS: CONFIRMED
+    // Дополнительные поля для совместимости
     icsLines.push('STATUS:CONFIRMED');
+    icsLines.push('SEQUENCE:0');
+    icsLines.push('TRANSP:OPAQUE');
     
     icsLines.push(
         'END:VEVENT',
@@ -191,8 +203,8 @@ export const generateICSContent = (schedule) => {
     );
     
     // Всегда использовать CRLF для разделения строк
-    // Добавляем BOM в начало файла
-    return UTF8_BOM + icsLines.join(CRLF);
+    // БЕЗ BOM - он может мешать некоторым парсерам на Android
+    return icsLines.join(CRLF);
 };
 
 /**
