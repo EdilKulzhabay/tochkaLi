@@ -32,6 +32,8 @@ import { UsersAdmin } from "./pages/Admin/Users";
 import { UserForm } from "./pages/Admin/UserForm";
 import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
+import { AdminsAdmin } from "./pages/Admin/Admins";
+import { AdminForm } from "./pages/Admin/AdminForm";
 import { RobokassaSuccess } from "./pages/Robokassa/Success";
 import { RobokassaFail } from "./pages/Robokassa/Fail";
 import { ClientPerfomance } from "./pages/User/ClientPerfomance";
@@ -338,6 +340,18 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/broadcast",
         element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><BroadcastAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/admins",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin"]}><AdminsAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/admins/create",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin"]}><AdminForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/admins/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin"]}><AdminForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/robokassa_callback/success",

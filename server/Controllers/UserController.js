@@ -1216,3 +1216,253 @@ export const purchaseContent = async (req, res) => {
         });
     }
 };
+
+// ID защищенного администратора, которого нельзя изменять или блокировать
+const PROTECTED_ADMIN_ID = '6918943fa2264c7b0389b03d';
+
+// Получить всех администраторов
+export const getAllAdmins = async (req, res) => {
+    try {
+        const admins = await User.find({ role: 'admin' })
+            .select("-password -currentToken -refreshToken")
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            data: admins,
+            count: admins.length,
+        });
+    } catch (error) {
+        console.log("Ошибка в getAllAdmins:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка получения администраторов",
+        });
+    }
+};
+
+// Получить администратора по ID
+export const getAdminById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const admin = await User.findOne({ _id: id, role: 'admin' })
+            .select("-password -currentToken -refreshToken");
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: admin,
+        });
+    } catch (error) {
+        console.log("Ошибка в getAdminById:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка получения администратора",
+        });
+    }
+};
+
+// Создать администратора
+export const createAdmin = async (req, res) => {
+    try {
+        const { fullName, mail, phone, role, status, password } = req.body;
+
+        if (!fullName || !mail || !phone) {
+            return res.status(400).json({
+                success: false,
+                message: "Имя, email и телефон обязательны для заполнения",
+            });
+        }
+
+        // Проверяем, существует ли пользователь с таким email
+        const candidate = await User.findOne({ mail: mail?.toLowerCase() });
+        if (candidate) {
+            return res.status(409).json({
+                success: false,
+                message: "Пользователь с такой почтой уже существует",
+            });
+        }
+
+        // Если пароль не указан, генерируем случайный
+        let hashedPassword = null;
+        let generatedPassword = password;
+        if (!password || password.trim() === '') {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            generatedPassword = '';
+            for (let i = 0; i < 12; i++) {
+                generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+        }
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(generatedPassword, salt);
+
+        const doc = new User({
+            fullName,
+            mail: mail?.toLowerCase(),
+            phone,
+            password: hashedPassword,
+            role: role || 'admin',
+            status: status || 'active',
+            emailConfirmed: true,
+        });
+
+        const admin = await doc.save();
+
+        res.status(201).json({
+            success: true,
+            data: {
+                _id: admin._id,
+                fullName: admin.fullName,
+                mail: admin.mail,
+                phone: admin.phone,
+                role: admin.role,
+                status: admin.status,
+            },
+            message: "Администратор успешно создан",
+            generatedPassword: !password ? generatedPassword : undefined,
+        });
+    } catch (error) {
+        console.log("Ошибка в createAdmin:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка создания администратора",
+            error: error.message,
+        });
+    }
+};
+
+// Обновить администратора
+export const updateAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        // Проверяем, не пытаются ли изменить защищенного администратора
+        if (id === PROTECTED_ADMIN_ID) {
+            return res.status(403).json({
+                success: false,
+                message: "Этот администратор защищен от изменений",
+            });
+        }
+
+        // Удаляем поля, которые нельзя обновлять через этот метод
+        delete updateData.password;
+        delete updateData.currentToken;
+        delete updateData.refreshToken;
+
+        // Убеждаемся, что роль остается 'admin'
+        updateData.role = 'admin';
+
+        const admin = await User.findOneAndUpdate(
+            { _id: id, role: 'admin' },
+            updateData,
+            { new: true, runValidators: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: admin,
+            message: "Администратор обновлен",
+        });
+    } catch (error) {
+        console.log("Ошибка в updateAdmin:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка обновления администратора",
+        });
+    }
+};
+
+// Заблокировать администратора
+export const blockAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Проверяем, не пытаются ли заблокировать защищенного администратора
+        if (id === PROTECTED_ADMIN_ID) {
+            return res.status(403).json({
+                success: false,
+                message: "Этот администратор защищен от блокировки",
+            });
+        }
+
+        const admin = await User.findOneAndUpdate(
+            { _id: id, role: 'admin' },
+            { isBlocked: true },
+            { new: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: admin,
+            message: "Администратор заблокирован",
+        });
+    } catch (error) {
+        console.log("Ошибка в blockAdmin:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка блокировки администратора",
+        });
+    }
+};
+
+// Разблокировать администратора
+export const unblockAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Проверяем, не пытаются ли разблокировать защищенного администратора (хотя это не критично)
+        if (id === PROTECTED_ADMIN_ID) {
+            return res.status(403).json({
+                success: false,
+                message: "Этот администратор защищен от изменений",
+            });
+        }
+
+        const admin = await User.findOneAndUpdate(
+            { _id: id, role: 'admin' },
+            { isBlocked: false },
+            { new: true }
+        ).select("-password -currentToken -refreshToken");
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: admin,
+            message: "Администратор разблокирован",
+        });
+    } catch (error) {
+        console.log("Ошибка в unblockAdmin:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка разблокировки администратора",
+        });
+    }
+};

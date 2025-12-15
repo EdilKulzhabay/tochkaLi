@@ -111,6 +111,14 @@ app.put("/api/user/:id/block", UserController.blockUser);
 app.put("/api/user/:id/unblock", UserController.unblockUser);
 app.delete("/api/user/:id", UserController.deleteUser);
 
+// Управление администраторами (только для admin)
+app.get("/api/admin/all", authMiddleware, UserController.getAllAdmins);
+app.get("/api/admin/:id", authMiddleware, UserController.getAdminById);
+app.post("/api/admin/create", authMiddleware, UserController.createAdmin);
+app.put("/api/admin/:id", authMiddleware, UserController.updateAdmin);
+app.put("/api/admin/:id/block", authMiddleware, UserController.blockAdmin);
+app.put("/api/admin/:id/unblock", authMiddleware, UserController.unblockAdmin);
+
 // Управление профилем (для авторизованных пользователей)
 app.put("/api/user/profile/update", UserController.updateProfile);
 app.post("/api/user/purchase-content", UserController.purchaseContent);
