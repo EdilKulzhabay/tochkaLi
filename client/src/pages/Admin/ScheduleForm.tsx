@@ -19,6 +19,8 @@ export const ScheduleForm = () => {
         startDate: '',
         endDate: '',
         eventLink: '',
+        googleCalendarLink: '',
+        appleCalendarLink: '',
         description: '',
     });
 
@@ -45,6 +47,8 @@ export const ScheduleForm = () => {
                 startDate: new Date(schedule.startDate).toISOString().slice(0, 16),
                 endDate: new Date(schedule.endDate).toISOString().slice(0, 16),
                 eventLink: schedule.eventLink || '',
+                googleCalendarLink: schedule.googleCalendarLink || '',
+                appleCalendarLink: schedule.appleCalendarLink || '',
                 description: schedule.description,
             });
         } catch (error: any) {
@@ -122,6 +126,24 @@ export const ScheduleForm = () => {
                             onChange={(e) => setFormData({ ...formData, eventLink: e.target.value })}
                             placeholder="https://zoom.us/j/..."
                         />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <MyInput
+                                label="Ссылка Google Calendar (необязательно)"
+                                type="text"
+                                value={formData.googleCalendarLink}
+                                onChange={(e) => setFormData({ ...formData, googleCalendarLink: e.target.value })}
+                                placeholder="https://calendar.google.com/..."
+                            />
+
+                            <MyInput
+                                label="Ссылка Apple Calendar (необязательно)"
+                                type="text"
+                                value={formData.appleCalendarLink}
+                                onChange={(e) => setFormData({ ...formData, appleCalendarLink: e.target.value })}
+                                placeholder="webcal://..."
+                            />
+                        </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-2">Описание</label>

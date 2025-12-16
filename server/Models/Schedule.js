@@ -19,6 +19,14 @@ const ScheduleSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    googleCalendarLink: {
+      type: String,
+      trim: true,
+    },
+    appleCalendarLink: {
+      type: String,
+      trim: true,
+    },
     description: {
       type: String,
     },

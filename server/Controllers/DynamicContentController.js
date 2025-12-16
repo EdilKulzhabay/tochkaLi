@@ -93,6 +93,20 @@ export const getByName = async (req, res) => {
     }
 };
 
+export const getHoroscopeCorridorContent = async (req, res) => {
+    try {
+        const nameRegex = new RegExp('horoscope-corridor', 'i');
+        const dynamicContent = await DynamicContent.find({ name: nameRegex });
+        const contentMap = Object.fromEntries(
+            dynamicContent.map((el) => [el.name, el.content])
+          );
+        res.json({ success: true, data: contentMap });
+    } catch (error) {
+        console.log("Ошибка в DynamicContentController.getHoroscopeCorridorContent:", error);
+        res.status(500).json({ success: false, message: "Ошибка при получении динамического контента" });
+    }
+};
+
 // Обновить динамический контент
 export const update = async (req, res) => {
     try {

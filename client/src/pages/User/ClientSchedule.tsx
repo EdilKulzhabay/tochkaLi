@@ -4,7 +4,7 @@ import { DateRangeCalendar } from "../../components/User/DateRangeCalendar";
 import { useEffect, useState } from "react";
 import api from "../../api";
 import { Switch } from "../../components/User/Switch";
-import { Calendar, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export const ClientSchedule = () => {
     const [startDate, setStartDate] = useState<Date | null>(null);
@@ -14,7 +14,6 @@ export const ClientSchedule = () => {
     const [showAllEvents, setShowAllEvents] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isAddingToCalendar, setIsAddingToCalendar] = useState(false);
     const [loading, setLoading] = useState(true);
     
     const formatDate = (date: Date | null) => {
@@ -178,44 +177,6 @@ export const ClientSchedule = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedSchedule(null);
-        setIsAddingToCalendar(false);
-    };
-
-    // Функция для добавления события в календарь
-    const addToCalendar = () => {
-        if (!selectedSchedule || isAddingToCalendar) return;
-
-        setIsAddingToCalendar(true);
-
-        // Формируем URL для получения .ics файла
-        const baseURL = import.meta.env.VITE_API_URL || '';
-        const calendarUrl = `${baseURL}/api/schedule/${selectedSchedule._id}/calendar`;
-        
-        console.log('📅 Добавление в календарь:', calendarUrl);
-        console.log('📱 User-Agent:', navigator.userAgent);
-        console.log('🔍 Telegram WebApp:', window.Telegram?.WebApp ? 'Да' : 'Нет');
-        
-        // Проверяем, находимся ли мы в Telegram WebApp
-        if (window.Telegram?.WebApp) {
-            console.log('🔗 Открываем в системном браузере через Telegram');
-            // Telegram WebApp: открываем в системном браузере
-            // Это обходит ограничения WebView на открытие .ics файлов
-            window.Telegram.WebApp.openLink(calendarUrl);
-            
-            // Закрываем модальное окно после открытия
-            setTimeout(() => {
-                closeModal();
-                setIsAddingToCalendar(false);
-            }, 500);
-        } else {
-            console.log('🌐 Прямой переход на страницу с .ics данными');
-            // Обычный браузер: прямой переход на страницу с .ics данными
-            // Браузер получит Content-Type: text/calendar и Content-Disposition: inline
-            // Система автоматически предложит открыть файл в календаре
-            window.location.href = calendarUrl;
-            
-            // Модальное окно закроется автоматически при переходе
-        }
     };
 
     if (loading) {
@@ -304,19 +265,23 @@ export const ClientSchedule = () => {
                                             )}
                                             {selectedSchedule.startDate && (
                                                 <p className="text-sm text-white/60">
-                                                    Дата начала: {new Date(selectedSchedule.startDate).toLocaleDateString('ru-RU', {
+                                                    Дата начала: {new Date(selectedSchedule.startDate).toLocaleString('ru-RU', {
                                                         day: '2-digit',
                                                         month: 'long',
-                                                        year: 'numeric'
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
                                                     })}
                                                 </p>
                                             )}
                                             {selectedSchedule.endDate && (
                                                 <p className="text-sm text-white/60">
-                                                    Дата окончания: {new Date(selectedSchedule.endDate).toLocaleDateString('ru-RU', {
+                                                    Дата окончания: {new Date(selectedSchedule.endDate).toLocaleString('ru-RU', {
                                                         day: '2-digit',
                                                         month: 'long',
-                                                        year: 'numeric'
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
                                                     })}
                                                 </p>
                                             )}
@@ -333,19 +298,26 @@ export const ClientSchedule = () => {
 
                                         <div className="pt-4 border-t border-gray-600 flex gap-3">
                                             <button
-                                                onClick={closeModal}
-                                                disabled={isAddingToCalendar}
+                                                onClick={() => {
+                                                    if (selectedSchedule.googleCalendarLink) {
+                                                        window.location.href = selectedSchedule.googleCalendarLink;
+                                                        closeModal();
+                                                    }
+                                                }}
                                                 className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Отмена
+                                                Добавить в календарь Google
                                             </button>
                                             <button
-                                                onClick={addToCalendar}
-                                                disabled={isAddingToCalendar}
+                                                onClick={() => {
+                                                    if (selectedSchedule.appleCalendarLink) {
+                                                        window.location.href = selectedSchedule.appleCalendarLink;
+                                                        closeModal();
+                                                    }
+                                                }}
                                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#EC1313] hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                <Calendar size={20} />
-                                                {isAddingToCalendar ? 'Добавление...' : 'Добавить'}
+                                                Добавить в календарь iOS
                                             </button>
                                         </div>
                                     </div>

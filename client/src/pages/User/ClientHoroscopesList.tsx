@@ -25,6 +25,7 @@ export const ClientHoroscopesList = () => {
     const [userHasPaid, setUserHasPaid] = useState(false);
     const navigate = useNavigate();
     const [content, setContent] = useState<string>('');
+    const [corridorsContent, setCorridorsContent] = useState<any | null>(null);
     const [corridorsModalOpen, setCorridorsModalOpen] = useState(false);
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -44,11 +45,16 @@ export const ClientHoroscopesList = () => {
         fetchHoroscopes();
         fetchUserPaymentStatus();
         fetchContent();
+        fetchCorridorsContent();
     }, []);
 
     const fetchContent = async () => {
         const response = await api.get('/api/dynamic-content/name/horoscope-subscription');
         setContent(response.data.data.content);
+    }
+    const fetchCorridorsContent = async () => {
+        const response = await api.get('/api/dynamic-content/horoscope-corridor');
+        setCorridorsContent(response.data.data);
     }
 
     const fetchUserPaymentStatus = async () => {
@@ -252,24 +258,20 @@ export const ClientHoroscopesList = () => {
                                 className="absolute top-6 right-5 cursor-pointer"
                             >
                                 <X size={24} />
-                            </button>
+                            </button>horoscope-corridor
                             <div 
                                 className="text-white" 
                             >
-                                <h3 className="text-xl lg:text-2xl font-bold mb-2">ЧТО ТАКОЕ КОРИДОРЫ?</h3>
-                                <p className="mt-4 font-bold">
-                                    Временные периоды, которые наделяют человека, рождённого в них, особыми качествами.
-                                </p>
-                                <p className="mt-1 text-sm">
-                                    Когда вы знаете особенности энергии того или иного коридора (диапазон дат) или сверхдаты (один день), то вы сможете достигать сверх результатов даже не будучи рождёнными в это время. Красота этой технологии в том, что вы можете проявлять любую антисоциумную энергию, которая активна на текущую дату. Как это сделать, какие условия активации этой энергии в вас, а также подводные камни вы узнаете на онлайн Точке «Знаки»
-                                </p>
+                                <h3 className="text-xl lg:text-2xl font-bold mb-2" dangerouslySetInnerHTML={{ __html: corridorsContent?.['horoscope-corridor-title'] ?? '' }}></h3>
+                                <p className="mt-4 font-bold" dangerouslySetInnerHTML={{ __html: corridorsContent?.['horoscope-corridor-subtitle'] ?? '' }}></p>
+                                <p className="mt-1 text-sm" dangerouslySetInnerHTML={{ __html: corridorsContent?.['horoscope-corridor-content'] ?? '' }}></p>
                             </div>
                             <a 
                                 className="block bg-[#EC1313] text-white py-2.5 text-center font-medium rounded-full mt-4 w-full" 
-                                href="https://tochka.li/signs" 
+                                href={corridorsContent?.['horoscope-corridor-link'] ?? '#'} 
                                 target="_blank"
                             >
-                                Подробнее о Точке «Знаки»
+                                <p dangerouslySetInnerHTML={{ __html: corridorsContent?.['horoscope-corridor-link-text'] ?? '' }}></p>
                             </a>
                         </div>
                     </div>

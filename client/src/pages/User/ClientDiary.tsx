@@ -168,11 +168,10 @@ export const ClientDiary = () => {
                                         name="discovery"
                                         value={diary.discovery}
                                         onChange={handleChange}
-                                        className="w-full mt-1 bg-transparent text-white focus:outline-none focus:border-white/80"
+                                        className="w-full mt-1 bg-transparent text-white focus:outline-none focus:border-white/80 overflow-y-scroll"
                                         placeholder="Что нового вы открыли для себя сегодня?"
                                         rows={1}
                                         style={{
-                                            overflow: "hidden",
                                             minHeight: "2.5rem",
                                             maxHeight: "7.5rem"
                                         }}
@@ -189,11 +188,10 @@ export const ClientDiary = () => {
                                         name="achievement" 
                                         value={diary.achievement} 
                                         onChange={handleChange} 
-                                        className="w-full mt-1 bg-transparent text-white focus:outline-none focus:border-white/80" 
+                                        className="w-full mt-1 bg-transparent text-white focus:outline-none focus:border-white/80 overflow-y-scroll" 
                                         placeholder="Что нового вы достигли сегодня?"
                                         rows={1}
                                         style={{
-                                            overflow: "hidden",
                                             minHeight: "2.5rem",
                                             maxHeight: "7.5rem"
                                         }}
@@ -210,11 +208,10 @@ export const ClientDiary = () => {
                                         name="gratitude" 
                                         value={diary.gratitude} 
                                         onChange={handleChange} 
-                                        className="w-full mt-1 bg-transparent text-white focus:outline-none focus:border-white/80" 
+                                        className="w-full mt-1 bg-transparent text-white focus:outline-none focus:border-white/80 overflow-y-scroll" 
                                         placeholder="Кому и за что вы благодарны сегодня?"
                                         rows={1}
                                         style={{
-                                            overflow: "hidden",
                                             minHeight: "2.5rem",
                                             maxHeight: "7.5rem"
                                         }}
@@ -261,15 +258,15 @@ export const ClientDiary = () => {
                                     </div>
                                     {diary.isOpen && (
                                         <div className="mt-3 space-y-3">
-                                            <div className="p-2 border border-white/40 rounded-lg max-h-[100px] overflow-y-auto">
+                                            <div className="p-2 border border-white/40 rounded-lg max-h-[100px] overflow-y-scroll">
                                                 <p className="text-sm font-medium">Открытия</p>
                                                 <p className="mt-1.5">{diary.discovery}</p>
                                             </div>
-                                            <div className="p-2 border border-white/40 rounded-lg max-h-[100px] overflow-y-auto">
+                                            <div className="p-2 border border-white/40 rounded-lg max-h-[100px] overflow-y-scroll">
                                                 <p className="text-sm font-medium">Достижения</p>
                                                 <p className="mt-1.5">{diary.achievement}</p>
                                             </div>
-                                            <div className="p-2 border border-white/40 rounded-lg max-h-[100px] overflow-y-auto">
+                                            <div className="p-2 border border-white/40 rounded-lg max-h-[100px] overflow-y-scroll">
                                                 <p className="text-sm font-medium">Благодарности</p>
                                                 <p className="mt-1.5">{diary.gratitude}</p>
                                             </div>

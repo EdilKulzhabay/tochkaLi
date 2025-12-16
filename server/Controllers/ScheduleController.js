@@ -3,7 +3,7 @@ import Schedule from "../Models/Schedule.js";
 // Создать новое событие
 export const create = async (req, res) => {
     try {
-        const { eventTitle, startDate, endDate, eventLink, description } = req.body;
+        const { eventTitle, startDate, endDate, eventLink, googleCalendarLink, appleCalendarLink, description } = req.body;
 
         // if (!eventTitle || !startDate || !endDate || !description) {
         //     return res.status(400).json({
@@ -17,6 +17,8 @@ export const create = async (req, res) => {
             startDate,
             endDate,
             eventLink,
+            googleCalendarLink,
+            appleCalendarLink,
             description,
         });
 
@@ -213,70 +215,6 @@ export const remove = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка при удалении события",
-            error: error.message,
-        });
-    }
-};
-
-// Получить .ics файл для события
-export const getCalendarFile = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { telegramId } = req.query; // Опциональный параметр для логирования
-
-        const schedule = await Schedule.findById(id);
-
-        if (!schedule) {
-            return res.status(404).json({
-                success: false,
-                message: "Событие не найдено",
-            });
-        }
-
-        // Логируем запрос (если передан telegramId)
-        if (telegramId) {
-            console.log(`[Schedule] Запрос .ics файла для события ${id} от пользователя telegramId: ${telegramId}`);
-        }
-
-        // Импортируем утилиту для генерации .ics
-        const { generateICSContent } = await import('../utils/icsGenerator.js');
-        
-        // Генерируем содержимое .ics файла
-        const icsContent = generateICSContent(schedule);
-        
-        // Формируем имя файла (только латиница для совместимости)
-        const safeTitle = (schedule.eventTitle || 'event')
-            .replace(/[^a-zA-Z0-9\s-]/g, '') // Убираем кириллицу и спецсимволы
-            .replace(/\s+/g, '_') // Пробелы в подчеркивания
-            .trim()
-            .substring(0, 30) || 'event';
-        const filename = `${safeTitle}_${schedule._id}.ics`;
-        
-        // Устанавливаем заголовки для ОТКРЫТИЯ .ics файла (НЕ скачивания)
-        // Content-Type говорит системе, что это календарный файл
-        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
-        
-        // inline - открыть в браузере, система предложит добавить в календарь
-        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-        
-        // Дополнительные заголовки для календаря
-        res.setHeader('Content-Description', 'Calendar Event');
-        
-        // Кэширование отключаем для актуальности данных
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        
-        console.log(`[Calendar] Отправка .ics файла для открытия: ${filename}`);
-        console.log(`[Calendar] User-Agent: ${req.headers['user-agent']}`);
-        
-        // Отправляем содержимое файла для открытия в системном календаре
-        res.send(icsContent);
-    } catch (error) {
-        console.log("Ошибка в ScheduleController.getCalendarFile:", error);
-        res.status(500).json({
-            success: false,
-            message: "Ошибка при получении файла календаря",
             error: error.message,
         });
     }

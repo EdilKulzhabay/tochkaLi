@@ -165,7 +165,6 @@ app.delete("/api/video-lesson/:id", VideoLessonController.remove);
 app.post("/api/schedule", ScheduleController.create);
 app.get("/api/schedule", ScheduleController.getAll);
 app.get("/api/schedule/:id", ScheduleController.getById);
-app.get("/api/schedule/:id/calendar", ScheduleController.getCalendarFile);
 app.put("/api/schedule/:id", ScheduleController.update);
 app.delete("/api/schedule/:id", ScheduleController.remove);
 
@@ -184,6 +183,7 @@ app.get("/api/dynamic-content/:id", DynamicContentController.getById);
 app.put("/api/dynamic-content/:id", DynamicContentController.update);
 app.delete("/api/dynamic-content/:id", DynamicContentController.remove);
 app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
+app.get("/api/dynamic-content/horoscope-corridor", DynamicContentController.getHoroscopeCorridorContent);
 // ==================== Welcome маршруты ====================
 app.post("/api/welcome", WelcomeController.create);
 app.get("/api/welcome", WelcomeController.getAll);
