@@ -749,7 +749,7 @@ export const BroadcastAdmin = () => {
                     </div>
 
                     {/* Цвет фона рассылки */}
-                    <div className="border-t pt-4">
+                    {/* <div className="border-t pt-4">
                         <label className="flex items-center gap-2 text-sm font-medium mb-2">
                             Цвет фона рассылки
                         </label>
@@ -782,7 +782,7 @@ export const BroadcastAdmin = () => {
                         <p className="text-xs text-gray-500 mt-2">
                             Выбранный цвет фона будет передан в параметре <code className="bg-gray-100 px-1 rounded">backgroundColor</code> в URL кнопки web_app.
                         </p>
-                    </div>
+                    </div> */}
 
                     {/* Кнопки действий */}
                     <div className="flex gap-3 pt-4 border-t">
@@ -866,7 +866,7 @@ export const BroadcastAdmin = () => {
 
                 {/* Модальное окно управления рассылками */}
                 {showManageModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-2xl font-bold text-gray-900">Управление сохраненными рассылками</h2>
