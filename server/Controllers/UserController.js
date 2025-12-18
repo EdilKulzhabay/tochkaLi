@@ -1497,6 +1497,7 @@ export const payment = async (req, res) => {
 
         const outSum = '10.00';
         const invId = Date.now();
+        const description = 'Подписка в клуб';
 
         const receipt = {
             sno: 'usn_income',
@@ -1516,7 +1517,7 @@ export const payment = async (req, res) => {
         const receiptEncoded = encodeURIComponent(receiptJson);
 
         const signatureString =
-        `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptJson}:${PASSWORD_1}:Shp_userId=${userId}`;
+        `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptEncoded}:${PASSWORD_1}:Shp_userId=${userId}`;
 
         const signature = crypto
         .createHash('md5')
@@ -1528,6 +1529,7 @@ export const payment = async (req, res) => {
         `?MerchantLogin=${MERCHANT_LOGIN}` +
         `&OutSum=${outSum}` +
         `&InvId=${invId}` +
+        `&Description=${encodeURIComponent(description)}` +
         `&Receipt=${receiptEncoded}` +
         `&SignatureValue=${signature}` +
         `&Shp_userId=${userId}`;
