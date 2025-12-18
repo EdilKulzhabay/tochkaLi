@@ -1498,6 +1498,7 @@ export const payment = async (req, res) => {
         const outSum = '10.00';
         const invId = Date.now();
         const description = 'Подписка в клуб';
+        const email = user.mail;
 
         const receipt = {
             sno: 'usn_income',
@@ -1516,8 +1517,11 @@ export const payment = async (req, res) => {
         const receiptJson = JSON.stringify(receipt);
         const receiptEncoded = encodeURIComponent(receiptJson);
 
+        // const signatureString =
+        // `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptJson}:${PASSWORD_1}:Shp_userId=${userId}`;
+
         const signatureString =
-        `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptJson}:${PASSWORD_1}:Shp_userId=${userId}`;
+        `${MERCHANT_LOGIN}:${outSum}:${email}:${invId}:${PASSWORD_1}:Shp_userId=${userId}`;
 
         const signature = crypto
         .createHash('md5')
@@ -1528,9 +1532,9 @@ export const payment = async (req, res) => {
         `https://auth.robokassa.ru/Merchant/Index.aspx` +
         `?MerchantLogin=${MERCHANT_LOGIN}` +
         `&OutSum=${outSum}` +
+        `&Email=${email}` +
         `&InvId=${invId}` +
         `&Description=${encodeURIComponent(description)}` +
-        `&Receipt=${receiptEncoded}` +
         `&SignatureValue=${signature}` +
         `&Shp_userId=${userId}`;
 
