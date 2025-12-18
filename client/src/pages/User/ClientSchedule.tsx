@@ -300,7 +300,13 @@ export const ClientSchedule = () => {
                                             <button
                                                 onClick={() => {
                                                     if (selectedSchedule.googleCalendarLink) {
-                                                        window.location.href = selectedSchedule.googleCalendarLink;
+                                                        // Открываем ссылку во внешнем браузере через Telegram WebApp API
+                                                        if (window.Telegram?.WebApp?.openLink) {
+                                                            window.Telegram.WebApp.openLink(selectedSchedule.googleCalendarLink);
+                                                        } else {
+                                                            // Fallback для обычного браузера
+                                                            window.open(selectedSchedule.googleCalendarLink, '_blank');
+                                                        }
                                                         closeModal();
                                                     }
                                                 }}
@@ -311,7 +317,13 @@ export const ClientSchedule = () => {
                                             <button
                                                 onClick={() => {
                                                     if (selectedSchedule.appleCalendarLink) {
-                                                        window.location.href = selectedSchedule.appleCalendarLink;
+                                                        // Открываем ссылку во внешнем браузере через Telegram WebApp API
+                                                        if (window.Telegram?.WebApp?.openLink) {
+                                                            window.Telegram.WebApp.openLink(selectedSchedule.appleCalendarLink);
+                                                        } else {
+                                                            // Fallback для обычного браузера
+                                                            window.open(selectedSchedule.appleCalendarLink, '_blank');
+                                                        }
                                                         closeModal();
                                                     }
                                                 }}

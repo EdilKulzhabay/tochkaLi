@@ -47,12 +47,34 @@ export const handleResult = async (req, res) => {
                 
                 user.hasPaid = true;
                 user.paymentDate = new Date();
+                user.status = 'client';
                 user.paymentAmount = parseFloat(OutSum);
                 user.invoiceId = InvId;
                 user.subscriptionEndDate = subscriptionEndDate;
                 
                 await user.save();
                 console.log(`Пользователь ${Shp_userId} успешно обновлён. Подписка до: ${subscriptionEndDate}`);
+                if (user.telegramId) {
+                    try {
+                        const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/add-user`, {
+                            telegramId: user.telegramId
+                        }, {
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            timeout: 10000, // 10 секунд таймаут
+                        });
+        
+                        if (botResponse.data.success) {
+                            console.log(`Пользователь ${user.telegramId} успешно добавлен в группу и канал`);
+                        } else {
+                            console.warn(`Частичное выполнение при добавлении пользователя ${user.telegramId}:`, botResponse.data);
+                        }
+                    } catch (botError) {
+                        console.error(`Ошибка при добавлении пользователя ${user.telegramId} в группу/канал:`, botError.message);
+                        // Не прерываем выполнение, если ошибка с ботом
+                    }
+                }
             } else {
                 console.log(`Пользователь ${Shp_userId} не найден`);
             }

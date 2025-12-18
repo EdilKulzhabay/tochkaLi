@@ -6,6 +6,7 @@ import { RedButton } from '../../components/User/RedButton';
 import { MyLink } from '../../components/User/MyLink';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export const About = () => {
     const [content, setContent] = useState<any>(null);
@@ -14,68 +15,38 @@ export const About = () => {
     const navigate = useNavigate();
 
     const handleJoinClub = () => {
-        // const telegramId = localStorage.getItem('telegramId');
-        // if (!telegramId) {
-        //     toast.error('Ошибка: не найден telegramId');
-        //     navigate(-1);
-        //     return;
-        // }
-        // const fetchUser = async () => {
-        //     try {
-        //         const response = await api.get(`/api/user/telegram/${telegramId}`);
-        //         if (response.data.success && response.data.user) {
-        //             if (response.data.user.isBlocked) {
-        //                 navigate('/client/blocked-user');
-        //                 return;
-        //             }
-        //             if (!response.data.user.emailConfirmed) {
-        //                 navigate('/client/register');
-        //             } else {
-        //                 const user = response.data.user;
-        //                 const merchantLogin = import.meta.env.VITE_ROBOKASSA_MERCHANT_LOGIN;
-        //                 const password1 = import.meta.env.VITE_ROBOKASSA_PASSWORD1;
-        //                 const isTestMode = import.meta.env.VITE_ROBOKASSA_TEST_MODE === '1';
-                        
-        //                 // Генерируем уникальный ID счета
-        //                 const invoiceId = Date.now();
-        //                 const outSum = '10.00';
-        //                 const description = 'Оплата клуба лицензии';
+        const telegramId = localStorage.getItem('telegramId');
+        if (!telegramId) {
+            toast.error('Ошибка: не найден telegramId');
+            navigate(-1);
+            return;
+        }
+        const fetchUser = async () => {
+            try {
+                const response = await api.get(`/api/user/telegram/${telegramId}`);
+                if (response.data.success && response.data.user) {
+                    if (response.data.user.isBlocked) {
+                        navigate('/client/blocked-user');
+                        return;
+                    }
+                    if (!response.data.user.emailConfirmed) {
+                        navigate('/client/register');
+                    } else {
+                        const user = response.data.user;
+                        const paymentResponse = await api.post('/api/user/payment', { userId: user._id });
+                        if (paymentResponse.data.success) {
+                            window.location.href = paymentResponse.data.url;
+                        } else {
+                            toast.error('Ошибка при получении ссылки оплаты');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
 
-        //                 // Формируем строку для подписи: MerchantLogin:OutSum:InvoiceID:Password1[:Shp_userId=value]
-        //                 let signatureString = `${merchantLogin}:${outSum}:${invoiceId}:${password1}`;
-        //                 if (user._id) {
-        //                     signatureString += `:Shp_userId=${user._id}`;
-        //                 }
-                        
-        //                 // Генерируем MD5 хеш для подписи
-        //                 const signature = CryptoJS.MD5(signatureString).toString();
-
-        //                 // Формируем URL для оплаты
-        //                 const baseUrl = 'https://auth.robokassa.ru/Merchant/Index.aspx';
-                        
-        //                 const params: Record<string, string> = {
-        //                     MerchantLogin: merchantLogin,
-        //                     OutSum: outSum,
-        //                     InvoiceID: invoiceId.toString(),
-        //                     Description: description,
-        //                     SignatureValue: signature,
-        //                     IsTest: isTestMode ? '1' : '0',
-        //                 };
-
-        //                 if (user._id) {
-        //                     params.Shp_userId = user._id;
-        //                 }
-
-        //                 const searchParams = new URLSearchParams(params);
-        //                 window.location.href = `${baseUrl}?${searchParams.toString()}`;
-        //             }
-        //         }
-        //     } catch (error) {
-        //         console.log(error);
-        //     }
-        // }
-
-        // fetchUser();
+        fetchUser();
         setModalOpen(true);
     }
 

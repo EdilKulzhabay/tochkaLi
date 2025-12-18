@@ -1220,10 +1220,12 @@ export const purchaseContent = async (req, res) => {
 // ID защищенного администратора, которого нельзя изменять или блокировать
 const PROTECTED_ADMIN_ID = '6918943fa2264c7b0389b03d';
 
-// Получить всех администраторов
+// Получить всех администраторов (включая все административные роли)
 export const getAllAdmins = async (req, res) => {
     try {
-        const admins = await User.find({ role: 'admin' })
+        const admins = await User.find({ 
+            role: { $in: ['admin', 'content_manager', 'client_manager'] }
+        })
             .select("-password -currentToken -refreshToken")
             .sort({ createdAt: -1 });
 
@@ -1241,12 +1243,15 @@ export const getAllAdmins = async (req, res) => {
     }
 };
 
-// Получить администратора по ID
+// Получить администратора по ID (любая административная роль)
 export const getAdminById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const admin = await User.findOne({ _id: id, role: 'admin' })
+        const admin = await User.findOne({ 
+            _id: id, 
+            role: { $in: ['admin', 'content_manager', 'client_manager'] }
+        })
             .select("-password -currentToken -refreshToken");
 
         if (!admin) {
@@ -1269,7 +1274,7 @@ export const getAdminById = async (req, res) => {
     }
 };
 
-// Создать администратора
+// Создать администратора (с любой административной ролью)
 export const createAdmin = async (req, res) => {
     try {
         const { fullName, mail, phone, role, status, password } = req.body;
@@ -1280,6 +1285,10 @@ export const createAdmin = async (req, res) => {
                 message: "Имя, email и телефон обязательны для заполнения",
             });
         }
+
+        // Валидация роли - должна быть одна из административных ролей
+        const allowedRoles = ['admin', 'content_manager', 'client_manager'];
+        const finalRole = role && allowedRoles.includes(role) ? role : 'admin';
 
         // Проверяем, существует ли пользователь с таким email
         const candidate = await User.findOne({ mail: mail?.toLowerCase() });
@@ -1308,7 +1317,7 @@ export const createAdmin = async (req, res) => {
             mail: mail?.toLowerCase(),
             phone,
             password: hashedPassword,
-            role: role || 'admin',
+            role: finalRole,
             status: status || 'active',
             emailConfirmed: true,
         });
@@ -1338,7 +1347,7 @@ export const createAdmin = async (req, res) => {
     }
 };
 
-// Обновить администратора
+// Обновить администратора (поддерживает изменение роли)
 export const updateAdmin = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1357,11 +1366,17 @@ export const updateAdmin = async (req, res) => {
         delete updateData.currentToken;
         delete updateData.refreshToken;
 
-        // Убеждаемся, что роль остается 'admin'
-        updateData.role = 'admin';
+        // Валидация роли - если указана, должна быть одна из административных ролей
+        const allowedRoles = ['admin', 'content_manager', 'client_manager'];
+        if (updateData.role && !allowedRoles.includes(updateData.role)) {
+            return res.status(400).json({
+                success: false,
+                message: "Недопустимая роль. Разрешенные роли: admin, content_manager, client_manager",
+            });
+        }
 
         const admin = await User.findOneAndUpdate(
-            { _id: id, role: 'admin' },
+            { _id: id, role: { $in: ['admin', 'content_manager', 'client_manager'] } },
             updateData,
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
@@ -1387,7 +1402,7 @@ export const updateAdmin = async (req, res) => {
     }
 };
 
-// Заблокировать администратора
+// Заблокировать администратора (любая административная роль)
 export const blockAdmin = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1401,7 +1416,7 @@ export const blockAdmin = async (req, res) => {
         }
 
         const admin = await User.findOneAndUpdate(
-            { _id: id, role: 'admin' },
+            { _id: id, role: { $in: ['admin', 'content_manager', 'client_manager'] } },
             { isBlocked: true },
             { new: true }
         ).select("-password -currentToken -refreshToken");
@@ -1427,7 +1442,7 @@ export const blockAdmin = async (req, res) => {
     }
 };
 
-// Разблокировать администратора
+// Разблокировать администратора (любая административная роль)
 export const unblockAdmin = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1441,7 +1456,7 @@ export const unblockAdmin = async (req, res) => {
         }
 
         const admin = await User.findOneAndUpdate(
-            { _id: id, role: 'admin' },
+            { _id: id, role: { $in: ['admin', 'content_manager', 'client_manager'] } },
             { isBlocked: false },
             { new: true }
         ).select("-password -currentToken -refreshToken");
@@ -1463,6 +1478,48 @@ export const unblockAdmin = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Ошибка разблокировки администратора",
+        });
+    }
+};
+
+export const payment = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Пользователь не найден",
+            });
+        }
+        const MERCHANT_LOGIN = 'psylife.io';
+        const PASSWORD_1 = process.env.ROBOKASSA_PASSWORD1;
+
+        const outSum = '10.00';
+        const invId = Date.now();
+
+        const signature = crypto
+        .createHash('md5')
+        .update(`${MERCHANT_LOGIN}:${outSum}:${invId}:${PASSWORD_1}:Shp_userId=${userId}`)
+        .digest('hex');
+
+        const url =
+        `https://auth.robokassa.ru/Merchant/Index.aspx` +
+        `?MerchantLogin=${MERCHANT_LOGIN}` +
+        `&OutSum=${outSum}` +
+        `&InvId=${invId}` +
+        `&Shp_userId=${userId}` +
+        `&SignatureValue=${signature}`;
+
+        res.json({
+            success: true,
+            url: url,
+        });
+    } catch (error) {
+        console.log("Ошибка в payment:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка при получении ссылки оплаты",
         });
     }
 };

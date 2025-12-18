@@ -41,6 +41,95 @@ export const ClientDiary = () => {
         fetchContent();
     }, [navigate]);
 
+    // Разрешаем копирование и вставку на странице дневника
+    useEffect(() => {
+        // Функция для проверки, находится ли элемент на странице дневника
+        const isDiaryPageElement = (element: HTMLElement | null): boolean => {
+            if (!element) return false;
+            // Проверяем, находится ли элемент внутри контейнера дневника
+            const diaryContainer = element.closest('[data-diary-page]');
+            return diaryContainer !== null;
+        };
+
+        // Переопределяем выделение текста - разрешаем на странице дневника
+        const handleSelectStart = (e: Event) => {
+            const target = e.target as HTMLElement;
+            if (isDiaryPageElement(target)) {
+                // Останавливаем распространение события, чтобы обработчики UserLayout не блокировали его
+                e.stopImmediatePropagation();
+                // Разрешаем выделение на странице дневника
+                return;
+            }
+        };
+
+        // Переопределяем копирование - разрешаем на странице дневника
+        const handleCopy = (e: ClipboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (isDiaryPageElement(target)) {
+                // Останавливаем распространение события, чтобы обработчики UserLayout не блокировали его
+                e.stopImmediatePropagation();
+                // Разрешаем копирование на странице дневника
+                return;
+            }
+        };
+
+        // Переопределяем вставку - разрешаем на странице дневника
+        const handlePaste = (e: ClipboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (isDiaryPageElement(target)) {
+                // Останавливаем распространение события, чтобы обработчики UserLayout не блокировали его
+                e.stopImmediatePropagation();
+                // Разрешаем вставку на странице дневника
+                return;
+            }
+        };
+
+        // Переопределяем вырезание - разрешаем на странице дневника
+        const handleCut = (e: ClipboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (isDiaryPageElement(target)) {
+                // Останавливаем распространение события, чтобы обработчики UserLayout не блокировали его
+                e.stopImmediatePropagation();
+                // Разрешаем вырезание на странице дневника
+                return;
+            }
+        };
+
+        // Переопределяем горячие клавиши - разрешаем на странице дневника
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (isDiaryPageElement(target)) {
+                // Разрешаем Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A на странице дневника
+                if (e.ctrlKey || e.metaKey) {
+                    const key = e.key.toLowerCase();
+                    if (['c', 'v', 'x', 'a'].includes(key)) {
+                        // Останавливаем распространение события, чтобы обработчики UserLayout не блокировали его
+                        e.stopImmediatePropagation();
+                        // Разрешаем операцию
+                        return;
+                    }
+                }
+            }
+        };
+
+        // Добавляем обработчики с capture фазой для приоритета над UserLayout
+        // Используем { capture: true, passive: false } для возможности вызова stopImmediatePropagation
+        document.addEventListener('selectstart', handleSelectStart, { capture: true });
+        document.addEventListener('copy', handleCopy, { capture: true });
+        document.addEventListener('paste', handlePaste, { capture: true });
+        document.addEventListener('cut', handleCut, { capture: true });
+        document.addEventListener('keydown', handleKeyDown, { capture: true });
+
+        // Очистка обработчиков при размонтировании
+        return () => {
+            document.removeEventListener('selectstart', handleSelectStart, { capture: true });
+            document.removeEventListener('copy', handleCopy, { capture: true });
+            document.removeEventListener('paste', handlePaste, { capture: true });
+            document.removeEventListener('cut', handleCut, { capture: true });
+            document.removeEventListener('keydown', handleKeyDown, { capture: true });
+        };
+    }, []);
+
     const fetchDiaries = async () => {
         try {
             const userData = JSON.parse(localStorage.getItem('user') || '{}');
@@ -145,7 +234,17 @@ export const ClientDiary = () => {
         <div>
             <UserLayout>
                 <BackNav title="Дневник" />
-                <div className="px-4 mt-2 pb-10 bg-[#161616]">
+                <div 
+                    className="px-4 mt-2 pb-10 bg-[#161616]" 
+                    data-diary-page
+                    style={{
+                        userSelect: 'text',
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        msUserSelect: 'text',
+                        WebkitTouchCallout: 'default'
+                    }}
+                >
                     <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }}>
                     </p>
 

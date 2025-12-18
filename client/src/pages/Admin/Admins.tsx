@@ -134,6 +134,19 @@ export const AdminsAdmin = () => {
         return 'bg-gray-100 text-gray-700';
     };
 
+    const getRoleLabel = (role: string) => {
+        switch (role) {
+            case 'admin':
+                return 'Администратор';
+            case 'content_manager':
+                return 'Контент-менеджер';
+            case 'client_manager':
+                return 'Клиент-менеджер';
+            default:
+                return role || 'Не указано';
+        }
+    };
+
     return (
         <AdminLayout>
             <div className="space-y-6">
@@ -210,6 +223,9 @@ export const AdminsAdmin = () => {
                                             Телефон
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Роль
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Статус
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -242,6 +258,9 @@ export const AdminsAdmin = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm text-gray-900">{admin.phone || 'Не указано'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900">{getRoleLabel(admin.role)}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 py-1 text-xs rounded ${getStatusColor(admin.status, admin.isBlocked)}`}>

@@ -68,7 +68,7 @@ export const AdminForm = () => {
                 fullName: formData.fullName,
                 mail: formData.mail,
                 phone: formData.phone,
-                role: 'admin', // Всегда admin
+                role: formData.role,
                 status: formData.status,
             };
 
@@ -148,15 +148,18 @@ export const AdminForm = () => {
                             required
                         />
 
-                        {/* Роль - всегда admin, но показываем для информации */}
+                        {/* Роль */}
                         <div>
                             <label className="block text-sm font-medium mb-2">Роль</label>
-                            <input
-                                type="text"
-                                value="Администратор"
-                                readOnly
-                                className="w-full p-2 border rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
-                            />
+                            <select
+                                value={formData.role}
+                                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="admin">Администратор</option>
+                                <option value="content_manager">Контент-менеджер</option>
+                                <option value="client_manager">Клиент-менеджер</option>
+                            </select>
                         </div>
 
                         {/* Статус */}
