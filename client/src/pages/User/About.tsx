@@ -341,7 +341,6 @@ export const About = () => {
                                                         // Fallback для обычного браузера
                                                         window.open("https://xn--80ajaabkdcdysfdbla7bh1g.xn--p1ai/oferta", '_blank');
                                                     }
-                                                    setShowPaymentModal(false);
                                                 }
                                             }
                                             className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
