@@ -609,7 +609,7 @@ app.post('/api/bot/add-user', async (req, res) => {
             });
         }
 
-        await bot.telegram.sendMessage(telegramId, '🎉 Вам открыт доступ к закрытым материалам!')
+        // await bot.telegram.sendMessage(telegramId, '🎉 Вам открыт доступ к закрытым материалам!')
         
         console.log(`📥 [API] Запрос на отправку invite-ссылок для пользователя ${telegramId}`);
 
