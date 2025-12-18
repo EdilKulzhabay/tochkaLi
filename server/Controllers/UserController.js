@@ -1521,7 +1521,7 @@ export const payment = async (req, res) => {
         // `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptJson}:${PASSWORD_1}:Shp_userId=${userId}`;
 
         const signatureString =
-        `${MERCHANT_LOGIN}:${outSum}:${email}:${invId}:${PASSWORD_1}:Shp_userId=${userId}`;
+        `${MERCHANT_LOGIN}:${outSum}:${invId}:${PASSWORD_1}:Shp_userId=${userId}`;
 
         const signature = crypto
         .createHash('md5')
@@ -1532,7 +1532,6 @@ export const payment = async (req, res) => {
         `https://auth.robokassa.ru/Merchant/Index.aspx` +
         `?MerchantLogin=${MERCHANT_LOGIN}` +
         `&OutSum=${outSum}` +
-        `&Email=${email}` +
         `&InvId=${invId}` +
         `&Description=${encodeURIComponent(description)}` +
         `&SignatureValue=${signature}` +
