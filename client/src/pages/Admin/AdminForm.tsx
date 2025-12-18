@@ -178,7 +178,7 @@ export const AdminForm = () => {
                         {/* Пароль */}
                         <div>
                             <label className="block text-sm font-medium mb-2">
-                                Пароль {!id && <span className="text-gray-500">(необязательно, будет сгенерирован автоматически)</span>}
+                                Пароль
                             </label>
                             <input
                                 type="password"
