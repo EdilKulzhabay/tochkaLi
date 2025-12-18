@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 import User from '../Models/User.js';
+import axios from 'axios';
+import 'dotenv/config';
 
 export const handleResult = async (req, res) => {
     try {
@@ -56,7 +58,7 @@ export const handleResult = async (req, res) => {
                 console.log(`Пользователь ${Shp_userId} успешно обновлён. Подписка до: ${subscriptionEndDate}`);
                 if (user.telegramId) {
                     try {
-                        const botResponse = await axios.post(`${BOT_SERVER_URL}/api/bot/add-user`, {
+                        const botResponse = await axios.post(`${process.env.BOT_SERVER_URL}/api/bot/add-user`, {
                             telegramId: user.telegramId
                         }, {
                             headers: {
