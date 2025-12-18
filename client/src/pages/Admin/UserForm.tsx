@@ -16,6 +16,8 @@ interface FormData {
     telegramUserName?: string;
     status?: string;
     isBlocked?: boolean;
+    paymentLink?: string;
+    paymentId?: string;
 }
 
 export const UserForm = () => {
@@ -28,6 +30,8 @@ export const UserForm = () => {
         mail: '',
         phone: '',
         bonus: 0,
+        paymentLink: '',
+        paymentId: '',
     });
 
     useEffect(() => {
@@ -49,6 +53,8 @@ export const UserForm = () => {
                 telegramUserName: data.telegramUserName || '',
                 status: data.status || '',
                 isBlocked: data.isBlocked || false,
+                paymentLink: data.paymentLink || '',
+                paymentId: data.paymentId || '',
             });
             // Преобразуем subscriptionEndDate из Date в формат DD-MM-YYYY
             if (data.subscriptionEndDate) {
@@ -174,6 +180,11 @@ export const UserForm = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCopyPaymentLink = () => {
+        navigator.clipboard.writeText(formData.paymentLink || '');
+        toast.success('Ссылка на оплату скопирована в буфер обмена');
     };
 
     return (
@@ -347,6 +358,15 @@ export const UserForm = () => {
                                     className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Отменить подписку
+                                </button>
+                            </div>
+
+                            <div className='mt-3'>
+                                <div>
+                                    Номер заказа: {formData.paymentId || 'Не установлен'}
+                                </div>
+                                <button onClick={handleCopyPaymentLink} className='text-blue-500 hover:text-blue-700 mt-2'>
+                                    Ссылка на оплату
                                 </button>
                             </div>
                         </div>

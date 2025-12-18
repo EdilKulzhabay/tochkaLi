@@ -1534,6 +1534,10 @@ export const payment = async (req, res) => {
         `&SignatureValue=${signature}` +
         `&Shp_userId=${userId}`;
 
+        user.paymentLink = url;
+        user.paymentId = invId;
+        await user.save();
+
         res.json({ success: true, url });
     } catch (error) {
         console.error('Ошибка в payment:', error);

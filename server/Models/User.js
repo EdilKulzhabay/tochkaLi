@@ -130,6 +130,14 @@ const UserSchema = new mongoose.Schema({
         enum: ['guest', 'registered', 'active', 'client'],
         default: null,
     },
+    paymentLink: {
+        type: String,
+        default: null,
+    },
+    paymentId: {
+        type: String,
+        default: null,
+    }
 }, {
     timestamps: true
 });
