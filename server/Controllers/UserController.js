@@ -1485,45 +1485,45 @@ export const unblockAdmin = async (req, res) => {
 
 export const payment = async (req, res) => {
     try {
-      const { userId } = req.body;
-  
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'Пользователь не найден' });
-      }
-  
-      const MERCHANT_LOGIN = process.env.ROBOKASSA_MERCHANT_LOGIN;
-      const PASSWORD_1 = process.env.ROBOKASSA_PASSWORD1;
-  
-      const outSum = '10.00';
-      const invId = Date.now();
-  
-      const receipt = {
-        sno: 'usn_income',
-        items: [
-          {
-            name: 'Подписка в клуб',
-            quantity: 1,
-            sum: 10.00,
-            tax: 'none',
-            payment_method: 'prepayment_full',
-            payment_object: 'service',
-          },
-        ],
-      };
-  
-      const receiptJson = JSON.stringify(receipt);
-      const receiptEncoded = encodeURIComponent(receiptJson);
-  
-      const signatureString =
-        `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptJson}:${PASSWORD_1}:Shp_userId=${userId}`;
-  
-      const signature = crypto
+        const { userId } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+        }
+
+        const MERCHANT_LOGIN = process.env.ROBOKASSA_MERCHANT_LOGIN;
+        const PASSWORD_1 = process.env.ROBOKASSA_PASSWORD1;
+
+        const outSum = '10.00';
+        const invId = Date.now();
+
+        const receipt = {
+            sno: 'usn_income',
+            items: [
+                {
+                name: 'Подписка в клуб',
+                quantity: 1,
+                sum: 10.00,
+                tax: 'none',
+                payment_method: 'prepayment_full',
+                payment_object: 'service',
+                },
+            ],
+        };
+
+        const receiptJson = JSON.stringify(receipt);
+        const receiptEncoded = encodeURIComponent(receiptJson);
+
+        const signatureString =
+        `${MERCHANT_LOGIN}:${outSum}:${invId}:${receiptEncoded}:${PASSWORD_1}:Shp_userId=${userId}`;
+
+        const signature = crypto
         .createHash('md5')
         .update(signatureString)
         .digest('hex');
-  
-      const url =
+
+        const url =
         `https://auth.robokassa.ru/Merchant/Index.aspx` +
         `?MerchantLogin=${MERCHANT_LOGIN}` +
         `&OutSum=${outSum}` +
@@ -1531,11 +1531,11 @@ export const payment = async (req, res) => {
         `&Receipt=${receiptEncoded}` +
         `&Shp_userId=${userId}` +
         `&SignatureValue=${signature}`;
-  
-      res.json({ success: true, url });
+
+        res.json({ success: true, url });
     } catch (error) {
-      console.error('Ошибка в payment:', error);
-      res.status(500).json({ success: false, message: 'Ошибка при получении ссылки оплаты' });
+        console.error('Ошибка в payment:', error);
+        res.status(500).json({ success: false, message: 'Ошибка при получении ссылки оплаты' });
     }
-  };
+};
   
