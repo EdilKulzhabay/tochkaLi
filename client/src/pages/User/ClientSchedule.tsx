@@ -288,9 +288,9 @@ export const ClientSchedule = () => {
                                         </div>
 
                                         {selectedSchedule?.eventLink && (
-                                            <div className="mt-4 flex items-center justify-between">
-                                                <div>Ссылка на событие</div>
-                                                <a href={selectedSchedule?.eventLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+                                            <div className="mt-4">
+                                                <div>Ссылка на событие:</div>
+                                                <a href={selectedSchedule?.eventLink} target="_blank" rel="noopener noreferrer" className="mt-2 text-[#EC1313] hover:text-red-600">
                                                     {selectedSchedule?.eventLink}
                                                 </a>
                                             </div>
