@@ -35,7 +35,13 @@ export const About = () => {
                         const user = response.data.user;
                         const paymentResponse = await api.post('/api/user/payment', { userId: user._id });
                         if (paymentResponse.data.success) {
-                            window.location.href = paymentResponse.data.url;
+                            if (window.Telegram?.WebApp?.openLink) {
+                                window.Telegram.WebApp.openLink(paymentResponse.data.url);
+                            } else {
+                                // Fallback для обычного браузера
+                                window.open(paymentResponse.data.url, '_blank');
+                            }
+                            // window.location.href = paymentResponse.data.url;
                         } else {
                             toast.error('Ошибка при получении ссылки оплаты');
                         }
