@@ -1492,7 +1492,7 @@ export const payment = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Пользователь не найден' });
       }
   
-      const MERCHANT_LOGIN = 'ВАШ_MERCHANT_LOGIN';
+      const MERCHANT_LOGIN = process.env.ROBOKASSA_MERCHANT_LOGIN;
       const PASSWORD_1 = process.env.ROBOKASSA_PASSWORD1;
   
       const outSum = '10.00';
