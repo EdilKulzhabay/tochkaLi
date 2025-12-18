@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import XLSX from "xlsx";
 import axios from "axios";
+import crypto from 'crypto';
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
