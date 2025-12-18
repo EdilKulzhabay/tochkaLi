@@ -218,6 +218,7 @@ app.delete("/api/broadcast/:id", BroadcastController.deleteBroadcast);
 
 // ==================== Robokassa ====================
 app.post("/api/robres", RobokassaController.handleResult);
+app.post("/api/user/payment", UserController.payment);
 
 app.all("/robokassa_callback/success", (req, res) => {
     const params = req.method === 'POST' ? req.body : req.query;

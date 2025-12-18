@@ -47,7 +47,7 @@ export const About = () => {
         }
 
         fetchUser();
-        setModalOpen(true);
+        // setModalOpen(true);
     }
 
     const handleSkip = () => {
