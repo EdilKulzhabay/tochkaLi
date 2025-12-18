@@ -1499,6 +1499,23 @@ export const payment = async (req, res) => {
         const invId = Date.now();
         const description = 'Подписка в клуб';
 
+        const receipt = {
+            sno: 'usn_income',
+            items: [
+                {
+                name: 'Подписка в клуб',
+                quantity: 1,
+                sum: 10.00,
+                tax: 'none',
+                payment_method: 'prepayment_full',
+                payment_object: 'service',
+                },
+            ],
+        };
+
+        const receiptJson = JSON.stringify(receipt);
+        const receiptEncoded = encodeURIComponent(receiptJson);
+
         const signatureString =
         `${MERCHANT_LOGIN}:${outSum}:${invId}:${PASSWORD_1}:Shp_userId=${userId}`;
 
@@ -1513,6 +1530,7 @@ export const payment = async (req, res) => {
         `&OutSum=${outSum}` +
         `&InvId=${invId}` +
         `&Description=${encodeURIComponent(description)}` +
+        `&Receipt=${receiptEncoded}` +
         `&SignatureValue=${signature}` +
         `&Shp_userId=${userId}`;
 
