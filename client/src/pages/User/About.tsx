@@ -7,15 +7,15 @@ import { MyLink } from '../../components/User/MyLink';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { Switch } from '../../components/User/Switch';
+// import { Switch } from '../../components/User/Switch';
 
 export const About = () => {
     const [content, setContent] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
-    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [familiatizaedWithOffer, setFamiliatizaedWithOffer] = useState(false);
+    // const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+    // const [showPaymentModal, setShowPaymentModal] = useState(false);
+    // const [familiatizaedWithOffer, setFamiliatizaedWithOffer] = useState(false);
     const navigate = useNavigate();
 
     const handleJoinClub = () => {
@@ -219,11 +219,9 @@ export const About = () => {
                         </div>
                     </div>
                 )}
-                {showPaymentModal && (
+                {/* {showPaymentModal && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
-                        {/* Мобильная версия: модальное окно снизу */}
                         <div className="flex items-end justify-center min-h-screen sm:hidden">
-                            {/* Overlay */}
                             <div 
                                 className="fixed inset-0 bg-black/60 transition-opacity z-20"
                                 onClick={() => {
@@ -232,7 +230,6 @@ export const About = () => {
                                 }}
                             />
 
-                            {/* Modal - снизу на мобильных */}
                             <div 
                                 className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
                                 onClick={(e) => e.stopPropagation()}
@@ -300,9 +297,7 @@ export const About = () => {
                             </div>
                         </div>
 
-                        {/* Десктопная версия: модальное окно по центру */}
                         <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
-                            {/* Overlay */}
                             <div 
                                 className="fixed inset-0 bg-black/60 transition-opacity"
                                 onClick={() => {
@@ -311,7 +306,6 @@ export const About = () => {
                                 }}
                             />
 
-                            {/* Modal - по центру на десктопе */}
                             <div 
                                 className="relative p-8 inline-block align-middle bg-[#333333] rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all"
                                 style={{ maxWidth: '500px', width: '100%' }}
@@ -379,7 +373,7 @@ export const About = () => {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
             </div>
         </UserLayout>
     )
