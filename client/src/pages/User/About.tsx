@@ -25,34 +25,34 @@ export const About = () => {
             navigate(-1);
             return;
         }
-        const fetchUser = async () => {
-            try {
-                const response = await api.get(`/api/user/telegram/${telegramId}`);
-                if (response.data.success && response.data.user) {
-                    if (response.data.user.isBlocked) {
-                        navigate('/client/blocked-user');
-                        return;
-                    }
-                    if (!response.data.user.emailConfirmed) {
-                        navigate('/client/register');
-                    } else {
-                        const user = response.data.user;
-                        const paymentResponse = await api.post('/api/user/payment', { userId: user._id });
-                        if (paymentResponse.data.success) {
-                            setPaymentUrl(paymentResponse.data.url);
-                            setShowPaymentModal(true);
-                        } else {
-                            toast.error('Ошибка при получении ссылки оплаты');
-                        }
-                    }
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        }
+        // const fetchUser = async () => {
+        //     try {
+        //         const response = await api.get(`/api/user/telegram/${telegramId}`);
+        //         if (response.data.success && response.data.user) {
+        //             if (response.data.user.isBlocked) {
+        //                 navigate('/client/blocked-user');
+        //                 return;
+        //             }
+        //             if (!response.data.user.emailConfirmed) {
+        //                 navigate('/client/register');
+        //             } else {
+        //                 const user = response.data.user;
+        //                 const paymentResponse = await api.post('/api/user/payment', { userId: user._id });
+        //                 if (paymentResponse.data.success) {
+        //                     setPaymentUrl(paymentResponse.data.url);
+        //                     setShowPaymentModal(true);
+        //                 } else {
+        //                     toast.error('Ошибка при получении ссылки оплаты');
+        //                 }
+        //             }
+        //         }
+        //     } catch (error) {
+        //         console.log(error);
+        //     }
+        // }
 
-        fetchUser();
-        // setModalOpen(true);
+        // fetchUser();
+        setModalOpen(true);
     }
 
     const handleSkip = () => {
