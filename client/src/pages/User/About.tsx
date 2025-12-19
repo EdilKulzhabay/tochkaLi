@@ -247,7 +247,7 @@ export const About = () => {
                                     <X size={24} />
                                 </button>
                                 
-                                <div className="mt-4">
+                                <div className="pb-8">
                                     <h3 className="text-xl font-bold mb-4">Оплата подписки</h3>
                                     <p className="mb-6 text-gray-300">
                                         Ознакомьтесь с публичной офертой на приобретение подписки
@@ -327,7 +327,7 @@ export const About = () => {
                                     <X size={32} />
                                 </button>
                                 
-                                <div className="mt-4">
+                                <div className="pb-8">
                                     <h3 className="text-2xl font-bold mb-4">Оплата подписки</h3>
                                     <p className="mb-6 text-gray-300 text-lg">
                                         Ознакомьтесь с публичной офертой на приобретение подписки
