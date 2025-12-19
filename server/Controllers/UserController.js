@@ -1495,17 +1495,17 @@ export const payment = async (req, res) => {
         const MERCHANT_LOGIN = process.env.ROBOKASSA_MERCHANT_LOGIN;
         const PASSWORD_1 = process.env.ROBOKASSA_PASSWORD1;
 
-        const outSum = '10.00';
+        const outSum = '500.00';
         const invId = Date.now();
-        const description = 'Подписка в клуб';
+        const description = 'Подписка на Клуб .li (30 дней)';
 
         const receipt = {
             sno: 'usn_income',
             items: [
                 {
-                name: 'Подписка в клуб',
+                name: 'Подписка на Клуб .li (30 дней)',
                 quantity: 1,
-                sum: 10.00,
+                sum: 500.00,
                 tax: 'none',
                 payment_method: 'prepayment_full',
                 payment_object: 'service',
