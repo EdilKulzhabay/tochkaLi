@@ -12,10 +12,30 @@ export const create = async (req, res) => {
         //     });
         // }
 
+        // Конвертируем даты в Date объекты
+        // Клиент отправляет ISO формат (UTC), но для совместимости обрабатываем и datetime-local
+        const parsedStartDate = startDate ? new Date(startDate) : null;
+        const parsedEndDate = endDate ? new Date(endDate) : null;
+        
+        // Проверка валидности дат
+        if (parsedStartDate && isNaN(parsedStartDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Неверный формат даты начала",
+            });
+        }
+        
+        if (parsedEndDate && isNaN(parsedEndDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Неверный формат даты окончания",
+            });
+        }
+
         const schedule = new Schedule({
             eventTitle,
-            startDate,
-            endDate,
+            startDate: parsedStartDate,
+            endDate: parsedEndDate,
             eventLink,
             googleCalendarLink,
             appleCalendarLink,
@@ -162,7 +182,30 @@ export const getById = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const updateData = { ...req.body };
+
+        // Конвертируем даты в Date объекты
+        if (updateData.startDate) {
+            const parsedDate = new Date(updateData.startDate);
+            if (isNaN(parsedDate.getTime())) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Неверный формат даты начала",
+                });
+            }
+            updateData.startDate = parsedDate;
+        }
+        
+        if (updateData.endDate) {
+            const parsedDate = new Date(updateData.endDate);
+            if (isNaN(parsedDate.getTime())) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Неверный формат даты окончания",
+                });
+            }
+            updateData.endDate = parsedDate;
+        }
 
         const schedule = await Schedule.findByIdAndUpdate(
             id,

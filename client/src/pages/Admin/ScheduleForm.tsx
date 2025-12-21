@@ -24,12 +24,23 @@ export const ScheduleForm = () => {
         description: '',
     });
 
+    // Функция для конвертации Date в формат datetime-local (локальное время)
+    const dateToLocalDateTime = (date: Date | string): string => {
+        const d = typeof date === 'string' ? new Date(date) : date;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
     useEffect(() => {
         if (id) {
             setIsEdit(true);
             fetchSchedule();
         } else {
-            const now = new Date().toISOString().slice(0, 16);
+            const now = dateToLocalDateTime(new Date());
             setFormData(prev => ({
                 ...prev,
                 startDate: now,
@@ -44,8 +55,8 @@ export const ScheduleForm = () => {
             const schedule = response.data.data;
             setFormData({
                 eventTitle: schedule.eventTitle,
-                startDate: new Date(schedule.startDate).toISOString().slice(0, 16),
-                endDate: new Date(schedule.endDate).toISOString().slice(0, 16),
+                startDate: dateToLocalDateTime(schedule.startDate),
+                endDate: dateToLocalDateTime(schedule.endDate),
                 eventLink: schedule.eventLink || '',
                 googleCalendarLink: schedule.googleCalendarLink || '',
                 appleCalendarLink: schedule.appleCalendarLink || '',
@@ -62,11 +73,18 @@ export const ScheduleForm = () => {
         setLoading(true);
 
         try {
+            // Конвертируем локальное время в ISO формат (UTC) для отправки на сервер
+            const submitData = {
+                ...formData,
+                startDate: formData.startDate ? new Date(formData.startDate).toISOString() : formData.startDate,
+                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : formData.endDate,
+            };
+
             if (isEdit) {
-                await api.put(`/api/schedule/${id}`, formData);
+                await api.put(`/api/schedule/${id}`, submitData);
                 toast.success('Событие обновлено');
             } else {
-                await api.post('/api/schedule', formData);
+                await api.post('/api/schedule', submitData);
                 toast.success('Событие создано');
             }
             navigate('/admin/schedule');
