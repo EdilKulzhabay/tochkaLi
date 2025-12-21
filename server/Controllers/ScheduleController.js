@@ -1,5 +1,44 @@
 import Schedule from "../Models/Schedule.js";
 
+// Функция для конвертации datetime-local (без часового пояса) в Date
+// Интерпретирует время как локальное время в Asia/Almaty (UTC+6) и конвертирует в UTC
+const parseDateTimeLocal = (dateTimeString) => {
+    if (!dateTimeString) return null;
+    
+    // Формат: "YYYY-MM-DDTHH:mm" или "YYYY-MM-DDTHH:mm:ss"
+    // Если это ISO формат с Z или +, используем стандартный парсинг
+    if (dateTimeString.includes('Z') || (dateTimeString.includes('+') && dateTimeString.length > 16) || (dateTimeString.includes('-') && dateTimeString.length > 16)) {
+        const date = new Date(dateTimeString);
+        return isNaN(date.getTime()) ? null : date;
+    }
+    
+    // Парсим datetime-local формат: "YYYY-MM-DDTHH:mm"
+    const match = dateTimeString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (!match) {
+        const date = new Date(dateTimeString);
+        return isNaN(date.getTime()) ? null : date;
+    }
+    
+    const [, year, month, day, hours, minutes, seconds = '0'] = match;
+    
+    // Создаем дату в UTC, интерпретируя введенное время как время в Asia/Almaty (UTC+6)
+    // Если пользователь ввел 14:00, это означает 14:00 в Asia/Almaty, что равно 08:00 UTC
+    // Используем Date.UTC и вычитаем 6 часов (360 минут)
+    const yearInt = parseInt(year, 10);
+    const monthInt = parseInt(month, 10) - 1; // месяцы начинаются с 0
+    const dayInt = parseInt(day, 10);
+    const hoursInt = parseInt(hours, 10);
+    const minutesInt = parseInt(minutes, 10);
+    const secondsInt = parseInt(seconds, 10);
+    
+    // Создаем дату как будто это UTC, но затем вычитаем смещение часового пояса
+    const utcDate = new Date(Date.UTC(yearInt, monthInt, dayInt, hoursInt, minutesInt, secondsInt));
+    // Вычитаем 6 часов (Asia/Almaty = UTC+6, значит UTC = локальное время - 6 часов)
+    utcDate.setUTCHours(utcDate.getUTCHours() - 6);
+    
+    return utcDate;
+};
+
 // Создать новое событие
 export const create = async (req, res) => {
     try {
@@ -12,10 +51,9 @@ export const create = async (req, res) => {
         //     });
         // }
 
-        // Конвертируем даты в Date объекты
-        // Клиент отправляет ISO формат (UTC), но для совместимости обрабатываем и datetime-local
-        const parsedStartDate = startDate ? new Date(startDate) : null;
-        const parsedEndDate = endDate ? new Date(endDate) : null;
+        // Конвертируем даты: datetime-local интерпретируется как время в Asia/Almaty
+        const parsedStartDate = startDate ? parseDateTimeLocal(startDate) : null;
+        const parsedEndDate = endDate ? parseDateTimeLocal(endDate) : null;
         
         // Проверка валидности дат
         if (parsedStartDate && isNaN(parsedStartDate.getTime())) {
@@ -182,12 +220,22 @@ export const getById = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // Проверяем, существует ли событие
+        const existingSchedule = await Schedule.findById(id);
+        if (!existingSchedule) {
+            return res.status(404).json({
+                success: false,
+                message: "Событие не найдено",
+            });
+        }
+        
         const updateData = { ...req.body };
 
-        // Конвертируем даты в Date объекты
+        // Конвертируем даты: datetime-local интерпретируется как время в Asia/Almaty
         if (updateData.startDate) {
-            const parsedDate = new Date(updateData.startDate);
-            if (isNaN(parsedDate.getTime())) {
+            const parsedDate = parseDateTimeLocal(updateData.startDate);
+            if (!parsedDate || isNaN(parsedDate.getTime())) {
                 return res.status(400).json({
                     success: false,
                     message: "Неверный формат даты начала",
@@ -197,8 +245,8 @@ export const update = async (req, res) => {
         }
         
         if (updateData.endDate) {
-            const parsedDate = new Date(updateData.endDate);
-            if (isNaN(parsedDate.getTime())) {
+            const parsedDate = parseDateTimeLocal(updateData.endDate);
+            if (!parsedDate || isNaN(parsedDate.getTime())) {
                 return res.status(400).json({
                     success: false,
                     message: "Неверный формат даты окончания",

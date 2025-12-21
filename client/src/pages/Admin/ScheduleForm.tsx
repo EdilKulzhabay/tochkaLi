@@ -24,14 +24,16 @@ export const ScheduleForm = () => {
         description: '',
     });
 
-    // Функция для конвертации Date в формат datetime-local (локальное время)
+    // Функция для конвертации UTC времени в локальное время Asia/Almaty (UTC+6) для отображения
     const dateToLocalDateTime = (date: Date | string): string => {
         const d = typeof date === 'string' ? new Date(date) : date;
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
+        // Конвертируем UTC в Asia/Almaty (UTC+6)
+        const localDate = new Date(d.getTime() + (6 * 60 * 60 * 1000)); // Добавляем 6 часов
+        const year = localDate.getUTCFullYear();
+        const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getUTCDate()).padStart(2, '0');
+        const hours = String(localDate.getUTCHours()).padStart(2, '0');
+        const minutes = String(localDate.getUTCMinutes()).padStart(2, '0');
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
@@ -73,14 +75,12 @@ export const ScheduleForm = () => {
         setLoading(true);
 
         try {
-            // Конвертируем локальное время в ISO формат (UTC) для отправки на сервер
+            // Отправляем datetime-local как есть - сервер интерпретирует его как время в Asia/Almaty
             const submitData = {
                 ...formData,
-                startDate: formData.startDate ? new Date(formData.startDate).toISOString() : formData.startDate,
-                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : formData.endDate,
             };
 
-            if (isEdit) {
+            if (isEdit && id) {
                 await api.put(`/api/schedule/${id}`, submitData);
                 toast.success('Событие обновлено');
             } else {
