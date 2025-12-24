@@ -1,11 +1,9 @@
 import bgGar from '../../assets/bgGar.png';
 import { MyLink } from '../../components/User/MyLink';
-import { useNavigate } from 'react-router-dom';
 import easeLaunch from '../../assets/easeLaunch.png';
 import { useState, useEffect } from 'react';
 
 export const EaseLaunch = () => {
-    const navigate = useNavigate();
     const [screenHeight, setScreenHeight] = useState<number>(0);
 
     useEffect(() => {
@@ -47,10 +45,11 @@ export const EaseLaunch = () => {
             </div>
             
             <div className='bg-[#161616]'>
-                <button 
-                    onClick={() => navigate(-1)}
+                <a 
+                    href="https://drive.google.com/file/d/1PGDJqtSnqy-18dgNsw3pnWMNtvMAcXAf/view?usp=share_link"
+                    target="_blank"
                     className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
-                >Назад</button>
+                >Открыть инструкцию</a>
                 <MyLink to="/client-performance" text="Далее" className='w-full mt-4' color='red'/>
             </div>
         </div>

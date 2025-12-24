@@ -64,7 +64,7 @@ const UserSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['guest', 'registered', 'active', 'client'],
+        enum: ['anonym', 'guest', 'registered', 'active', 'client'],
         default: 'guest',
     },
     isBlocked: {
@@ -127,7 +127,7 @@ const UserSchema = new mongoose.Schema({
     },
     previousStatus: {
         type: String,
-        enum: ['guest', 'registered', 'active', 'client'],
+        enum: ['anonym', 'guest', 'registered', 'active', 'client'],
         default: null,
     },
     paymentLink: {

@@ -215,7 +215,6 @@ export const UserForm = () => {
                             value={formData.fullName}
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                             placeholder="Введите имя"
-                            required
                         />
 
                         <MyInput
@@ -224,7 +223,6 @@ export const UserForm = () => {
                             value={formData.mail}
                             onChange={(e) => setFormData({ ...formData, mail: e.target.value })}
                             placeholder="Введите email"
-                            required
                         />
 
                         <MyInput

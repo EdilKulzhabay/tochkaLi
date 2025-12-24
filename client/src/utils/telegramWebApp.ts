@@ -207,9 +207,34 @@ export const showTelegramBackButton = () => {
 
 /**
  * Проверяет, запущено ли приложение в Telegram WebView
+ * Более строгая проверка: проверяет наличие initData, который заполняется только в реальном Telegram WebApp
+ * В обычном браузере скрипт SDK создает объект, но initData будет пустой строкой или undefined
  */
 export const isTelegramWebView = (): boolean => {
-    return window.Telegram?.WebApp !== undefined;
+    const tg = window.Telegram?.WebApp;
+    
+    if (!tg) {
+        return false;
+    }
+    
+    // Основная проверка: initData должен быть непустой строкой
+    // В реальном Telegram WebApp initData всегда присутствует и содержит данные
+    // В обычном браузере initData будет пустой строкой или undefined
+    if (tg.initData && typeof tg.initData === 'string' && tg.initData.trim().length > 0) {
+        return true;
+    }
+    
+    // Дополнительная проверка: initDataUnsafe должен содержать данные
+    // В реальном Telegram WebApp initDataUnsafe содержит объект с данными пользователя
+    if (tg.initDataUnsafe && typeof tg.initDataUnsafe === 'object') {
+        // Проверяем наличие user - это основное поле, которое есть только в реальном Telegram WebApp
+        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            return true;
+        }
+    }
+    
+    // Если ничего не подошло, значит это не реальный Telegram WebApp
+    return false;
 };
 
 /**

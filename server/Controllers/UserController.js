@@ -287,7 +287,7 @@ export const createUser = async (req, res) => {
         const doc = new User({
             telegramId,
             telegramUserName,
-            status: 'guest',
+            status: 'anonym',
             invitedUser: invitedUser,
         });
 
@@ -465,14 +465,42 @@ export const login = async (req, res) => {
 // Получить всех пользователей (только для админа)
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find()
+        // Параметры пагинации
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        // Получаем общее количество пользователей
+        const totalUsers = await User.countDocuments();
+
+        // Получаем пользователей с пагинацией, сортируем по createdAt (asc) для правильной нумерации
+        const users = await User.find({role: "client"})
             .select("-password -currentToken -refreshToken")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: 1 }) // Сортируем по возрастанию, чтобы самый первый был номером 1
+            .skip(skip)
+            .limit(limit);
+
+        // Вычисляем номера пользователей
+        const usersWithNumbers = users.map((user, index) => {
+            const userNumber = skip + index + 1;
+            return {
+                ...user.toObject(),
+                userNumber // Добавляем номер пользователя
+            };
+        });
 
         res.json({
             success: true,
-            data: users,
-            count: users.length,
+            data: usersWithNumbers,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalUsers / limit),
+                totalUsers: totalUsers,
+                limit: limit,
+                hasNextPage: page < Math.ceil(totalUsers / limit),
+                hasPrevPage: page > 1
+            },
+            count: usersWithNumbers.length,
         });
     } catch (error) {
         console.log("Ошибка в getAllUsers:", error);

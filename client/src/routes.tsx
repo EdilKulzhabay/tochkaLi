@@ -60,7 +60,9 @@ import { ClientDiary } from "./pages/User/ClientDiary";
 import { ClientProfile } from "./pages/User/ClientProfile";
 import { TelegramWebAppHandler } from "./components/TelegramWebAppHandler";
 import { BlockedUser } from "./pages/User/BlockedUser";
+import { BlockedBrowser } from "./pages/User/BlockedBrowser";
 import { EaseLaunch } from "./pages/User/EaseLaunch";
+import { TelegramGuard } from "./components/TelegramGuard";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -75,99 +77,99 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
 export const routes = createBrowserRouter([
     {
         path: "/",
-        element: <RootLayout><Welcome /></RootLayout>,
+        element: <RootLayout><TelegramGuard><Welcome /></TelegramGuard></RootLayout>,
     },
     {
         path: "/main",
-        element: <RootLayout><ProtectedRoute><Main /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><Main /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client-performance",
-        element: <RootLayout><ProtectedRoute><ClientPerfomance /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientPerfomance /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/register",
-        element: <RootLayout><ProtectedRoute><ClientRegister /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientRegister /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/login",
-        element: <RootLayout><ProtectedRoute><ClientLogin /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientLogin /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/about",
-        element: <RootLayout><ProtectedRoute><About /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><About /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/faq",
-        element: <RootLayout><ProtectedRoute><ClientFAQ /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientFAQ /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/horoscope",
-        element: <RootLayout><ProtectedRoute><ClientHoroscope /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientHoroscope /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/horoscopes",
-        element: <RootLayout><ProtectedRoute><ClientHoroscopesList /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientHoroscopesList /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/horoscope/:id",
-        element: <RootLayout><ProtectedRoute><ClientHoroscopeDetail /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientHoroscopeDetail /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/transit",
-        element: <RootLayout><ProtectedRoute><ClientTransit /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientTransit /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/transits",
-        element: <RootLayout><ProtectedRoute><ClientTransitsList /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientTransitsList /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/transit/:id",
-        element: <RootLayout><ProtectedRoute><ClientTransitDetail /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientTransitDetail /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/schumann",
-        element: <RootLayout><ProtectedRoute><ClientSchumann /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientSchumann /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/contactus",
-        element: <RootLayout><ProtectedRoute><ClientContactUs /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientContactUs /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/meditations",
-        element: <RootLayout><ProtectedRoute><ClientMeditationsList /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientMeditationsList /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/meditation/:id",
-        element: <RootLayout><ProtectedRoute><ClientMeditation /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientMeditation /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/practices",
-        element: <RootLayout><ProtectedRoute><ClientPracticesList /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientPracticesList /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/practice/:id",
-        element: <RootLayout><ProtectedRoute><ClientPractice /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientPractice /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/video-lessons",
-        element: <RootLayout><ProtectedRoute><ClientVideoLessonsList /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientVideoLessonsList /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/video-lesson/:id",
-        element: <RootLayout><ProtectedRoute><ClientVideoLesson /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientVideoLesson /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/schedule",
-        element: <RootLayout><ProtectedRoute><ClientSchedule /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientSchedule /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/diary",
-        element: <RootLayout><ProtectedRoute><ClientDiary /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientDiary /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/profile",
-        element: <RootLayout><ProtectedRoute><ClientProfile /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><ClientProfile /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/login",
@@ -179,11 +181,15 @@ export const routes = createBrowserRouter([
     },
     {
         path: "/client/ease-launch",
-        element: <RootLayout><ProtectedRoute><EaseLaunch /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><EaseLaunch /></ProtectedRoute></TelegramGuard></RootLayout>,
     },
     {
         path: "/client/blocked-user",
-        element: <RootLayout><ProtectedRoute><BlockedUser /></ProtectedRoute></RootLayout>,
+        element: <RootLayout><TelegramGuard><ProtectedRoute><BlockedUser /></ProtectedRoute></TelegramGuard></RootLayout>,
+    },
+    {
+        path: "/client/blocked-browser",
+        element: <RootLayout><BlockedBrowser /></RootLayout>,
     },
     {
         path: "/admin",

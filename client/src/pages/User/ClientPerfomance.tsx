@@ -6,12 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
+import perfomanceInst from '../../assets/perfomanceInst.png';
 
 export const ClientPerfomance = () => {
     const [fullName, setFullName] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
     const navigate = useNavigate();
     const { updateUser, user } = useAuth();
     const [screenHeight, setScreenHeight] = useState<number>(0);
@@ -45,10 +47,9 @@ export const ClientPerfomance = () => {
     }, [user]);
 
     useEffect(() => {
-        if (!fullName || fullName.trim() === '') {
-            return;
+        if (fullName && fullName.trim() !== '') {
+            navigate(`/main`);
         }
-        navigate(`/main`);
     }, [fullName]);
 
     const handleContinue = async () => {
@@ -60,6 +61,7 @@ export const ClientPerfomance = () => {
         const telegramId = localStorage.getItem('telegramId');
         if (!telegramId) {
             toast.error('Ошибка: не найден telegramId');
+            setError(true);
             return;
         }
 
@@ -69,6 +71,7 @@ export const ClientPerfomance = () => {
             
             const response = await api.patch(`/api/users/${telegramId}`, {
                 fullName: fullNameToUpdate,
+                status: "guest"
             });
 
             if (response.data.success && response.data.data) {
@@ -109,6 +112,7 @@ export const ClientPerfomance = () => {
             window.removeEventListener('resize', updateScreenHeight);
         };
     }, []);
+
     return (
         <div 
             style={{
@@ -120,23 +124,34 @@ export const ClientPerfomance = () => {
             className='min-h-screen px-4 pb-6 flex flex-col justify-between lg:justify-start'
         >
             <div style={{ height: `${screenHeight/3}px` }}></div>
-            <div className='flex-1 lg:flex-0 lg:w-[700px] lg:mx-auto'>
-                <h1 className='text-[48px] font-semibold text-white leading-12'>Представьтесь, пожалуйста</h1>
-                <div className='mt-6 lg:mt-10 space-y-3'>
-                    <ClientInput
-                        placeholder="Фамилия"
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="w-full"
-                        inputType="text"
-                    />
-                    <ClientInput
-                        placeholder="Имя"
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full"
-                        inputType="text"
-                    />
+            {error && (
+                <div className='flex-1 lg:flex-0 lg:w-[700px] lg:mx-auto'>
+                    <h1 className='text-[48px] font-semibold text-white leading-12'>Ошибка подключения</h1>
+                    <p className='mt-5 text-white'>
+                        Вам необходимо закрыть приложение и открыть заново через кнопку <span className='font-semibold'>Открыть Портал .li</span> 
+                    </p>
+                    <img src={perfomanceInst} alt="perfomanceInst" className='w-full h-auto object-cover sm:w-3/4 mt-3 rounded-lg' />
                 </div>
-            </div>
+            )}
+            {!error && (
+                <div className='flex-1 lg:flex-0 lg:w-[700px] lg:mx-auto'>
+                    <h1 className='text-[48px] font-semibold text-white leading-12'>Представьтесь, пожалуйста</h1>
+                    <div className='mt-6 lg:mt-10 space-y-3'>
+                        <ClientInput
+                            placeholder="Фамилия"
+                            onChange={(e) => setLastName(e.target.value)}
+                            className="w-full"
+                            inputType="text"
+                        />
+                        <ClientInput
+                            placeholder="Имя"
+                            onChange={(e) => setFirstName(e.target.value)}
+                            className="w-full"
+                            inputType="text"
+                        />
+                    </div>
+                </div>
+            )}
 
             <div className='lg:w-[700px] lg:mx-auto'>
                 <button 
@@ -147,7 +162,7 @@ export const ClientPerfomance = () => {
                     text={loading ? 'Сохранение...' : 'Продолжить'} 
                     onClick={handleContinue} 
                     className='w-full mt-4'
-                    disabled={loading}
+                    disabled={loading || error}
                 />
             </div>
         </div>

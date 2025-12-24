@@ -90,7 +90,14 @@ export const ClientFAQ = () => {
                             </div>
                         )}
                     </div>
-                    <MyLink to="/client/contactus" text="Связаться с нами" className='w-full mt-4' color='red'/>
+                    <div className="mt-4">
+                        <a 
+                            href="https://drive.google.com/file/d/1PGDJqtSnqy-18dgNsw3pnWMNtvMAcXAf/view?usp=share_link"
+                            target="_blank"
+                            className='w-full mt-4 bg-white/10 block text-white py-2.5 text-center font-medium rounded-full'
+                        >Открыть инструкцию</a>
+                        <MyLink to="/client/contactus" text="Связаться с нами" className='w-full mt-3' color='red'/>
+                    </div>
                 </div>
             </div> 
         </UserLayout>

@@ -14,8 +14,12 @@ export const Welcome = () => {
 
     useEffect(() => {
         // Извлекаем параметры из URL
-        const telegramId = searchParams.get('telegramId') || '';
+        let telegramId = searchParams.get('telegramId') || '';
         const telegramUserName = searchParams.get('telegramUserName') || '';
+
+        if (telegramId === "") {
+            telegramId = localStorage.getItem('telegramId') || '';
+        }
 
         // Сохраняем в localStorage
         if (telegramId) localStorage.setItem("telegramId", telegramId);

@@ -45,75 +45,22 @@ export const ClientSchedule = () => {
             }
         }
 
-        fetchAllSchedules();
+        fetchAllSchedulesForCalendar();
         // Устанавливаем диапазон по умолчанию: сегодня + 90 дней вперед
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const futureDate = new Date(today);
-        futureDate.setDate(futureDate.getDate() + 90);
+        futureDate.setDate(futureDate.getDate() + 120);
         setStartDate(today);
         setEndDate(futureDate);
     }, []);
 
-    useEffect(() => {
-        if (showAllEvents) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getFullYear() + 100);
-            setStartDate(today);
-            setEndDate(futureDate);
-        } else {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getDate() + 90);
-            setStartDate(today);
-            setEndDate(futureDate);
-        }
-    }, [showAllEvents]);
-
-    // Фильтруем события по выбранному диапазону дат
-    useEffect(() => {
-        if (startDate && endDate) {
-            const formattedStart = formatDate(startDate);
-            const formattedEnd = formatDate(endDate);
-            fetchSchedules(formattedStart, formattedEnd);
-        } else {
-            // Если диапазон не выбран, показываем события на 90 дней вперед
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getDate() + 90);
-            const formattedStart = formatDate(today);
-            const formattedEnd = formatDate(futureDate);
-            fetchSchedules(formattedStart, formattedEnd);
-        }
-    }, [startDate, endDate]);
-
-    // Функция для получения всех дат между startDate и endDate
-    const getDatesBetween = (start: Date, end: Date): Date[] => {
-        const dates: Date[] = [];
-        const currentDate = new Date(start);
-        currentDate.setHours(0, 0, 0, 0);
-        const endDate = new Date(end);
-        endDate.setHours(0, 0, 0, 0);
-        
-        while (currentDate <= endDate) {
-            dates.push(new Date(currentDate));
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        
-        return dates;
-    };
-
-    // Загружаем события на 90 дней вперед для отображения на календаре
-    const fetchAllSchedules = async () => {
+    const fetchAllSchedulesForCalendar = async () => {
         try {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getDate() + 90);
+            futureDate.setDate(futureDate.getFullYear() + 100);
             
             const formattedStart = formatDate(today);
             const formattedEnd = formatDate(futureDate);
@@ -153,6 +100,57 @@ export const ClientSchedule = () => {
         } finally {
             setLoading(false);
         }
+    }
+    useEffect(() => {
+        if (showAllEvents) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getFullYear() + 100);
+            setStartDate(today);
+            setEndDate(futureDate);
+        } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getDate() + 120);
+            setStartDate(today);
+            setEndDate(futureDate);
+        }
+    }, [showAllEvents]);
+
+    // Фильтруем события по выбранному диапазону дат
+    useEffect(() => {
+        if (startDate && endDate) {
+            const formattedStart = formatDate(startDate);
+            const formattedEnd = formatDate(endDate);
+            fetchSchedules(formattedStart, formattedEnd);
+        } else {
+            // Если диапазон не выбран, показываем события на 90 дней вперед
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getDate() + 120);
+            const formattedStart = formatDate(today);
+            const formattedEnd = formatDate(futureDate);
+            fetchSchedules(formattedStart, formattedEnd);
+        }
+    }, [startDate, endDate]);
+
+    // Функция для получения всех дат между startDate и endDate
+    const getDatesBetween = (start: Date, end: Date): Date[] => {
+        const dates: Date[] = [];
+        const currentDate = new Date(start);
+        currentDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(end);
+        endDate.setHours(0, 0, 0, 0);
+        
+        while (currentDate <= endDate) {
+            dates.push(new Date(currentDate));
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        return dates;
     };
 
     const fetchSchedules = async (start: string, end: string) => {

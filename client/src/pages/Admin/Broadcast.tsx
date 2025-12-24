@@ -383,9 +383,9 @@ export const BroadcastAdmin = () => {
     const getStatusLabel = (statusValue: string, isBlocked?: boolean) => {
         if (isBlocked) return 'Заблокирован';
         switch (statusValue) {
+            case 'anonym': return 'Аноним';
             case 'guest': return 'Гость';
             case 'registered': return 'Зарегистрирован';
-            case 'active': return 'Активен';
             case 'client': return 'Клиент';
             default: return 'Все';
         }
@@ -394,9 +394,9 @@ export const BroadcastAdmin = () => {
     const getStatusColor = (statusValue: string, isBlocked?: boolean) => {
         if (isBlocked) return 'bg-red-100 text-red-700';
         switch (statusValue) {
+            case 'anonym': return 'bg-red-100 text-red-700';
             case 'guest': return 'bg-gray-100 text-gray-700';
             case 'registered': return 'bg-blue-100 text-blue-700';
-            case 'active': return 'bg-green-100 text-green-700';
             case 'client': return 'bg-purple-100 text-purple-700';
             default: return 'bg-purple-100 text-purple-700';
         }
@@ -498,7 +498,7 @@ export const BroadcastAdmin = () => {
                             Фильтр по статусу пользователей
                         </label>
                         <div className="grid grid-cols-4 gap-3">
-                            {['all', 'guest', 'registered', 'client'].map((statusOption) => (
+                            {['all', 'anonym', 'guest', 'registered', 'client'].map((statusOption) => (
                                 <button
                                     key={statusOption}
                                     onClick={() => setStatus(statusOption)}
