@@ -470,22 +470,71 @@ export const getAllUsers = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
-        // Получаем общее количество пользователей
-        const totalUsers = await User.countDocuments();
+        // Параметры фильтрации
+        const statusFilter = req.query.statusFilter || 'all';
+        const searchQuery = req.query.searchQuery || '';
 
-        // Получаем пользователей с пагинацией, сортируем по createdAt (asc) для правильной нумерации
-        const users = await User.find({role: "user"})
+        // Параметры сортировки
+        const sortField = req.query.sortField || '';
+        const sortDirection = req.query.sortDirection === 'desc' ? -1 : 1;
+
+        // Строим фильтр для запроса
+        const filter = { role: "user" };
+
+        // Фильтр по статусу
+        if (statusFilter !== 'all') {
+            if (statusFilter === 'blocked') {
+                filter.isBlocked = true;
+            } else {
+                filter.isBlocked = { $ne: true }; // Не заблокированные
+                filter.status = statusFilter;
+            }
+        } else {
+            // Если "all", показываем всех, но исключаем заблокированных если нужно
+            // Или показываем всех включая заблокированных
+            // Оставляем как есть - показываем всех
+        }
+
+        // Поиск по полям (если указан)
+        if (searchQuery && searchQuery.trim()) {
+            const query = searchQuery.trim();
+            filter.$or = [
+                { fullName: { $regex: query, $options: 'i' } },
+                { telegramUserName: { $regex: query, $options: 'i' } },
+                { phone: { $regex: query, $options: 'i' } },
+                { mail: { $regex: query, $options: 'i' } }
+            ];
+        }
+
+        // Получаем общее количество пользователей с учетом фильтров
+        const totalUsers = await User.countDocuments(filter);
+
+        // Определяем сортировку
+        let sortOptions = { createdAt: 1 }; // По умолчанию по дате создания (asc)
+        
+        if (sortField) {
+            sortOptions = {};
+            sortOptions[sortField] = sortDirection;
+            // Если сортируем не по createdAt, добавляем его как вторичную сортировку
+            if (sortField !== 'createdAt') {
+                sortOptions.createdAt = 1;
+            }
+        }
+
+        // Получаем пользователей с пагинацией, фильтрацией и сортировкой
+        const users = await User.find(filter)
             .select("-password -currentToken -refreshToken")
-            .sort({ createdAt: 1 }) // Сортируем по возрастанию, чтобы самый первый был номером 1
+            .sort(sortOptions)
             .skip(skip)
             .limit(limit);
 
         // Вычисляем номера пользователей
+        // Номер основан на позиции в отсортированном списке с учетом фильтров
         const usersWithNumbers = users.map((user, index) => {
             const userNumber = skip + index + 1;
             return {
                 ...user.toObject(),
-                userNumber // Добавляем номер пользователя
+                userNumber
             };
         });
 

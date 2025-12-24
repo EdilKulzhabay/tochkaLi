@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/Admin/AdminLayout';
 import { AdminTable } from '../../components/Admin/AdminTable';
 import { Search, ArrowUpDown, Download, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -42,26 +42,42 @@ export const UsersAdmin = () => {
     const [loading, setLoading] = useState(false);
     const limit = 20;
 
+    // Сбрасываем страницу при изменении фильтров/сортировки
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter, sortField, sortDirection, searchQuery]);
+
+    // Загружаем данные при изменении страницы или параметров
     useEffect(() => {
         fetchUsers(currentPage);
-    }, [currentPage]);
-
-    // Сбрасываем страницу при изменении фильтров
-    useEffect(() => {
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        }
-    }, [searchQuery, statusFilter]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, statusFilter, sortField, sortDirection, searchQuery]);
 
     const fetchUsers = async (page: number = 1) => {
         setLoading(true);
         try {
-            const response = await api.get('/api/user/all', {
-                params: {
-                    page,
-                    limit
-                }
-            });
+            const params: any = {
+                page,
+                limit,
+            };
+
+            // Добавляем параметры фильтрации
+            if (statusFilter !== 'all') {
+                params.statusFilter = statusFilter;
+            }
+
+            // Добавляем параметры поиска
+            if (searchQuery.trim()) {
+                params.searchQuery = searchQuery.trim();
+            }
+
+            // Добавляем параметры сортировки
+            if (sortField) {
+                params.sortField = sortField;
+                params.sortDirection = sortDirection;
+            }
+
+            const response = await api.get('/api/user/all', { params });
             setUsers(response.data.data);
             setPagination(response.data.pagination);
         } catch (error: any) {
@@ -71,64 +87,9 @@ export const UsersAdmin = () => {
         }
     };
 
-    // Фильтрация и поиск
-    const filteredAndSortedUsers = useMemo(() => {
-        let result = [...users];
-
-        // Поиск по fullName, telegramUserName, phone, mail
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase().trim();
-            result = result.filter(user => 
-                (user.fullName?.toLowerCase().includes(query)) ||
-                (user.telegramUserName?.toLowerCase().includes(query)) ||
-                (user.phone?.toLowerCase().includes(query)) ||
-                (user.mail?.toLowerCase().includes(query))
-            );
-        }
-
-        // Фильтр по статусу
-        if (statusFilter !== 'all') {
-            if (statusFilter === 'blocked') {
-                result = result.filter(user => user.isBlocked === true);
-            } else {
-                result = result.filter(user => !user.isBlocked && user.status === statusFilter);
-            }
-        }
-
-        // Фильтр по роли
-        // if (roleFilter !== 'all') {
-        //     result = result.filter(user => user.role === roleFilter);
-        // }
-
-        // Сортировка
-        if (sortField) {
-            result.sort((a, b) => {
-                let aValue = (a as any)[sortField];
-                let bValue = (b as any)[sortField];
-
-                // Обработка дат
-                if (sortField === 'subscriptionEndDate') {
-                    if (!aValue) aValue = new Date(0);
-                    if (!bValue) bValue = new Date(0);
-                    aValue = new Date(aValue).getTime();
-                    bValue = new Date(bValue).getTime();
-                }
-
-                // Обработка чисел
-                if (sortField === 'bonus' || sortField === 'inviteesCount') {
-                    aValue = aValue || 0;
-                    bValue = bValue || 0;
-                }
-
-                // Сравнение
-                if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-                if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        return result;
-    }, [users, searchQuery, statusFilter, sortField, sortDirection]);
+    // Фильтрация и сортировка теперь выполняются на сервере
+    // Оставляем только для отображения (на случай если нужна дополнительная клиентская обработка)
+    const filteredAndSortedUsers = users;
 
     const handleSort = (field: string) => {
         if (sortField === field) {
@@ -304,7 +265,6 @@ export const UsersAdmin = () => {
                             {pagination ? (
                                 <>
                                     Всего пользователей: {pagination.totalUsers}
-                                    {filteredAndSortedUsers.length !== users.length && ` (отфильтровано: ${filteredAndSortedUsers.length})`}
                                     {' | '}
                                     Страница {pagination.currentPage} из {pagination.totalPages}
                                 </>
