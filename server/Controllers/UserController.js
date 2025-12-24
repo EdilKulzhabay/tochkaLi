@@ -474,7 +474,7 @@ export const getAllUsers = async (req, res) => {
         const totalUsers = await User.countDocuments();
 
         // Получаем пользователей с пагинацией, сортируем по createdAt (asc) для правильной нумерации
-        const users = await User.find({role: "client"})
+        const users = await User.find({role: "user"})
             .select("-password -currentToken -refreshToken")
             .sort({ createdAt: 1 }) // Сортируем по возрастанию, чтобы самый первый был номером 1
             .skip(skip)
