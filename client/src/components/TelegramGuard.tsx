@@ -11,40 +11,40 @@ interface TelegramGuardProps {
  * Перенаправляет на страницу блокировки, если открыто в обычном браузере
  */
 export const TelegramGuard = ({ children }: TelegramGuardProps) => {
-    // const navigate = useNavigate();
-    // const [isChecking, setIsChecking] = useState(true);
-    // const [isTelegram, setIsTelegram] = useState(false);
+    const navigate = useNavigate();
+    const [isChecking, setIsChecking] = useState(true);
+    const [isTelegram, setIsTelegram] = useState(false);
 
-    // useEffect(() => {
-    //     // Даем небольшую задержку для инициализации Telegram WebApp SDK
-    //     const checkTelegram = () => {
-    //         const isInTelegram = isTelegramWebView();
-    //         setIsTelegram(isInTelegram);
-    //         setIsChecking(false);
+    useEffect(() => {
+        // Даем небольшую задержку для инициализации Telegram WebApp SDK
+        const checkTelegram = () => {
+            const isInTelegram = isTelegramWebView();
+            setIsTelegram(isInTelegram);
+            setIsChecking(false);
             
-    //         if (!isInTelegram) {
-    //             // Если не в Telegram, перенаправляем на страницу блокировки
-    //             console.warn('⚠️ Доступ запрещен: приложение открыто не в Telegram WebApp');
-    //             navigate('/client/blocked-browser', { replace: true });
-    //         }
-    //     };
+            if (!isInTelegram) {
+                // Если не в Telegram, перенаправляем на страницу блокировки
+                console.warn('⚠️ Доступ запрещен: приложение открыто не в Telegram WebApp');
+                navigate('/client/blocked-browser', { replace: true });
+            }
+        };
 
-    //     // Проверяем сразу и через небольшую задержку (на случай, если SDK еще загружается)
-    //     checkTelegram();
-    //     const timeout = setTimeout(checkTelegram, 100);
+        // Проверяем сразу и через небольшую задержку (на случай, если SDK еще загружается)
+        checkTelegram();
+        const timeout = setTimeout(checkTelegram, 100);
 
-    //     return () => clearTimeout(timeout);
-    // }, [navigate]);
+        return () => clearTimeout(timeout);
+    }, [navigate]);
 
-    // // Пока проверяем, не показываем ничего
-    // if (isChecking) {
-    //     return null;
-    // }
+    // Пока проверяем, не показываем ничего
+    if (isChecking) {
+        return null;
+    }
 
-    // // Если не в Telegram, не показываем содержимое (будет редирект)
-    // if (!isTelegram) {
-    //     return null;
-    // }
+    // Если не в Telegram, не показываем содержимое (будет редирект)
+    if (!isTelegram) {
+        return null;
+    }
 
     return <>{children}</>;
 };
