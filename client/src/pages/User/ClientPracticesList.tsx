@@ -242,7 +242,7 @@ export const ClientPracticesList = () => {
                 <BackNav title="Практики" />
 
                 <div className="px-4 mt-2 pb-10 bg-[#161616]">
-                    <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4">
                         {practices.length > 0 ? (
                             practices.filter((practice: any) => practice.accessType === 'subscription').map((practice: any) => (
                                 <div 

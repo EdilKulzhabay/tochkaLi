@@ -242,7 +242,7 @@ export const ClientMeditationsList = () => {
                 <BackNav title="Медитации" />
 
                 <div className="px-4 mt-2 pb-10 bg-[#161616]">
-                    <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4">
                         {meditations.length > 0 ? (
                             meditations.filter((meditation: any) => meditation.accessType === 'subscription').map((meditation: any) => (
                                 <div 

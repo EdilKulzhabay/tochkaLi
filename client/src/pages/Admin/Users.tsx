@@ -40,7 +40,7 @@ export const UsersAdmin = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState(false);
-    const limit = 20;
+    const limit = 100;
 
     // Сбрасываем страницу при изменении фильтров/сортировки
     useEffect(() => {
