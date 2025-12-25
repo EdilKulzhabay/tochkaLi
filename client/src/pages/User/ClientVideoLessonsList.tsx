@@ -234,9 +234,18 @@ export const ClientVideoLessonsList = () => {
     // Функции для скролла контейнера с карточками
     const scrollLeft = () => {
         if (cardsContainerRef.current) {
+            const container = cardsContainerRef.current;
             const scrollAmount = 300; // Шаг скролла в пикселях
-            cardsContainerRef.current.scrollBy({
-                left: -scrollAmount,
+            
+            // Проверяем, не достигли ли мы начала
+            if (container.scrollLeft <= 0) {
+                return; // Уже в начале, не скроллим
+            }
+            
+            // Ограничиваем скролл, чтобы не уйти в минус
+            const newScrollLeft = Math.max(0, container.scrollLeft - scrollAmount);
+            container.scrollTo({
+                left: newScrollLeft,
                 behavior: 'smooth'
             });
         }
@@ -244,9 +253,19 @@ export const ClientVideoLessonsList = () => {
 
     const scrollRight = () => {
         if (cardsContainerRef.current) {
+            const container = cardsContainerRef.current;
             const scrollAmount = 300; // Шаг скролла в пикселях
-            cardsContainerRef.current.scrollBy({
-                left: scrollAmount,
+            
+            // Проверяем, не достигли ли мы конца
+            const maxScrollLeft = container.scrollWidth - container.clientWidth;
+            if (container.scrollLeft >= maxScrollLeft) {
+                return; // Уже в конце, не скроллим
+            }
+            
+            // Ограничиваем скролл, чтобы не уйти за пределы
+            const newScrollLeft = Math.min(maxScrollLeft, container.scrollLeft + scrollAmount);
+            container.scrollTo({
+                left: newScrollLeft,
                 behavior: 'smooth'
             });
         }
@@ -274,7 +293,7 @@ export const ClientVideoLessonsList = () => {
                         </button>
                         <h1 className="text-2xl font-semibold ml-4">Видео уроки</h1>
                     </div>
-                    <div className="flex md:hidden items-center gap-x-3">
+                    <div className="flex md:hidden items-center gap-x-[10px]">
                         <button 
                             onClick={scrollLeft}
                             className="flex items-center justify-center w-8 h-8 border border-[#FFC293] rounded-full cursor-pointer hover:bg-[#FFB070] transition-colors"
