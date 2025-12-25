@@ -293,7 +293,7 @@ export const ClientVideoLessonsList = () => {
                         </button>
                         <h1 className="text-2xl font-semibold ml-4">Видео уроки</h1>
                     </div>
-                    <div className="flex md:hidden items-center gap-x-[10px]">
+                    <div className="flex md:hidden items-center gap-x-[9.5px]">
                         <button 
                             onClick={scrollLeft}
                             className="flex items-center justify-center w-8 h-8 border border-[#FFC293] rounded-full cursor-pointer hover:bg-[#FFB070] transition-colors"
