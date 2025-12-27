@@ -16,7 +16,7 @@ interface Admin {
     createdAt: string;
 }
 
-const PROTECTED_ADMIN_ID = '6918943fa2264c7b0389b03d';
+const PROTECTED_ADMIN_ID = import.meta.env.VITE_PROTECTED_ADMIN_ID;
 
 export const AdminsAdmin = () => {
     const navigate = useNavigate();
