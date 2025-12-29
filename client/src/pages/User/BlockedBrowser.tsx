@@ -26,7 +26,8 @@ export const BlockedBrowser = () => {
         const fetchContent = async () => {
             try {
                 const response = await api.get('/api/dynamic-content/blocked-browser');
-                setContent(response.data.data?.content ? response.data.data.content : '');
+                console.log(response.data.data);
+                setContent(response.data.data ? response.data.data : null);
                 setLoading(false);
             } catch (error) {
                 console.log(error);
