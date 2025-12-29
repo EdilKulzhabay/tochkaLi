@@ -134,11 +134,11 @@ app.delete("/api/faq/:id", FAQController.remove);
 app.post("/api/horoscope", HoroscopeController.create);
 app.get("/api/horoscope", HoroscopeController.getAll);
 app.get("/api/horoscope/current", HoroscopeController.getCurrent);
+app.post("/api/horoscope/correct-dates", HoroscopeController.correctHoroscopeDates);
+app.get("/api/horoscope/fill-energy-corridor", HoroscopeController.fillEnergyCorridor);
 app.get("/api/horoscope/:id", HoroscopeController.getById);
 app.put("/api/horoscope/:id", HoroscopeController.update);
 app.delete("/api/horoscope/:id", HoroscopeController.remove);
-app.post("/api/horoscope/correct-dates", HoroscopeController.correctHoroscopeDates);
-app.get("/api/horoscope/fill-energy-corridor", HoroscopeController.fillEnergyCorridor);
 
 // ==================== Meditation маршруты ====================
 app.post("/api/meditation", MeditationController.create);
@@ -179,12 +179,12 @@ app.delete("/api/transit/:id", TransitController.remove);
 // ==================== DynamicContent маршруты ====================
 app.post("/api/dynamic-content", DynamicContentController.create);
 app.get("/api/dynamic-content", DynamicContentController.getAll);
+app.get("/api/dynamic-content/horoscope-corridor", DynamicContentController.getHoroscopeCorridorContent);
+app.get("/api/dynamic-content/blocked-browser", DynamicContentController.getBlockedBrowserContent);
+app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
 app.get("/api/dynamic-content/:id", DynamicContentController.getById);
 app.put("/api/dynamic-content/:id", DynamicContentController.update);
 app.delete("/api/dynamic-content/:id", DynamicContentController.remove);
-app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
-app.get("/api/dynamic-content/horoscope-corridor", DynamicContentController.getHoroscopeCorridorContent);
-app.get("/api/dynamic-content/blocked-browser", DynamicContentController.getBlockedBrowserContent);
 // ==================== Welcome маршруты ====================
 app.post("/api/welcome", WelcomeController.create);
 app.get("/api/welcome", WelcomeController.getAll);
