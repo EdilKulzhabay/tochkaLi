@@ -258,7 +258,7 @@ export const ClientHoroscopesList = () => {
                                 className="absolute top-6 right-5 cursor-pointer"
                             >
                                 <X size={24} />
-                            </button>horoscope-corridor
+                            </button>
                             <div 
                                 className="text-white" 
                             >
