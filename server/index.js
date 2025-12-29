@@ -184,6 +184,7 @@ app.put("/api/dynamic-content/:id", DynamicContentController.update);
 app.delete("/api/dynamic-content/:id", DynamicContentController.remove);
 app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
 app.get("/api/dynamic-content/horoscope-corridor", DynamicContentController.getHoroscopeCorridorContent);
+app.get("/api/dynamic-content/blocked-browser", DynamicContentController.getBlockedBrowserContent);
 // ==================== Welcome маршруты ====================
 app.post("/api/welcome", WelcomeController.create);
 app.get("/api/welcome", WelcomeController.getAll);

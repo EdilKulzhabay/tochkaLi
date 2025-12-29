@@ -13,9 +13,8 @@ interface FormData {
     role: string;
     status: string;
     password?: string;
+    isSuperAdmin?: boolean;
 }
-
-const PROTECTED_ADMIN_ID = '6918943fa2264c7b0389b03d';
 
 export const AdminForm = () => {
     const navigate = useNavigate();
@@ -28,11 +27,12 @@ export const AdminForm = () => {
         role: 'admin',
         status: 'active',
         password: '',
+        isSuperAdmin: false,
     });
 
     useEffect(() => {
         if (id) {
-            if (id === PROTECTED_ADMIN_ID) {
+            if (formData?.isSuperAdmin) {
                 toast.warning('Этот администратор защищен от изменений');
                 navigate('/admin/admins');
                 return;
@@ -52,6 +52,7 @@ export const AdminForm = () => {
                 role: data.role || 'admin',
                 status: data.status || 'active',
                 password: '', // Пароль не загружаем
+                isSuperAdmin: data.isSuperAdmin || false,
             });
         } catch (error: any) {
             toast.error('Ошибка загрузки администратора');

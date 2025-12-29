@@ -107,6 +107,18 @@ export const getHoroscopeCorridorContent = async (req, res) => {
     }
 };
 
+export const getBlockedBrowserContent = async (req, res) => {
+    try {
+        const title = await DynamicContent.findOne({ name: 'blocked-browser-bot-title' });
+        const link = await DynamicContent.findOne({ name: 'blocked-browser-bot-link' });
+        const buttonText = await DynamicContent.findOne({ name: 'blocked-browser-button-text' });
+        res.json({ success: true, data: { title, link, buttonText } });
+    } catch (error) {
+        console.log("Ошибка в DynamicContentController.getBlockedBrowserContent:", error);
+        res.status(500).json({ success: false, message: "Ошибка при получении динамического контента" });
+    }
+};
+
 // Обновить динамический контент
 export const update = async (req, res) => {
     try {

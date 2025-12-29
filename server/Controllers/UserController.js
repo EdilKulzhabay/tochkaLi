@@ -1295,9 +1295,6 @@ export const purchaseContent = async (req, res) => {
     }
 };
 
-// ID защищенного администратора, которого нельзя изменять или блокировать
-const PROTECTED_ADMIN_ID = '6918943fa2264c7b0389b03d';
-
 // Получить всех администраторов (включая все административные роли)
 export const getAllAdmins = async (req, res) => {
     try {
@@ -1431,8 +1428,16 @@ export const updateAdmin = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
 
+        const candidate = await User.findOne({ _id: id });
+        if (!candidate) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
+
         // Проверяем, не пытаются ли изменить защищенного администратора
-        if (id === PROTECTED_ADMIN_ID) {
+        if (candidate?.isSuperAdmin) {
             return res.status(403).json({
                 success: false,
                 message: "Этот администратор защищен от изменений",
@@ -1484,9 +1489,15 @@ export const updateAdmin = async (req, res) => {
 export const blockAdmin = async (req, res) => {
     try {
         const { id } = req.params;
-
+        const candidate = await User.findOne({ _id: id });
+        if (!candidate) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
         // Проверяем, не пытаются ли заблокировать защищенного администратора
-        if (id === PROTECTED_ADMIN_ID) {
+        if (candidate?.isSuperAdmin) {
             return res.status(403).json({
                 success: false,
                 message: "Этот администратор защищен от блокировки",
@@ -1525,8 +1536,14 @@ export const unblockAdmin = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Проверяем, не пытаются ли разблокировать защищенного администратора (хотя это не критично)
-        if (id === PROTECTED_ADMIN_ID) {
+        const candidate = await User.findOne({ _id: id });
+        if (!candidate) {
+            return res.status(404).json({
+                success: false,
+                message: "Администратор не найден",
+            });
+        }
+        if (candidate?.isSuperAdmin) {
             return res.status(403).json({
                 success: false,
                 message: "Этот администратор защищен от изменений",

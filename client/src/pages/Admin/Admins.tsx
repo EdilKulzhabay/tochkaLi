@@ -14,9 +14,8 @@ interface Admin {
     status: string;
     isBlocked?: boolean;
     createdAt: string;
+    isSuperAdmin?: boolean;
 }
-
-const PROTECTED_ADMIN_ID = import.meta.env.VITE_PROTECTED_ADMIN_ID;
 
 export const AdminsAdmin = () => {
     const navigate = useNavigate();
@@ -68,8 +67,8 @@ export const AdminsAdmin = () => {
 
         return result.sort((a, b) => {
             // Защищенный администратор всегда первый
-            if (a._id === PROTECTED_ADMIN_ID) return -1;
-            if (b._id === PROTECTED_ADMIN_ID) return 1;
+            if (a.isSuperAdmin) return -1;
+            if (b.isSuperAdmin) return 1;
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
     }, [admins, searchQuery, statusFilter]);
@@ -79,7 +78,7 @@ export const AdminsAdmin = () => {
     };
 
     const handleEdit = (admin: Admin) => {
-        if (admin._id === PROTECTED_ADMIN_ID) {
+        if (admin?.isSuperAdmin) {
             toast.warning('Этот администратор защищен от изменений');
             return;
         }
@@ -87,7 +86,7 @@ export const AdminsAdmin = () => {
     };
 
     const handleBlock = async (admin: Admin) => {
-        if (admin._id === PROTECTED_ADMIN_ID) {
+        if (admin?.isSuperAdmin) {
             toast.warning('Этот администратор защищен от блокировки');
             return;
         }
@@ -105,7 +104,7 @@ export const AdminsAdmin = () => {
     };
 
     const handleUnblock = async (admin: Admin) => {
-        if (admin._id === PROTECTED_ADMIN_ID) {
+        if (admin?.isSuperAdmin) {
             toast.warning('Этот администратор защищен от изменений');
             return;
         }
@@ -238,7 +237,7 @@ export const AdminsAdmin = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredAdmins.map((admin) => {
-                                        const isProtected = admin._id === PROTECTED_ADMIN_ID;
+                                        const isProtected = admin?.isSuperAdmin || false;
                                         return (
                                             <tr key={admin._id} className={isProtected ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
                                                 <td className="px-6 py-4 whitespace-nowrap">

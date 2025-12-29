@@ -137,6 +137,10 @@ const UserSchema = new mongoose.Schema({
     paymentId: {
         type: String,
         default: null,
+    },
+    isSuperAdmin: {
+        type: Boolean,
+        default: false,
     }
 }, {
     timestamps: true

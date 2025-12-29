@@ -1,8 +1,11 @@
+import api from '../../api';
 import bgGar from '../../assets/bgGar.png';
 import { useState, useEffect } from 'react';
 
 export const BlockedBrowser = () => {
     const [screenHeight, setScreenHeight] = useState<number>(0);
+    const [content, setContent] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
     
     useEffect(() => {
         const updateScreenHeight = () => {
@@ -17,6 +20,29 @@ export const BlockedBrowser = () => {
             window.removeEventListener('resize', updateScreenHeight);
         };
     }, []);
+
+    useEffect(() => {
+        setLoading(true);
+        const fetchContent = async () => {
+            try {
+                const response = await api.get('/api/dynamic-content/blocked-browser');
+                setContent(response.data.data?.content ? response.data.data.content : '');
+                setLoading(false);
+            } catch (error) {
+                console.log(error);
+                setLoading(false);
+            }
+        }
+        fetchContent();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-[#161616]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+        );
+    }
 
     return (
         <div 
@@ -46,8 +72,8 @@ export const BlockedBrowser = () => {
                     <p className='mb-2'>Как открыть приложение:</p>
                     <ol className='list-decimal list-inside space-y-1 ml-2'>
                         <li>Откройте Telegram</li>
-                        <li>Найдите бота @io_tochkali_bot</li>
-                        <li>Нажмите кнопку «Открыть Портал .li»</li>
+                        <li>Найдите бота <a href={content?.link} target='_blank' className='text-red-500'>{content?.title}</a></li>
+                        <li>Нажмите кнопку {content?.buttonText}</li>
                     </ol>
                 </div>
             </div>
