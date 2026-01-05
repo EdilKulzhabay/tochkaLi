@@ -15,6 +15,7 @@ import main2 from "../../assets/main2.png"
 import main3 from "../../assets/main3.png"
 import main4 from "../../assets/main4.png"
 import redUser from "../../assets/redUser.png"
+import { X } from "lucide-react"
 
 
 const SmallCard = ({ title, link, img }: { title: string, link: string, img: string }) => {
@@ -48,12 +49,21 @@ const LargeCard = ({ title, link, image, content }: { title: string, link: strin
     )
 }
 
+interface ModalNotification {
+    modalTitle: string;
+    modalDescription: string;
+    modalButtonText: string;
+    modalButtonLink?: string;
+}
+
 export const Main = () => {
     const [userName, setUserName] = useState<string>("");
     const [userData, setUserData] = useState<any>(null);
     const { updateUser } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [modalNotification, setModalNotification] = useState<ModalNotification | null>(null);
+    const [notificationIndex, setNotificationIndex] = useState<number | null>(null);
 
     useEffect(() => {
         
@@ -195,8 +205,69 @@ export const Main = () => {
         };
 
         fetchUserData();
+        fetchModalNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const fetchModalNotifications = async () => {
+        try {
+            const response = await api.get('/api/modal-notification/my');
+            if (response.data.success && response.data.notifications && response.data.notifications.length > 0) {
+                // Показываем первое уведомление
+                setModalNotification(response.data.notifications[0]);
+                setNotificationIndex(0);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки модальных уведомлений:', error);
+        }
+    };
+
+    const handleModalButtonClick = async () => {
+        if (notificationIndex === null || !modalNotification) return;
+
+        const buttonLink = modalNotification.modalButtonLink;
+
+        try {
+            // Удаляем уведомление с сервера
+            await api.post('/api/modal-notification/remove', {
+                notificationIndex: notificationIndex
+            });
+
+            // Закрываем текущее модальное окно
+            setModalNotification(null);
+            setNotificationIndex(null);
+
+            // Загружаем следующее уведомление (если есть)
+            const response = await api.get('/api/modal-notification/my');
+            if (response.data.success && response.data.notifications && response.data.notifications.length > 0) {
+                setModalNotification(response.data.notifications[0]);
+                setNotificationIndex(0);
+            }
+
+            // Если есть ссылка, переходим на неё
+            if (buttonLink) {
+                // Если ссылка начинается с /, это внутренний маршрут
+                if (buttonLink.startsWith('/')) {
+                    navigate(buttonLink);
+                } else {
+                    // Иначе это внешняя ссылка
+                    window.location.href = buttonLink;
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка удаления уведомления:', error);
+            // Все равно закрываем модальное окно и переходим по ссылке
+            setModalNotification(null);
+            setNotificationIndex(null);
+            if (buttonLink) {
+                if (buttonLink.startsWith('/')) {
+                    navigate(buttonLink);
+                } else {
+                    window.location.href = buttonLink;
+                }
+            }
+        }
+    };
 
     if (loading) {
         return <div className="flex justify-center items-center h-screen">
@@ -206,6 +277,27 @@ export const Main = () => {
 
     return (
         <UserLayout>
+            {/* Модальное уведомление */}
+            {modalNotification && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4 pr-8">
+                            {modalNotification.modalTitle}
+                        </h2>
+                        <div 
+                            className="text-gray-700 mb-6"
+                            dangerouslySetInnerHTML={{ __html: modalNotification.modalDescription }}
+                        />
+                        <button
+                            onClick={handleModalButtonClick}
+                            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        >
+                            {modalNotification.modalButtonText}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="px-4 pb-10 bg-[#161616]">
                 <div className="flex items-center justify-between pt-5 pb-4">
                     <div className="cursor-pointer" onClick={() => navigate('/client/contactus')}>

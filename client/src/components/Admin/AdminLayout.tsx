@@ -15,7 +15,8 @@ import {
     Users,
     Send,
     Radio,
-    Shield
+    Shield,
+    Bell
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -27,6 +28,7 @@ const menuItems = [
     { path: '/admin/users', label: 'Пользователи', icon: Users },
     { path: '/admin/admins', label: 'Администраторы', icon: Shield },
     { path: '/admin/broadcast', label: 'Рассылка', icon: Send },
+    { path: '/admin/modal-notifications', label: 'Модальные уведомления', icon: Bell },
     { path: '/admin/profile', label: 'Профиль', icon: User },
     { path: '', label: '', icon: null, divider: true }, // Разделитель
     { path: '/admin/faq', label: 'FAQ', icon: HelpCircle },

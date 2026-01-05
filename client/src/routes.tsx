@@ -32,6 +32,7 @@ import { UsersAdmin } from "./pages/Admin/Users";
 import { UserForm } from "./pages/Admin/UserForm";
 import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
+import { ModalNotificationsAdmin } from "./pages/Admin/ModalNotifications";
 import { AdminsAdmin } from "./pages/Admin/Admins";
 import { AdminForm } from "./pages/Admin/AdminForm";
 import { RobokassaSuccess } from "./pages/Robokassa/Success";
@@ -346,6 +347,10 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/broadcast",
         element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><BroadcastAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/modal-notifications",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><ModalNotificationsAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/admins",

@@ -141,7 +141,26 @@ const UserSchema = new mongoose.Schema({
     isSuperAdmin: {
         type: Boolean,
         default: false,
-    }
+    },
+    modalNotifications: [
+        {
+            modalTitle: {
+                type: String,
+                required: true,
+            },
+            modalDescription: {
+                type: String,
+                required: true,
+            },
+            modalButtonText: {
+                type: String,
+                required: true,
+            },
+            modalButtonLink: {
+                type: String,
+            },
+        }
+    ]
 }, {
     timestamps: true
 });

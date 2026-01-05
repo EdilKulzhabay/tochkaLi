@@ -26,7 +26,8 @@ import {
     UploadController,
     DiaryController,
     VideoProgressController,
-    SubscriptionController
+    SubscriptionController,
+    ModalNotificationController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
@@ -216,6 +217,12 @@ app.get("/api/broadcast", BroadcastController.getAllBroadcasts);
 app.get("/api/broadcast/:id", BroadcastController.getBroadcastById);
 app.put("/api/broadcast/:id", BroadcastController.updateBroadcast);
 app.delete("/api/broadcast/:id", BroadcastController.deleteBroadcast);
+
+// ==================== Modal Notification маршруты ====================
+app.post("/api/modal-notification/users", ModalNotificationController.getFilteredUsers);
+app.post("/api/modal-notification/create", ModalNotificationController.createModalNotification);
+app.get("/api/modal-notification/my", authMiddleware, ModalNotificationController.getUserModalNotifications);
+app.post("/api/modal-notification/remove", authMiddleware, ModalNotificationController.removeModalNotification);
 
 // ==================== Robokassa ====================
 app.post("/api/robres", RobokassaController.handleResult);
