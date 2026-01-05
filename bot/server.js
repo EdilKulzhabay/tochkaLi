@@ -15,6 +15,60 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // Telegram позволяет до 30 сообщений/сек, но лучше быть консервативнее
 const DELAY_BETWEEN_MESSAGES = 50;
 
+// Задержка между операциями с пользователями (ban/unban/sendMessage)
+// Это предотвращает конфликт с polling механизмом
+const DELAY_BETWEEN_USER_OPERATIONS = 200; // 200 мс между операциями
+
+// Очередь для операций с пользователями, чтобы избежать конфликтов
+const userOperationsQueue = [];
+let isProcessingQueue = false;
+
+// Функция для безопасного выполнения операций с пользователями
+const executeUserOperation = async (operation) => {
+    return new Promise((resolve, reject) => {
+        userOperationsQueue.push({ operation, resolve, reject });
+        processUserOperationsQueue();
+    });
+};
+
+// Обработка очереди операций
+const processUserOperationsQueue = async () => {
+    if (isProcessingQueue || userOperationsQueue.length === 0) {
+        return;
+    }
+
+    isProcessingQueue = true;
+
+    while (userOperationsQueue.length > 0) {
+        const { operation, resolve, reject } = userOperationsQueue.shift();
+        
+        try {
+            const result = await operation();
+            resolve(result);
+        } catch (error) {
+            // Обрабатываем ошибку 409 (конфликт с polling)
+            if (error.response?.error_code === 409) {
+                console.warn('⚠️ Обнаружен конфликт 409 при операции с пользователем. Повторяем через 1 секунду...');
+                // Добавляем операцию обратно в очередь с задержкой
+                setTimeout(() => {
+                    userOperationsQueue.unshift({ operation, resolve, reject });
+                    isProcessingQueue = false;
+                    processUserOperationsQueue();
+                }, 1000);
+                return;
+            }
+            reject(error);
+        }
+        
+        // Задержка между операциями
+        if (userOperationsQueue.length > 0) {
+            await delay(DELAY_BETWEEN_USER_OPERATIONS);
+        }
+    }
+
+    isProcessingQueue = false;
+};
+
 // Функция для очистки HTML от недопустимых тегов Telegram
 // Telegram поддерживает: <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <del>, 
 // <a>, <code>, <pre>, <span class="tg-spoiler">, <blockquote>, <tg-emoji>
@@ -146,23 +200,26 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         
         // ШАГ 3: Отправка invite-ссылки пользователю в личные сообщения
         // Пользователь должен сам перейти по ссылке - автоматического добавления нет
+        // Используем очередь для предотвращения конфликтов с polling
         try {
-            await bot.telegram.sendMessage(userId, 
-                `🎉 Вам открыт доступ к закрытым материалам!\n\n` +
-                `📌 Присоединяйтесь к нашему сообществу по ссылке ниже:\n\n` +
-                `${inviteLink.invite_link}\n\n` +
-                `⏰ Ссылка действует 1 час.`,
-                {
-                    reply_markup: {
-                        inline_keyboard: [[
-                            {
-                                text: '🔗 Присоединиться',
-                                url: inviteLink.invite_link
-                            }
-                        ]]
+            await executeUserOperation(async () => {
+                return await bot.telegram.sendMessage(userId, 
+                    `🎉 Вам открыт доступ к закрытым материалам!\n\n` +
+                    `📌 Присоединяйтесь к нашему сообществу по ссылке ниже:\n\n` +
+                    `${inviteLink.invite_link}\n\n` +
+                    `⏰ Ссылка действует 1 час.`,
+                    {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                {
+                                    text: '🔗 Присоединиться',
+                                    url: inviteLink.invite_link
+                                }
+                            ]]
+                        }
                     }
-                }
-            );
+                );
+            });
             
             console.log(`✅ [sendInviteLinkToUser] Invite-ссылка успешно отправлена пользователю ${userId}`);
             
@@ -255,9 +312,12 @@ const removeUserFromChat = async (chatId, userId) => {
         // ШАГ 2: Удаление пользователя через banChatMember
         // banChatMember удаляет пользователя из группы/канала
         // revoke_messages: false - не удаляем сообщения пользователя
+        // Используем очередь для предотвращения конфликтов с polling
         try {
-            await bot.telegram.banChatMember(chatId, userId, {
-                revoke_messages: false // Не удаляем сообщения пользователя
+            await executeUserOperation(async () => {
+                return await bot.telegram.banChatMember(chatId, userId, {
+                    revoke_messages: false // Не удаляем сообщения пользователя
+                });
             });
             console.log(`✅ [removeUserFromChat] Пользователь ${userId} забанен (удален) из чата ${chatId}`);
         } catch (banError) {
@@ -290,12 +350,15 @@ const removeUserFromChat = async (chatId, userId) => {
         
         // ШАГ 3: Уведомление пользователя о завершении подписки (опционально)
         // Это не критично для успешного удаления
+        // Используем очередь для предотвращения конфликтов с polling
         try {
-            await bot.telegram.sendMessage(userId, 
-                `⏰ Ваша подписка завершена.\n\n` +
-                `Вы были удалены из закрытых групп и каналов.\n\n` +
-                `Для возобновления доступа, пожалуйста, продлите подписку.`
-            );
+            await executeUserOperation(async () => {
+                return await bot.telegram.sendMessage(userId, 
+                    `⏰ Ваша подписка завершена.\n\n` +
+                    `Вы были удалены из закрытых групп и каналов.\n\n` +
+                    `Для возобновления доступа, пожалуйста, продлите подписку.`
+                );
+            });
             console.log(`✅ [removeUserFromChat] Уведомление отправлено пользователю ${userId}`);
         } catch (sendError) {
             // Если не удалось отправить уведомление, это не критично
@@ -621,8 +684,11 @@ app.post('/api/bot/add-user', async (req, res) => {
         // Отправляем invite-ссылку для канала, если указан
         if (CHANNEL_ID) {
             try {
-                await bot.telegram.unbanChatMember(CHANNEL_ID, telegramId, {
-                    only_if_banned: true
+                // Используем очередь для предотвращения конфликтов с polling
+                await executeUserOperation(async () => {
+                    return await bot.telegram.unbanChatMember(CHANNEL_ID, telegramId, {
+                        only_if_banned: true
+                    });
                 });
             
                 console.log(
@@ -630,12 +696,19 @@ app.post('/api/bot/add-user', async (req, res) => {
                 );
             } catch (error) {
                 const errorMsg = error.response?.description || error.message;
+                const errorCode = error.response?.error_code;
             
-                // Здесь ошибка действительно нетипичная
-                console.warn(
-                    `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
-                    errorMsg
-                );
+                // Обрабатываем ошибку 409 (конфликт с polling)
+                if (errorCode === 409) {
+                    console.warn(
+                        `⚠️ Конфликт 409 при разбане пользователя ${telegramId}. Операция будет повторена.`
+                    );
+                } else {
+                    console.warn(
+                        `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
+                        errorMsg
+                    );
+                }
             }
             
             try {
@@ -661,8 +734,11 @@ app.post('/api/bot/add-user', async (req, res) => {
         // Отправляем invite-ссылку для группы, если указана
         if (GROUP_ID) {
             try {
-                await bot.telegram.unbanChatMember(GROUP_ID, telegramId, {
-                    only_if_banned: true
+                // Используем очередь для предотвращения конфликтов с polling
+                await executeUserOperation(async () => {
+                    return await bot.telegram.unbanChatMember(GROUP_ID, telegramId, {
+                        only_if_banned: true
+                    });
                 });
             
                 console.log(
@@ -670,12 +746,19 @@ app.post('/api/bot/add-user', async (req, res) => {
                 );
             } catch (error) {
                 const errorMsg = error.response?.description || error.message;
+                const errorCode = error.response?.error_code;
             
-                // Здесь ошибка действительно нетипичная
-                console.warn(
-                    `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
-                    errorMsg
-                );
+                // Обрабатываем ошибку 409 (конфликт с polling)
+                if (errorCode === 409) {
+                    console.warn(
+                        `⚠️ Конфликт 409 при разбане пользователя ${telegramId}. Операция будет повторена.`
+                    );
+                } else {
+                    console.warn(
+                        `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
+                        errorMsg
+                    );
+                }
             }
             
             try {
@@ -835,12 +918,49 @@ app.post('/api/bot/remove-user', async (req, res) => {
 });
 
 // Запускаем бота при старте сервера
-bot.launch().then(() => {
-    console.log('Telegram bot started');
+bot.launch({
+    allowedUpdates: ['message', 'callback_query'], // Указываем типы обновлений
+    dropPendingUpdates: false // Не удаляем ожидающие обновления при перезапуске
+}).then(() => {
+    console.log('✅ Telegram bot started successfully');
 }).catch((error) => {
-    console.error('Error starting bot:', error);
+    console.error('❌ Error starting bot:', error);
+    
+    // Если это ошибка конфликта (409), выводим понятное сообщение
+    if (error.response?.error_code === 409) {
+        console.error('\n⚠️  ВНИМАНИЕ: Обнаружен конфликт!');
+        console.error('Другой экземпляр бота уже запущен.');
+        console.error('Решение:');
+        console.error('1. Проверьте запущенные процессы: ps aux | grep node');
+        console.error('2. Остановите все экземпляры бота');
+        console.error('3. Перезапустите только один экземпляр\n');
+    }
+    
+    // Не завершаем процесс при ошибке запуска, чтобы сервер продолжал работать
+    // Можно добавить логику повторной попытки или уведомления администратора
+});
+
+// Graceful shutdown для корректного завершения бота
+const gracefulShutdown = () => {
+    console.log('\n🛑 Получен сигнал завершения, останавливаем бота...');
+    bot.stop('SIGTERM');
+    process.exit(0);
+};
+
+process.once('SIGINT', gracefulShutdown);
+process.once('SIGTERM', gracefulShutdown);
+
+// Обработка необработанных ошибок
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    // Не завершаем процесс, только логируем
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    // Не завершаем процесс, только логируем
 });
 
 app.listen(process.env.PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+    console.log(`✅ Server is running on port ${process.env.PORT}`);
 });
