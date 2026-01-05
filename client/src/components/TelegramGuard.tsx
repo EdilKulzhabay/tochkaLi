@@ -36,12 +36,10 @@ export const TelegramGuard = ({ children }: TelegramGuardProps) => {
         return () => clearTimeout(timeout);
     }, [navigate]);
 
-    // Пока проверяем, не показываем ничего
     if (isChecking) {
         return null;
     }
 
-    // Если не в Telegram, не показываем содержимое (будет редирект)
     if (!isTelegram) {
         return null;
     }
