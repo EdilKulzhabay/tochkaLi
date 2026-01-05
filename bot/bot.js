@@ -80,7 +80,7 @@ bot.start(async (ctx) => {
             {
               text: '🚀 Открыть Портал .li',
               web_app: {
-                url: `https://kulzhabay.kz?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
+                url: `https://protal.tochkali.com?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
               }
             }
           ]]

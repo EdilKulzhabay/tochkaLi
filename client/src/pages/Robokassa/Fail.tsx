@@ -127,7 +127,7 @@ export const RobokassaFail = () => {
                     <div className="mt-6 pt-6 border-t border-gray-600">
                         <p className="text-sm text-gray-300">
                             Нужна помощь? 
-                            <a href="mailto:support@kulzhabay.kz" className="text-purple-400 hover:text-purple-300 ml-1 font-medium">
+                            <a href="mailto:support@protal.tochkali.com" className="text-purple-400 hover:text-purple-300 ml-1 font-medium">
                                 Свяжитесь с поддержкой
                             </a>
                         </p>
