@@ -204,13 +204,20 @@ export const Main = () => {
         };
 
         fetchUserData();
-        fetchModalNotifications();
+        
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (userData) {
+            fetchModalNotifications();
+        }
+    }, [userData]);
+
     const fetchModalNotifications = async () => {
         try {
-            const response = await api.get('/api/modal-notification/my');
+            const response = await api.post('/api/modal-notification/my', { mail: userData.mail });
+            console.log(response.data);
             if (response.data.success && response.data.notifications && response.data.notifications.length > 0) {
                 // Показываем первое уведомление
                 setModalNotification(response.data.notifications[0]);
@@ -229,15 +236,23 @@ export const Main = () => {
         try {
             // Удаляем уведомление с сервера
             await api.post('/api/modal-notification/remove', {
-                notificationIndex: notificationIndex
+                notificationIndex: notificationIndex,
+                mail: userData.mail
             });
 
             // Закрываем текущее модальное окно
             setModalNotification(null);
             setNotificationIndex(null);
+            if (modalNotification.modalButtonLink) {
+                if (modalNotification.modalButtonLink.startsWith('/')) {
+                    navigate(modalNotification.modalButtonLink);
+                } else {
+                    window.location.href = modalNotification.modalButtonLink;
+                }
+            }
 
             // Загружаем следующее уведомление (если есть)
-            const response = await api.get('/api/modal-notification/my');
+            const response = await api.post('/api/modal-notification/my', { mail: userData.mail });
             if (response.data.success && response.data.notifications && response.data.notifications.length > 0) {
                 setModalNotification(response.data.notifications[0]);
                 setNotificationIndex(0);
@@ -278,23 +293,75 @@ export const Main = () => {
         <UserLayout>
             {/* Модальное уведомление */}
             {modalNotification && (
-                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4 pr-8">
-                            {modalNotification.modalTitle}
-                        </h2>
-                        <div 
-                            className="text-gray-700 mb-6"
-                            dangerouslySetInnerHTML={{ __html: modalNotification.modalDescription }}
-                        />
-                        <button
-                            onClick={handleModalButtonClick}
-                            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                        >
-                            {modalNotification.modalButtonText}
-                        </button>
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                {/* Мобильная версия: модальное окно снизу */}
+                <div className="flex items-end justify-center min-h-screen sm:hidden">
+                    {/* Overlay */}
+                    <div 
+                        className="fixed inset-0 bg-black/60 transition-opacity z-20"
+                    />
+                    {/* Modal - снизу на мобильных */}
+                    <div 
+                        className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mt-4">
+                            <h3 className="text-2xl font-bold mb-4">{modalNotification.modalTitle}</h3>
+                            <p className="mb-6 text-gray-300 text-lg" dangerouslySetInnerHTML={{ __html: modalNotification.modalDescription }}></p>
+                            <button
+                                onClick={handleModalButtonClick}
+                                className="block text-white py-2.5 text-center font-medium rounded-full bg-[#EC1313] w-full"
+                            >
+                                {modalNotification.modalButtonText}
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Десктопная версия: модальное окно по центру */}
+                <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                    {/* Overlay */}
+                    <div 
+                        className="fixed inset-0 bg-black/60 transition-opacity"
+                    />
+
+                    {/* Modal - по центру на десктопе */}
+                    <div 
+                        className="relative p-8 inline-block align-middle bg-[#333333] rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all"
+                        style={{ maxWidth: '500px', width: '100%' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        
+                        <div className="mt-4">
+                            <h3 className="text-2xl font-bold mb-4">{modalNotification.modalTitle}</h3>
+                            <p className="mb-6 text-gray-300 text-lg" dangerouslySetInnerHTML={{ __html: modalNotification.modalDescription }}></p>
+                            <button
+                                onClick={handleModalButtonClick}
+                                className="block text-white py-2.5 text-center font-medium rounded-full bg-[#EC1313] w-full"
+                            >
+                                {modalNotification.modalButtonText}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                // <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                //     <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+                //         <h2 className="text-2xl font-bold text-gray-900 mb-4 pr-8">
+                //             {modalNotification.modalTitle}
+                //         </h2>
+                //         <div 
+                //             className="text-gray-700 mb-6"
+                //             dangerouslySetInnerHTML={{ __html: modalNotification.modalDescription }}
+                //         />
+                //         <button
+                //             onClick={handleModalButtonClick}
+                //             className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                //         >
+                //             {modalNotification.modalButtonText}
+                //         </button>
+                //     </div>
+                // </div>
             )}
 
             <div className="px-4 pb-10 bg-[#161616]">
