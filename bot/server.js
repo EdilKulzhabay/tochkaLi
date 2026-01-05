@@ -529,9 +529,9 @@ app.post('/api/bot/broadcast', async (req, res) => {
 
         // Функция для формирования URL кнопки с базовым URL и параметрами
         const buildButtonUrl = (userData) => {
-            if (!userData) return 'https://protal.tochkali.com/';
+            if (!userData) return 'https://kulzhabay.kz/';
             
-            const baseUrl = 'https://protal.tochkali.com/';
+            const baseUrl = 'https://kulzhabay.kz/';
             const params = new URLSearchParams();
             
             // Всегда добавляем telegramId
