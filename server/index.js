@@ -221,8 +221,8 @@ app.delete("/api/broadcast/:id", BroadcastController.deleteBroadcast);
 // ==================== Modal Notification маршруты ====================
 app.post("/api/modal-notification/users", ModalNotificationController.getFilteredUsers);
 app.post("/api/modal-notification/create", ModalNotificationController.createModalNotification);
-app.get("/api/modal-notification/my", authMiddleware, ModalNotificationController.getUserModalNotifications);
-app.post("/api/modal-notification/remove", authMiddleware, ModalNotificationController.removeModalNotification);
+app.post("/api/modal-notification/my", ModalNotificationController.getUserModalNotifications);
+app.post("/api/modal-notification/remove", ModalNotificationController.removeModalNotification);
 
 // ==================== Robokassa ====================
 app.post("/api/robres", RobokassaController.handleResult);

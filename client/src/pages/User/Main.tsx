@@ -15,7 +15,6 @@ import main2 from "../../assets/main2.png"
 import main3 from "../../assets/main3.png"
 import main4 from "../../assets/main4.png"
 import redUser from "../../assets/redUser.png"
-import { X } from "lucide-react"
 
 
 const SmallCard = ({ title, link, img }: { title: string, link: string, img: string }) => {

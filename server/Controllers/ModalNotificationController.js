@@ -120,8 +120,7 @@ export const createModalNotification = async (req, res) => {
 // Удалить модальное уведомление у пользователя (после нажатия на кнопку)
 export const removeModalNotification = async (req, res) => {
     try {
-        const userId = req.userId; // Из authMiddleware
-        const { notificationIndex } = req.body;
+        const { notificationIndex, mail } = req.body;
 
         if (notificationIndex === undefined || notificationIndex === null) {
             return res.status(400).json({
@@ -130,7 +129,7 @@ export const removeModalNotification = async (req, res) => {
             });
         }
 
-        const user = await User.findById(userId);
+        const user = await User.findOne({ mail });
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -166,9 +165,9 @@ export const removeModalNotification = async (req, res) => {
 // Получить модальные уведомления пользователя
 export const getUserModalNotifications = async (req, res) => {
     try {
-        const userId = req.userId; // Из authMiddleware
+        const { mail } = req.body;
 
-        const user = await User.findById(userId).select('modalNotifications');
+        const user = await User.findOne({ mail }).select('modalNotifications');
         if (!user) {
             return res.status(404).json({
                 success: false,
