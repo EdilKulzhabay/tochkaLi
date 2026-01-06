@@ -744,7 +744,7 @@ export const BroadcastAdmin = () => {
                             />
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                            URL кнопки будет автоматически сформирован как <code className="bg-gray-100 px-1 rounded">https://kulzhabay.kz/</code> с параметрами <code className="bg-gray-100 px-1 rounded">telegramId</code> и <code className="bg-gray-100 px-1 rounded">profilePhotoUrl</code> (если указан) для каждого пользователя.
+                            URL кнопки будет автоматически сформирован как <code className="bg-gray-100 px-1 rounded">https://portal.tochkali.com/</code> с параметрами <code className="bg-gray-100 px-1 rounded">telegramId</code> и <code className="bg-gray-100 px-1 rounded">profilePhotoUrl</code> (если указан) для каждого пользователя.
                         </p>
                     </div>
 
