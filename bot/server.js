@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import bot from './bot.js';
+import { executeUserOperation } from './queue.js';
 
 const app = express();
 
@@ -14,60 +15,6 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // Задержка между сообщениями (50 мс = безопасная частота ~20 сообщений/сек)
 // Telegram позволяет до 30 сообщений/сек, но лучше быть консервативнее
 const DELAY_BETWEEN_MESSAGES = 50;
-
-// Задержка между операциями с пользователями (ban/unban/sendMessage)
-// Это предотвращает конфликт с polling механизмом
-const DELAY_BETWEEN_USER_OPERATIONS = 200; // 200 мс между операциями
-
-// Очередь для операций с пользователями, чтобы избежать конфликтов
-const userOperationsQueue = [];
-let isProcessingQueue = false;
-
-// Функция для безопасного выполнения операций с пользователями
-const executeUserOperation = async (operation) => {
-    return new Promise((resolve, reject) => {
-        userOperationsQueue.push({ operation, resolve, reject });
-        processUserOperationsQueue();
-    });
-};
-
-// Обработка очереди операций
-const processUserOperationsQueue = async () => {
-    if (isProcessingQueue || userOperationsQueue.length === 0) {
-        return;
-    }
-
-    isProcessingQueue = true;
-
-    while (userOperationsQueue.length > 0) {
-        const { operation, resolve, reject } = userOperationsQueue.shift();
-        
-        try {
-            const result = await operation();
-            resolve(result);
-        } catch (error) {
-            // Обрабатываем ошибку 409 (конфликт с polling)
-            if (error.response?.error_code === 409) {
-                console.warn('⚠️ Обнаружен конфликт 409 при операции с пользователем. Повторяем через 1 секунду...');
-                // Добавляем операцию обратно в очередь с задержкой
-                setTimeout(() => {
-                    userOperationsQueue.unshift({ operation, resolve, reject });
-                    isProcessingQueue = false;
-                    processUserOperationsQueue();
-                }, 1000);
-                return;
-            }
-            reject(error);
-        }
-        
-        // Задержка между операциями
-        if (userOperationsQueue.length > 0) {
-            await delay(DELAY_BETWEEN_USER_OPERATIONS);
-        }
-    }
-
-    isProcessingQueue = false;
-};
 
 // Функция для очистки HTML от недопустимых тегов Telegram
 // Telegram поддерживает: <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <del>, 
@@ -145,9 +92,12 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         // ШАГ 1: Проверка типа чата (ОБЯЗАТЕЛЬНО)
         // Telegram Bot API поддерживает только supergroup и channel для invite-ссылок
         // Обычные группы (group) не поддерживаются
+        // getChat обращается к Telegram API, поэтому используем очередь для избежания конфликтов
         let chat;
         try {
-            chat = await bot.telegram.getChat(chatId);
+            chat = await executeUserOperation(async () => {
+                return await bot.telegram.getChat(chatId);
+            });
             console.log(`✅ [sendInviteLinkToUser] Тип чата ${chatId}: ${chat.type}`);
         } catch (chatError) {
             const errorMsg = chatError.response?.description || chatError.message || 'Неизвестная ошибка';
@@ -181,8 +131,11 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         
         let inviteLink;
         try {
-            inviteLink = await bot.telegram.createChatInviteLink(chatId, {
-                member_limit: 1, // Одноразовая ссылка - может быть использована только одним пользователем
+            // createChatInviteLink изменяет состояние, поэтому используем очередь
+            inviteLink = await executeUserOperation(async () => {
+                return await bot.telegram.createChatInviteLink(chatId, {
+                    member_limit: 1, // Одноразовая ссылка - может быть использована только одним пользователем
+                });
             });
             console.log(`✅ [sendInviteLinkToUser] Создана invite-ссылка для пользователя ${userId}: ${inviteLink.invite_link}`);
         } catch (inviteError) {
@@ -283,9 +236,12 @@ const removeUserFromChat = async (chatId, userId) => {
         
         // ШАГ 1: Проверка типа чата (ОБЯЗАТЕЛЬНО)
         // Telegram Bot API поддерживает только supergroup и channel для ban/unban операций
+        // getChat обращается к Telegram API, поэтому используем очередь для избежания конфликтов
         let chat;
         try {
-            chat = await bot.telegram.getChat(chatId);
+            chat = await executeUserOperation(async () => {
+                return await bot.telegram.getChat(chatId);
+            });
             console.log(`✅ [removeUserFromChat] Тип чата ${chatId}: ${chat.type}`);
         } catch (chatError) {
             const errorMsg = chatError.response?.description || chatError.message || 'Неизвестная ошибка';
@@ -588,14 +544,20 @@ app.post('/api/bot/broadcast', async (req, res) => {
                     
                     console.log(`Отправка фото пользователю ${telegramId}, URL: ${fullImageUrl}`);
                     
-                    await bot.telegram.sendPhoto(telegramId, fullImageUrl, {
-                        caption: messageText,
-                        parse_mode: finalParseMode,
-                        ...(messageOptions.reply_markup && { reply_markup: messageOptions.reply_markup })
+                    // sendPhoto изменяет состояние, поэтому используем очередь
+                    await executeUserOperation(async () => {
+                        return await bot.telegram.sendPhoto(telegramId, fullImageUrl, {
+                            caption: messageText,
+                            parse_mode: finalParseMode,
+                            ...(messageOptions.reply_markup && { reply_markup: messageOptions.reply_markup })
+                        });
                     });
                 } else {
                     // Отправляем обычное текстовое сообщение
-                    await bot.telegram.sendMessage(telegramId, messageText, messageOptions);
+                    // sendMessage изменяет состояние, поэтому используем очередь
+                    await executeUserOperation(async () => {
+                        return await bot.telegram.sendMessage(telegramId, messageText, messageOptions);
+                    });
                 }
                 
                 results.success.push(telegramId);

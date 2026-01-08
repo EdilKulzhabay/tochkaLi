@@ -1,6 +1,7 @@
 import { Telegraf } from 'telegraf';
 import 'dotenv/config';
 import axios from 'axios';
+import { executeUserOperation } from './queue.js';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -20,19 +21,25 @@ bot.start(async (ctx) => {
   console.log("startParam (referral ID):", startParam);
   
   // Удаляем menu button, чтобы остался только inline
+  // setChatMenuButton изменяет состояние, поэтому используем очередь
   try {
-    await bot.telegram.setChatMenuButton({
-      chatId,
-      menuButton: { type: "default" }
+    await executeUserOperation(async () => {
+      return await bot.telegram.setChatMenuButton({
+        chatId,
+        menuButton: { type: "default" }
+      });
     });
   } catch (error) {
     console.log("Ошибка при удалении menu button:", error);
   }
   
   // Получаем фото профиля пользователя
+  // getUserProfilePhotos и getFile - информационные методы, но лучше через очередь для согласованности
   let profilePhotoUrl = null;
   try {
-    const photos = await bot.telegram.getUserProfilePhotos(telegramId, { limit: 1 });
+    const photos = await executeUserOperation(async () => {
+      return await bot.telegram.getUserProfilePhotos(telegramId, { limit: 1 });
+    });
     
     if (photos.total_count > 0 && photos.photos.length > 0) {
       // Берем фото максимального качества (последний элемент в массиве размеров)
@@ -40,7 +47,9 @@ bot.start(async (ctx) => {
       const fileId = largestPhoto.file_id;
       
       // Получаем file_path через getFile
-      const file = await bot.telegram.getFile(fileId);
+      const file = await executeUserOperation(async () => {
+        return await bot.telegram.getFile(fileId);
+      });
       
       // Формируем URL аватара
       profilePhotoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
@@ -71,22 +80,25 @@ bot.start(async (ctx) => {
   }
 
   // Отправляем сообщение с inline кнопкой для запуска WebApp
+  // ctx.reply - это sendMessage, изменяет состояние, поэтому используем очередь
   try {
-    await ctx.reply(
-      `Портал .li активирован.\nЖми кнопку запуска👇`,
-      {
-        reply_markup: {
-          inline_keyboard: [[
-            {
-              text: '🚀 Открыть Портал .li',
-              web_app: {
-                url: `https://portal.tochkali.com?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
+    await executeUserOperation(async () => {
+      return await ctx.reply(
+        `Портал .li активирован.\nЖми кнопку запуска👇`,
+        {
+          reply_markup: {
+            inline_keyboard: [[
+              {
+                text: '🚀 Открыть Портал .li',
+                web_app: {
+                  url: `https://portal.tochkali.com?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
+                }
               }
-            }
-          ]]
+            ]]
+          }
         }
-      }
-    );
+      );
+    });
   } catch (error) {
     // Обрабатываем ошибку, если пользователь заблокировал бота
     if (error.response?.error_code === 403) {
@@ -102,12 +114,23 @@ bot.start(async (ctx) => {
 // Команда для удаления menu button (запустите /removemenu один раз)
 bot.command('removemenu', async (ctx) => {
   try {
-    await bot.telegram.setChatMenuButton({
-      menuButton: { type: "default" }
+    // setChatMenuButton и ctx.reply изменяют состояние, поэтому используем очередь
+    await executeUserOperation(async () => {
+      return await bot.telegram.setChatMenuButton({
+        menuButton: { type: "default" }
+      });
     });
-    await ctx.reply('✅ Menu button удалён глобально');
+    await executeUserOperation(async () => {
+      return await ctx.reply('✅ Menu button удалён глобально');
+    });
   } catch (error) {
-    await ctx.reply('❌ Ошибка при удалении menu button');
+    try {
+      await executeUserOperation(async () => {
+        return await ctx.reply('❌ Ошибка при удалении menu button');
+      });
+    } catch (replyError) {
+      console.error('Ошибка отправки сообщения об ошибке:', replyError);
+    }
   }
 });
 
