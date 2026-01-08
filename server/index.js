@@ -115,13 +115,14 @@ const createContentRateLimit = rateLimit({
 const swaggerPassword = process.env.SWAGGER_PASSWORD || 'admin123';
 const swaggerAuthSessions = new Set(); // Простое хранилище сессий в памяти
 
-// Функция для получения базового URL API (всегда использует api.portal.tochkali.com)
-const getApiBaseUrl = (req, basePath = '/api/docs') => {
+// Функция для получения базового URL Swagger
+// Всегда использует api.portal.tochkali.com
+const getSwaggerBaseUrl = (req, path = '/api/docs') => {
     // Всегда используем api.portal.tochkali.com для Swagger
     const host = 'api.portal.tochkali.com';
-    // Определяем протокол (https в production, http в development)
+    // Определяем протокол
     const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http') || 'https';
-    return `${protocol}://${host}${basePath}`;
+    return `${protocol}://${host}${path}`;
 };
 
 // Middleware для проверки доступа к Swagger
@@ -150,11 +151,8 @@ const swaggerAuthMiddleware = (req, res, next) => {
     // Если это запрос на страницу входа или корневой путь, показываем форму
     // Также проверяем полный путь для совместимости
     if (relativePath === '/login' || relativePath === '/' || fullPath === '/api/docs/login' || fullPath === '/api/docs' || fullPath.endsWith('/api/docs') || fullPath.includes('/api/api/docs')) {
-        // Определяем базовый путь для формы (с учетом проксирования)
-        const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
-        
-        // Формируем полный URL для формы (всегда используем api.portal.tochkali.com)
-        const apiBaseUrl = getApiBaseUrl(req, basePath);
+        // Всегда используем полный URL с api.portal.tochkali.com для формы
+        const swaggerLoginUrl = getSwaggerBaseUrl(req, '/api/docs/login');
         
         return res.send(`
             <!DOCTYPE html>
@@ -238,7 +236,7 @@ const swaggerAuthMiddleware = (req, res, next) => {
             <body>
                 <div class="login-container">
                     <h1>🔐 Swagger UI</h1>
-                    <form method="POST" action="${apiBaseUrl}/login">
+                    <form method="POST" action="${swaggerLoginUrl}">
                         <div class="form-group">
                             <label for="password">Пароль:</label>
                             <input type="password" id="password" name="password" required autofocus>
@@ -253,18 +251,14 @@ const swaggerAuthMiddleware = (req, res, next) => {
     }
     
     // Для всех остальных запросов редиректим на страницу входа
-    // Определяем базовый путь с учетом проксирования
-    const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
-    const loginUrl = getApiBaseUrl(req, `${basePath}/login`);
+    // Всегда используем api.portal.tochkali.com/api/docs/login
+    const loginUrl = getSwaggerBaseUrl(req, '/api/docs/login');
     res.redirect(loginUrl);
 };
 
 // Функция обработки входа в Swagger
 const handleSwaggerLogin = (req, res) => {
     const { password } = req.body;
-    
-    // Определяем базовый путь для редиректа (с учетом проксирования)
-    const basePath = req.originalUrl.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
     
     if (password === swaggerPassword) {
         // Создаем сессию
@@ -280,12 +274,12 @@ const handleSwaggerLogin = (req, res) => {
             sameSite: isProduction ? 'none' : 'lax'
         });
         
-        // Редирект на правильный домен API
-        const redirectUrl = getApiBaseUrl(req, basePath);
+        // Редирект на api.portal.tochkali.com/api/docs
+        const redirectUrl = getSwaggerBaseUrl(req, '/api/docs');
         res.redirect(redirectUrl);
     } else {
         // Редирект на страницу входа с ошибкой
-        const loginUrl = getApiBaseUrl(req, `${basePath}/login?error=1`);
+        const loginUrl = getSwaggerBaseUrl(req, '/api/docs/login?error=1');
         res.redirect(loginUrl);
     }
 };
@@ -294,8 +288,8 @@ const handleSwaggerLogin = (req, res) => {
 app.post('/api/docs/login', express.urlencoded({ extended: true }), handleSwaggerLogin);
 app.post('/api/api/docs/login', express.urlencoded({ extended: true }), handleSwaggerLogin);
 
-// Маршрут для выхода из Swagger
-app.get('/api/docs/logout', (req, res) => {
+// Функция обработки выхода из Swagger
+const handleSwaggerLogout = (req, res) => {
     const sessionId = req.cookies?.swagger_session;
     if (sessionId) {
         swaggerAuthSessions.delete(sessionId);
@@ -306,11 +300,14 @@ app.get('/api/docs/logout', (req, res) => {
         secure: isProduction,
         sameSite: isProduction ? 'none' : 'lax'
     });
-    // Редирект на страницу входа с правильным доменом API
-    const basePath = req.originalUrl.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
-    const loginUrl = getApiBaseUrl(req, `${basePath}/login`);
+    // Редирект на страницу входа на api.portal.tochkali.com
+    const loginUrl = getSwaggerBaseUrl(req, '/api/docs/login');
     res.redirect(loginUrl);
-});
+};
+
+// Маршруты для выхода из Swagger (обрабатываем оба варианта пути)
+app.get('/api/docs/logout', handleSwaggerLogout);
+app.get('/api/api/docs/logout', handleSwaggerLogout);
 
 // Защищенный маршрут Swagger UI
 const swaggerDocument = YAML.load(path.join(__dirname, 'swagger.yaml'));
