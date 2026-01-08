@@ -220,9 +220,9 @@ const getSwaggerAuthPage = (redirectPath) => {
             submitBtn.disabled = true;
             
             try {
-                // Определяем протокол (https в production, http в development)
-                const protocol = window.location.protocol;
-                const apiUrl = protocol + '//api.portal.tochkali.com/swagger-auth/check';
+                // Используем относительный путь, который будет работать через текущий домен
+                // Nginx проксирует /api/ на /, поэтому используем /api/swagger-auth/check
+                const apiUrl = '/api/swagger-auth/check';
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -266,7 +266,10 @@ const getSwaggerAuthPage = (redirectPath) => {
 // Обработчик проверки пароля
 export const handleSwaggerAuthCheck = (req, res) => {
     const { password } = req.body;
-    
+
+    console.log("handleSwaggerAuthCheck password: ", password);
+    console.log("handleSwaggerAuthCheck swaggerPassword: ", swaggerPassword);
+    console.log("handleSwaggerAuthCheck password === swaggerPassword: ", password === swaggerPassword);
     if (password === swaggerPassword) {
         // Создаем сессию
         const sessionId = crypto.randomBytes(32).toString('hex');
