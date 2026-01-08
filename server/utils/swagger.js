@@ -25,7 +25,18 @@ export const setupSwagger = (app) => {
 
     // Настройка Swagger UI с обработкой ошибок
     try {
-        // Основной маршрут для Swagger
+        // Маршрут /docs - для работы через Nginx проксирование /api/ -> /
+        // Когда пользователь обращается к /api/docs, Nginx проксирует на /docs
+        app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+            customCss: '.swagger-ui .topbar { display: none }',
+            customSiteTitle: "TochkaLi API Documentation",
+            swaggerOptions: {
+                persistAuthorization: true,
+                displayRequestDuration: true
+            }
+        }));
+        
+        // Основной маршрут для Swagger (на случай прямого доступа)
         app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
             customCss: '.swagger-ui .topbar { display: none }',
             customSiteTitle: "TochkaLi API Documentation",
@@ -46,7 +57,8 @@ export const setupSwagger = (app) => {
         }));
         
         console.log('✅ Swagger UI configured successfully');
-        console.log('   - Available at: /api/docs');
+        console.log('   - Available at: /docs (via Nginx: /api/docs)');
+        console.log('   - Available at: /api/docs (direct access)');
         console.log('   - Available at: /api/api/docs (for Nginx compatibility)');
     } catch (error) {
         console.error('❌ Error configuring Swagger UI:', error);
