@@ -6,7 +6,7 @@ import "dotenv/config";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cron from 'node-cron';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 import { 
     UserController,
@@ -85,8 +85,8 @@ const createUserRateLimit = rateLimit({
         if (req.userId) {
             return `user:${req.userId}`;
         }
-        // Иначе используем IP адрес
-        return req.ip || req.connection.remoteAddress || 'unknown';
+        // Иначе используем правильный способ получения IP адреса (поддерживает IPv6)
+        return ipKeyGenerator(req);
     }
 });
 
@@ -106,8 +106,8 @@ const createContentRateLimit = rateLimit({
         if (req.userId) {
             return `user:${req.userId}`;
         }
-        // Иначе используем IP адрес
-        return req.ip || req.connection.remoteAddress || 'unknown';
+        // Иначе используем правильный способ получения IP адреса (поддерживает IPv6)
+        return ipKeyGenerator(req);
     }
 });
 
