@@ -144,6 +144,20 @@ const swaggerAuthMiddleware = (req, res, next) => {
         // Определяем базовый путь для формы (с учетом проксирования)
         const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
         
+        // Определяем правильный домен API из заголовков
+        // Используем X-Forwarded-Host если есть (от nginx), иначе Host
+        let host = req.headers['x-forwarded-host'] || req.headers.host || 'api.portal.tochkali.com';
+        
+        // Если запрос приходит с portal.tochkali.com, меняем на api.portal.tochkali.com
+        if (host.includes('portal.tochkali.com') && !host.startsWith('api.')) {
+            host = host.replace('portal.tochkali.com', 'api.portal.tochkali.com');
+        }
+        
+        // Определяем протокол (https в production, http в development)
+        const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http') || 'https';
+        // Формируем полный URL для формы
+        const apiBaseUrl = `${protocol}://${host}${basePath}`;
+        
         return res.send(`
             <!DOCTYPE html>
             <html>
@@ -226,7 +240,7 @@ const swaggerAuthMiddleware = (req, res, next) => {
             <body>
                 <div class="login-container">
                     <h1>🔐 Swagger UI</h1>
-                    <form method="POST" action="${basePath}/login">
+                    <form method="POST" action="${apiBaseUrl}/login">
                         <div class="form-group">
                             <label for="password">Пароль:</label>
                             <input type="password" id="password" name="password" required autofocus>
