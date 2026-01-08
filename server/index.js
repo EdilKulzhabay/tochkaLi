@@ -32,7 +32,8 @@ import {
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
 import { 
-    setupSwagger
+    setupSwagger,
+    handleSwaggerAuthCheck
 } from "./utils/swagger.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -112,6 +113,11 @@ const createContentRateLimit = rateLimit({
 });
 
 // ==================== Swagger UI маршруты ====================
+// Маршрут для проверки пароля Swagger
+app.post('/swagger-auth/check', express.json(), handleSwaggerAuthCheck);
+app.post('/api/swagger-auth/check', express.json(), handleSwaggerAuthCheck);
+app.post('/api/api/swagger-auth/check', express.json(), handleSwaggerAuthCheck);
+
 // Настройка Swagger UI
 setupSwagger(app);
 
