@@ -124,8 +124,23 @@ const swaggerAuthMiddleware = (req, res, next) => {
         return next();
     }
     
-    // Если это запрос на страницу входа, показываем форму
-    if (req.path === '/login' || req.path === '/') {
+    // Получаем относительный путь от /api/docs
+    // req.path будет содержать путь относительно /api/docs, например '/login' или '/'
+    const relativePath = req.path || '/';
+    const fullPath = req.originalUrl || req.path;
+    
+    // Разрешаем доступ к статическим файлам Swagger UI (CSS, JS, изображения)
+    // Эти файлы необходимы для работы Swagger UI
+    if (fullPath.match(/\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/i) || 
+        fullPath.includes('/swagger-ui') || 
+        fullPath.includes('/swagger-ui-bundle') ||
+        fullPath.includes('/swagger-ui-standalone')) {
+        return next();
+    }
+    
+    // Если это запрос на страницу входа или корневой путь, показываем форму
+    // Также проверяем полный путь для совместимости
+    if (relativePath === '/login' || relativePath === '/' || fullPath === '/api/docs/login' || fullPath === '/api/docs' || fullPath.endsWith('/api/docs')) {
         return res.send(`
             <!DOCTYPE html>
             <html>
@@ -267,6 +282,10 @@ app.get('/api/docs/logout', (req, res) => {
 
 // Защищенный маршрут Swagger UI
 const swaggerDocument = YAML.load(path.join(__dirname, 'swagger.yaml'));
+
+// Swagger UI: используем swaggerUi.serve для статических файлов и swaggerUi.setup для основного маршрута
+// swaggerUi.serve возвращает массив middleware для статических файлов
+// swaggerUi.setup возвращает middleware для основного UI
 app.use('/api/docs', swaggerAuthMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: "TochkaLi API Documentation"
