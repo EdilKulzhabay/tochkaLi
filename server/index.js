@@ -140,7 +140,10 @@ const swaggerAuthMiddleware = (req, res, next) => {
     
     // Если это запрос на страницу входа или корневой путь, показываем форму
     // Также проверяем полный путь для совместимости
-    if (relativePath === '/login' || relativePath === '/' || fullPath === '/api/docs/login' || fullPath === '/api/docs' || fullPath.endsWith('/api/docs')) {
+    if (relativePath === '/login' || relativePath === '/' || fullPath === '/api/docs/login' || fullPath === '/api/docs' || fullPath.endsWith('/api/docs') || fullPath.includes('/api/api/docs')) {
+        // Определяем базовый путь для формы (с учетом проксирования)
+        const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
+        
         return res.send(`
             <!DOCTYPE html>
             <html>
@@ -223,7 +226,7 @@ const swaggerAuthMiddleware = (req, res, next) => {
             <body>
                 <div class="login-container">
                     <h1>🔐 Swagger UI</h1>
-                    <form method="POST" action="/api/docs/login">
+                    <form method="POST" action="${basePath}/login">
                         <div class="form-group">
                             <label for="password">Пароль:</label>
                             <input type="password" id="password" name="password" required autofocus>
@@ -238,12 +241,17 @@ const swaggerAuthMiddleware = (req, res, next) => {
     }
     
     // Для всех остальных запросов редиректим на страницу входа
-    res.redirect('/api/docs/login');
+    // Определяем базовый путь с учетом проксирования
+    const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
+    res.redirect(`${basePath}/login`);
 };
 
-// Маршрут для входа в Swagger
-app.post('/api/docs/login', express.urlencoded({ extended: true }), (req, res) => {
+// Функция обработки входа в Swagger
+const handleSwaggerLogin = (req, res) => {
     const { password } = req.body;
+    
+    // Определяем базовый путь для редиректа (с учетом проксирования)
+    const basePath = req.originalUrl.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
     
     if (password === swaggerPassword) {
         // Создаем сессию
@@ -259,11 +267,15 @@ app.post('/api/docs/login', express.urlencoded({ extended: true }), (req, res) =
             sameSite: isProduction ? 'none' : 'lax'
         });
         
-        res.redirect('/api/docs');
+        res.redirect(basePath);
     } else {
-        res.redirect('/api/docs/login?error=1');
+        res.redirect(`${basePath}/login?error=1`);
     }
-});
+};
+
+// Маршруты для входа в Swagger (обрабатываем оба варианта пути)
+app.post('/api/docs/login', express.urlencoded({ extended: true }), handleSwaggerLogin);
+app.post('/api/api/docs/login', express.urlencoded({ extended: true }), handleSwaggerLogin);
 
 // Маршрут для выхода из Swagger
 app.get('/api/docs/logout', (req, res) => {
