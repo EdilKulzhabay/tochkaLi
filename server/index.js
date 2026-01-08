@@ -115,6 +115,15 @@ const createContentRateLimit = rateLimit({
 const swaggerPassword = process.env.SWAGGER_PASSWORD || 'admin123';
 const swaggerAuthSessions = new Set(); // Простое хранилище сессий в памяти
 
+// Функция для получения базового URL API (всегда использует api.portal.tochkali.com)
+const getApiBaseUrl = (req, basePath = '/api/docs') => {
+    // Всегда используем api.portal.tochkali.com для Swagger
+    const host = 'api.portal.tochkali.com';
+    // Определяем протокол (https в production, http в development)
+    const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http') || 'https';
+    return `${protocol}://${host}${basePath}`;
+};
+
 // Middleware для проверки доступа к Swagger
 const swaggerAuthMiddleware = (req, res, next) => {
     const sessionId = req.cookies?.swagger_session;
@@ -144,19 +153,8 @@ const swaggerAuthMiddleware = (req, res, next) => {
         // Определяем базовый путь для формы (с учетом проксирования)
         const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
         
-        // Определяем правильный домен API из заголовков
-        // Используем X-Forwarded-Host если есть (от nginx), иначе Host
-        let host = req.headers['x-forwarded-host'] || req.headers.host || 'api.portal.tochkali.com';
-        
-        // Если запрос приходит с portal.tochkali.com, меняем на api.portal.tochkali.com
-        if (host.includes('portal.tochkali.com') && !host.startsWith('api.')) {
-            host = host.replace('portal.tochkali.com', 'api.portal.tochkali.com');
-        }
-        
-        // Определяем протокол (https в production, http в development)
-        const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http') || 'https';
-        // Формируем полный URL для формы
-        const apiBaseUrl = `${protocol}://${host}${basePath}`;
+        // Формируем полный URL для формы (всегда используем api.portal.tochkali.com)
+        const apiBaseUrl = getApiBaseUrl(req, basePath);
         
         return res.send(`
             <!DOCTYPE html>
@@ -257,7 +255,8 @@ const swaggerAuthMiddleware = (req, res, next) => {
     // Для всех остальных запросов редиректим на страницу входа
     // Определяем базовый путь с учетом проксирования
     const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
-    res.redirect(`${basePath}/login`);
+    const loginUrl = getApiBaseUrl(req, `${basePath}/login`);
+    res.redirect(loginUrl);
 };
 
 // Функция обработки входа в Swagger
@@ -281,9 +280,13 @@ const handleSwaggerLogin = (req, res) => {
             sameSite: isProduction ? 'none' : 'lax'
         });
         
-        res.redirect(basePath);
+        // Редирект на правильный домен API
+        const redirectUrl = getApiBaseUrl(req, basePath);
+        res.redirect(redirectUrl);
     } else {
-        res.redirect(`${basePath}/login?error=1`);
+        // Редирект на страницу входа с ошибкой
+        const loginUrl = getApiBaseUrl(req, `${basePath}/login?error=1`);
+        res.redirect(loginUrl);
     }
 };
 
@@ -303,7 +306,10 @@ app.get('/api/docs/logout', (req, res) => {
         secure: isProduction,
         sameSite: isProduction ? 'none' : 'lax'
     });
-    res.redirect('/api/docs/login');
+    // Редирект на страницу входа с правильным доменом API
+    const basePath = req.originalUrl.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
+    const loginUrl = getApiBaseUrl(req, `${basePath}/login`);
+    res.redirect(loginUrl);
 });
 
 // Защищенный маршрут Swagger UI
