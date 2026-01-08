@@ -33,9 +33,6 @@ import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
 import { 
     swaggerRedirectMiddleware,
-    swaggerAuthMiddleware,
-    handleSwaggerLogin,
-    handleSwaggerLogout,
     setupSwagger
 } from "./utils/swagger.js";
 
@@ -114,22 +111,6 @@ const createContentRateLimit = rateLimit({
         return req.ip || req.connection.remoteAddress || 'unknown';
     }
 });
-
-// ==================== Swagger UI маршруты ====================
-// Редирект с portal.tochkali.com на api.portal.tochkali.com для Swagger
-app.use('/api/docs', swaggerRedirectMiddleware);
-app.use('/api/api/docs', swaggerRedirectMiddleware);
-
-// Маршруты для входа в Swagger (обрабатываем оба варианта пути)
-app.post('/api/docs/login', express.urlencoded({ extended: true }), handleSwaggerLogin);
-app.post('/api/api/docs/login', express.urlencoded({ extended: true }), handleSwaggerLogin);
-
-// Маршруты для выхода из Swagger (обрабатываем оба варианта пути)
-app.get('/api/docs/logout', handleSwaggerLogout);
-app.get('/api/api/docs/logout', handleSwaggerLogout);
-
-// Настройка Swagger UI
-setupSwagger(app);
 
 // Публичные маршруты
 app.post("/api/user/create", createUserRateLimit, UserController.createUser);
@@ -359,6 +340,17 @@ cron.schedule('0 12 * * *', async () => {
 });
 
 console.log('Cron задача для проверки подписок настроена: каждый день в 12:00');
+
+// ==================== Swagger UI маршруты ====================
+// Редирект с portal.tochkali.com на api.portal.tochkali.com для Swagger
+// Должен быть ДО всех других маршрутов
+app.use('/', swaggerRedirectMiddleware);
+app.use('/api/docs', swaggerRedirectMiddleware);
+app.use('/api/api/docs', swaggerRedirectMiddleware);
+
+// Настройка Swagger UI на корневом пути (только для api.portal.tochkali.com)
+// Размещаем в конце, чтобы не перехватывать API маршруты
+setupSwagger(app);
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
