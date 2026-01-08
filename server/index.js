@@ -243,7 +243,7 @@ const swaggerAuthMiddleware = (req, res, next) => {
     // Для всех остальных запросов редиректим на страницу входа
     // Определяем базовый путь с учетом проксирования
     const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
-    res.redirect(`${basePath}/login`);
+    res.redirect(`api.${basePath}/login`);
 };
 
 // Функция обработки входа в Swagger
