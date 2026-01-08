@@ -226,7 +226,7 @@ const swaggerAuthMiddleware = (req, res, next) => {
             <body>
                 <div class="login-container">
                     <h1>🔐 Swagger UI</h1>
-                    <form method="POST" action="${'api.' + basePath}/login">
+                    <form method="POST" action="${basePath}/login">
                         <div class="form-group">
                             <label for="password">Пароль:</label>
                             <input type="password" id="password" name="password" required autofocus>
@@ -243,7 +243,7 @@ const swaggerAuthMiddleware = (req, res, next) => {
     // Для всех остальных запросов редиректим на страницу входа
     // Определяем базовый путь с учетом проксирования
     const basePath = fullPath.includes('/api/api/docs') ? '/api/api/docs' : '/api/docs';
-    res.redirect(`${'api.' + basePath}/login`);
+    res.redirect(`${basePath}/login`);
 };
 
 // Функция обработки входа в Swagger
