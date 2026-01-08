@@ -45,7 +45,9 @@ export const setupSwagger = (app) => {
             }
         }));
         
-        console.log('✅ Swagger UI configured successfully at /api/docs');
+        console.log('✅ Swagger UI configured successfully');
+        console.log('   - Available at: /api/docs');
+        console.log('   - Available at: /api/api/docs (for Nginx compatibility)');
     } catch (error) {
         console.error('❌ Error configuring Swagger UI:', error);
     }
