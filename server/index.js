@@ -32,7 +32,6 @@ import {
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import User from "./Models/User.js";
 import { 
-    swaggerRedirectMiddleware,
     setupSwagger
 } from "./utils/swagger.js";
 
@@ -113,10 +112,6 @@ const createContentRateLimit = rateLimit({
 });
 
 // ==================== Swagger UI маршруты ====================
-// Редирект с portal.tochkali.com на api.portal.tochkali.com для Swagger
-app.use('/api/docs', swaggerRedirectMiddleware);
-app.use('/api/api/docs', swaggerRedirectMiddleware);
-
 // Настройка Swagger UI
 setupSwagger(app);
 
