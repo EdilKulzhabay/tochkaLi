@@ -220,7 +220,11 @@ const getSwaggerAuthPage = (redirectPath) => {
             submitBtn.disabled = true;
             
             try {
-                const response = await fetch('/swagger-auth/check', {
+                // Определяем протокол (https в production, http в development)
+                const protocol = window.location.protocol;
+                const apiUrl = protocol + '//api.portal.tochkali.com/swagger-auth/check';
+                
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -299,7 +303,7 @@ export const setupSwagger = (app) => {
             paths: {}
         };
     }
-
+    
     // Настройка Swagger UI с обработкой ошибок
     try {
         // Маршрут /docs - для работы через Nginx проксирование /api/ -> /
