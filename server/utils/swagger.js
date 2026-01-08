@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // Функция для получения базового URL Swagger
 // Всегда использует api.portal.tochkali.com
-export const getSwaggerBaseUrl = (req, path = '/') => {
+export const getSwaggerBaseUrl = (req, path = '/api/docs') => {
     // Всегда используем api.portal.tochkali.com для Swagger
     const host = 'api.portal.tochkali.com';
     // Определяем протокол
@@ -21,18 +21,26 @@ export const swaggerRedirectMiddleware = (req, res, next) => {
     const host = req.headers['x-forwarded-host'] || req.headers.host || '';
     const fullPath = req.originalUrl || req.path;
     
-    // Если запрос пришел на portal.tochkali.com (без api.) и это корневой путь или путь связанный со Swagger, редиректим на api.portal.tochkali.com
+    // Если запрос пришел на portal.tochkali.com (без api.) и путь связан со Swagger, редиректим на api.portal.tochkali.com
     if (host.includes('portal.tochkali.com') && !host.includes('api.portal.tochkali.com')) {
-        // Редиректим корневой путь и пути связанные со Swagger
-        if (fullPath === '/' || fullPath.includes('/api/docs') || fullPath.includes('/api/api/docs')) {
+        if (fullPath.includes('/api/docs') || fullPath.includes('/api/api/docs')) {
             // Определяем правильный путь
-            let swaggerPath = '/';
+            let swaggerPath = fullPath;
             
-            // Если путь содержит /api/docs или /api/api/docs, убираем их и оставляем корневой путь
-            if (fullPath.includes('/api/api/docs')) {
-                swaggerPath = '/';
-            } else if (fullPath.includes('/api/docs')) {
-                swaggerPath = '/';
+            // Заменяем /api/api/docs на /api/docs
+            if (swaggerPath.includes('/api/api/docs')) {
+                swaggerPath = swaggerPath.replace('/api/api/docs', '/api/docs');
+            }
+            
+            // Если путь не начинается с /api/docs, но содержит /api/docs, берем часть после /api/docs
+            if (!swaggerPath.startsWith('/api/docs')) {
+                const docsIndex = swaggerPath.indexOf('/api/docs');
+                if (docsIndex !== -1) {
+                    swaggerPath = swaggerPath.substring(docsIndex);
+                } else {
+                    // Если не нашли /api/docs, используем базовый путь
+                    swaggerPath = '/api/docs';
+                }
             }
             
             // Сохраняем query параметры если есть
@@ -63,20 +71,9 @@ export const setupSwagger = (app) => {
         };
     }
 
-    // Middleware для проверки домена перед показом Swagger
-    const swaggerDomainCheck = (req, res, next) => {
-        const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-        // Разрешаем доступ только с api.portal.tochkali.com
-        if (host.includes('api.portal.tochkali.com')) {
-            return next();
-        }
-        // Для всех остальных доменов возвращаем 404 или редирект
-        return res.status(404).send('Not Found');
-    };
-
-    // Настройка Swagger UI на корневом пути только для api.portal.tochkali.com
+    // Настройка Swagger UI с обработкой ошибок
     try {
-        app.use('/', swaggerDomainCheck, swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+        app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
             customCss: '.swagger-ui .topbar { display: none }',
             customSiteTitle: "TochkaLi API Documentation",
             swaggerOptions: {
@@ -84,7 +81,7 @@ export const setupSwagger = (app) => {
                 displayRequestDuration: true
             }
         }));
-        console.log('✅ Swagger UI configured successfully at root path (api.portal.tochkali.com)');
+        console.log('✅ Swagger UI configured successfully at /api/docs');
     } catch (error) {
         console.error('❌ Error configuring Swagger UI:', error);
     }

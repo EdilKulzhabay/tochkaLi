@@ -112,6 +112,14 @@ const createContentRateLimit = rateLimit({
     }
 });
 
+// ==================== Swagger UI маршруты ====================
+// Редирект с portal.tochkali.com на api.portal.tochkali.com для Swagger
+app.use('/api/docs', swaggerRedirectMiddleware);
+app.use('/api/api/docs', swaggerRedirectMiddleware);
+
+// Настройка Swagger UI
+setupSwagger(app);
+
 // Публичные маршруты
 app.post("/api/user/create", createUserRateLimit, UserController.createUser);
 app.post("/api/user/register", createUserRateLimit, UserController.register);
@@ -340,17 +348,6 @@ cron.schedule('0 12 * * *', async () => {
 });
 
 console.log('Cron задача для проверки подписок настроена: каждый день в 12:00');
-
-// ==================== Swagger UI маршруты ====================
-// Редирект с portal.tochkali.com на api.portal.tochkali.com для Swagger
-// Должен быть ДО всех других маршрутов
-app.use('/', swaggerRedirectMiddleware);
-app.use('/api/docs', swaggerRedirectMiddleware);
-app.use('/api/api/docs', swaggerRedirectMiddleware);
-
-// Настройка Swagger UI на корневом пути (только для api.portal.tochkali.com)
-// Размещаем в конце, чтобы не перехватывать API маршруты
-setupSwagger(app);
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
