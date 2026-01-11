@@ -30,6 +30,15 @@ export const ModalNotificationsAdmin = () => {
     const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
     const [selectedUsersData, setSelectedUsersData] = useState<Map<string, User>>(new Map());
     const [lastCount, setLastCount] = useState<number | null>(null);
+    
+    // Состояния для контентов
+    const [horoscopes, setHoroscopes] = useState<any[]>([]);
+    const [transits, setTransits] = useState<any[]>([]);
+    const [meditations, setMeditations] = useState<any[]>([]);
+    const [practices, setPractices] = useState<any[]>([]);
+    const [videoLessons, setVideoLessons] = useState<any[]>([]);
+    const [selectedContentType, setSelectedContentType] = useState<string | null>(null);
+    const [loadingContent, setLoadingContent] = useState(false);
 
     const fetchUserCount = async () => {
         try {
@@ -234,6 +243,107 @@ export const ModalNotificationsAdmin = () => {
             case 'client': return 'bg-purple-100 text-purple-700';
             default: return 'bg-purple-100 text-purple-700';
         }
+    };
+
+    // Функции загрузки контентов
+    const fetchHoroscopes = async () => {
+        setLoadingContent(true);
+        try {
+            const response = await api.get('/api/horoscope');
+            const data = response.data?.success ? response.data.data : response.data?.data || response.data || [];
+            setHoroscopes(Array.isArray(data) ? data : []);
+        } catch (error) {
+            toast.error('Ошибка загрузки гороскопов');
+            setHoroscopes([]);
+        } finally {
+            setLoadingContent(false);
+        }
+    };
+
+    const fetchTransits = async () => {
+        setLoadingContent(true);
+        try {
+            const response = await api.get('/api/transit');
+            const data = response.data?.success ? response.data.data : response.data?.data || response.data || [];
+            setTransits(Array.isArray(data) ? data : []);
+        } catch (error) {
+            toast.error('Ошибка загрузки транзитов');
+            setTransits([]);
+        } finally {
+            setLoadingContent(false);
+        }
+    };
+
+    const fetchMeditations = async () => {
+        setLoadingContent(true);
+        try {
+            const response = await api.get('/api/meditation');
+            const data = response.data?.success ? response.data.data : response.data?.data || response.data || [];
+            setMeditations(Array.isArray(data) ? data : []);
+        } catch (error) {
+            toast.error('Ошибка загрузки медитаций');
+            setMeditations([]);
+        } finally {
+            setLoadingContent(false);
+        }
+    };
+
+    const fetchPractices = async () => {
+        setLoadingContent(true);
+        try {
+            const response = await api.get('/api/practice');
+            const data = response.data?.success ? response.data.data : response.data?.data || response.data || [];
+            setPractices(Array.isArray(data) ? data : []);
+        } catch (error) {
+            toast.error('Ошибка загрузки практик');
+            setPractices([]);
+        } finally {
+            setLoadingContent(false);
+        }
+    };
+
+    const fetchVideoLessons = async () => {
+        setLoadingContent(true);
+        try {
+            const response = await api.get('/api/video-lesson');
+            const data = response.data?.success ? response.data.data : response.data?.data || response.data || [];
+            setVideoLessons(Array.isArray(data) ? data : []);
+        } catch (error) {
+            toast.error('Ошибка загрузки видео-уроков');
+            setVideoLessons([]);
+        } finally {
+            setLoadingContent(false);
+        }
+    };
+
+    // Обработка выбора страницы с контентом
+    const handleContentPageClick = (basePath: string, contentType: string) => {
+        setSelectedContentType(contentType);
+        setModalButtonLink(basePath);
+        
+        switch (contentType) {
+            case 'horoscope':
+                fetchHoroscopes();
+                break;
+            case 'transit':
+                fetchTransits();
+                break;
+            case 'meditation':
+                fetchMeditations();
+                break;
+            case 'practice':
+                fetchPractices();
+                break;
+            case 'video-lesson':
+                fetchVideoLessons();
+                break;
+        }
+    };
+
+    // Обработка выбора контента
+    const handleContentSelect = (basePath: string, contentId: string) => {
+        setModalButtonLink(`${basePath}/${contentId}`);
+        setSelectedContentType(null);
     };
 
     return (
@@ -481,7 +591,313 @@ export const ModalNotificationsAdmin = () => {
                         <p className="text-xs text-gray-500 mt-1">
                             Если указана ссылка, при нажатии на кнопку произойдет переход на эту страницу
                         </p>
+                        
+                        {/* Список клиентских страниц */}
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Доступные клиентские страницы:</h4>
+                            <div className="space-y-3">
+                                {/* Основные страницы */}
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1.5">Основные:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/main'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Главная страница</span>
+                                            <span className="text-gray-500">/main</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/about'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">О клубе</span>
+                                            <span className="text-gray-500">/about</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/faq'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Вопросы-ответы</span>
+                                            <span className="text-gray-500">/client/faq</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/profile'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Профиль</span>
+                                            <span className="text-gray-500">/client/profile</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/schedule'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Расписание</span>
+                                            <span className="text-gray-500">/client/schedule</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/diary'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Дневник</span>
+                                            <span className="text-gray-500">/client/diary</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/schumann'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Частота Шумана</span>
+                                            <span className="text-gray-500">/client/schumann</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/contactus'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1.5 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors flex flex-col items-start"
+                                        >
+                                            <span className="font-medium text-gray-900">Связаться с нами</span>
+                                            <span className="text-gray-500">/client/contactus</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Гороскопы */}
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1.5">Гороскопы:</p>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/horoscope'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Текущий гороскоп"
+                                        >
+                                            /client/horoscope
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/horoscopes'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Список всех гороскопов"
+                                        >
+                                            /client/horoscopes
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleContentPageClick('/client/horoscope', 'horoscope')}
+                                            className="px-2.5 py-1 text-xs bg-blue-100 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
+                                            title="Выбрать конкретный гороскоп"
+                                        >
+                                            /client/horoscope/:id
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Транзиты */}
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1.5">Транзиты:</p>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/transit'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Текущий транзит"
+                                        >
+                                            /client/transit
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/transits'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Список всех транзитов"
+                                        >
+                                            /client/transits
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleContentPageClick('/client/transit', 'transit')}
+                                            className="px-2.5 py-1 text-xs bg-blue-100 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
+                                            title="Выбрать конкретный транзит"
+                                        >
+                                            /client/transit/:id
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Медитации */}
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1.5">Медитации:</p>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/meditations'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Список всех медитаций"
+                                        >
+                                            /client/meditations
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleContentPageClick('/client/meditation', 'meditation')}
+                                            className="px-2.5 py-1 text-xs bg-blue-100 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
+                                            title="Выбрать конкретную медитацию"
+                                        >
+                                            /client/meditation/:id
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Практики */}
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1.5">Практики:</p>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/practices'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Список всех практик"
+                                        >
+                                            /client/practices
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleContentPageClick('/client/practice', 'practice')}
+                                            className="px-2.5 py-1 text-xs bg-blue-100 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
+                                            title="Выбрать конкретную практику"
+                                        >
+                                            /client/practice/:id
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Видео-уроки */}
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600 mb-1.5">Видео-уроки:</p>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setModalButtonLink('/client/video-lessons'); setSelectedContentType(null); }}
+                                            className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            title="Список всех видео-уроков"
+                                        >
+                                            /client/video-lessons
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleContentPageClick('/client/video-lesson', 'video-lesson')}
+                                            className="px-2.5 py-1 text-xs bg-blue-100 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
+                                            title="Выбрать конкретный видео-урок"
+                                        >
+                                            /client/video-lesson/:id
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Список контентов для выбранной страницы */}
+                            {selectedContentType && (
+                                <div className="mt-4 pt-4 border-t border-gray-300">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs font-semibold text-gray-700">
+                                            Выберите контент:
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedContentType(null)}
+                                            className="text-xs text-gray-500 hover:text-gray-700"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                    {loadingContent ? (
+                                        <p className="text-xs text-gray-500 py-2">Загрузка...</p>
+                                    ) : (
+                                        <div className="max-h-48 overflow-y-auto space-y-1">
+                                            {selectedContentType === 'horoscope' && horoscopes.length > 0 && (
+                                                horoscopes.map((item) => (
+                                                    <button
+                                                        key={item._id}
+                                                        type="button"
+                                                        onClick={() => handleContentSelect('/client/horoscope', item._id)}
+                                                        className="w-full text-left px-3 py-2 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                                    >
+                                                        <div className="font-medium text-gray-900">{item.title || 'Без названия'}</div>
+                                                        {item.subtitle && (
+                                                            <div className="text-gray-500 text-xs mt-0.5">{item.subtitle}</div>
+                                                        )}
+                                                    </button>
+                                                ))
+                                            )}
+                                            {selectedContentType === 'transit' && transits.length > 0 && (
+                                                transits.map((item) => (
+                                                    <button
+                                                        key={item._id}
+                                                        type="button"
+                                                        onClick={() => handleContentSelect('/client/transit', item._id)}
+                                                        className="w-full text-left px-3 py-2 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                                    >
+                                                        <div className="font-medium text-gray-900">{item.title || 'Без названия'}</div>
+                                                        {item.subtitle && (
+                                                            <div className="text-gray-500 text-xs mt-0.5">{item.subtitle}</div>
+                                                        )}
+                                                    </button>
+                                                ))
+                                            )}
+                                            {selectedContentType === 'meditation' && meditations.length > 0 && (
+                                                meditations.map((item) => (
+                                                    <button
+                                                        key={item._id}
+                                                        type="button"
+                                                        onClick={() => handleContentSelect('/client/meditation', item._id)}
+                                                        className="w-full text-left px-3 py-2 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                                    >
+                                                        <div className="font-medium text-gray-900">{item.title || 'Без названия'}</div>
+                                                    </button>
+                                                ))
+                                            )}
+                                            {selectedContentType === 'practice' && practices.length > 0 && (
+                                                practices.map((item) => (
+                                                    <button
+                                                        key={item._id}
+                                                        type="button"
+                                                        onClick={() => handleContentSelect('/client/practice', item._id)}
+                                                        className="w-full text-left px-3 py-2 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                                    >
+                                                        <div className="font-medium text-gray-900">{item.title || 'Без названия'}</div>
+                                                    </button>
+                                                ))
+                                            )}
+                                            {selectedContentType === 'video-lesson' && videoLessons.length > 0 && (
+                                                videoLessons.map((item) => (
+                                                    <button
+                                                        key={item._id}
+                                                        type="button"
+                                                        onClick={() => handleContentSelect('/client/video-lesson', item._id)}
+                                                        className="w-full text-left px-3 py-2 text-xs bg-white border border-gray-300 rounded hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                                    >
+                                                        <div className="font-medium text-gray-900">{item.title || 'Без названия'}</div>
+                                                    </button>
+                                                ))
+                                            )}
+                                            {((selectedContentType === 'horoscope' && horoscopes.length === 0) ||
+                                              (selectedContentType === 'transit' && transits.length === 0) ||
+                                              (selectedContentType === 'meditation' && meditations.length === 0) ||
+                                              (selectedContentType === 'practice' && practices.length === 0) ||
+                                              (selectedContentType === 'video-lesson' && videoLessons.length === 0)) && (
+                                                <p className="text-xs text-gray-500 py-2">Контент не найден</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
+                    
 
                     {/* Кнопка создания */}
                     <div className="flex gap-3 pt-4 border-t">
