@@ -12,7 +12,7 @@ export const BackNav = ({ title} : { title: string }) => {
                     className="w-6 h-6"
                 />
             </button> */}
-            <h1 className="text-2xl font-semibold ml-4">{title}</h1>
+            <h1 className="text-2xl font-semibold">{title}</h1>
         </div>
     )
 }
