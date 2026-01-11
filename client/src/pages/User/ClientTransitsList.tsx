@@ -82,13 +82,9 @@ export const ClientTransitsList = () => {
 
     const isTransitActive = (transit: TransitEntity): boolean => {
         const now = new Date();
-        now.setHours(0, 0, 0, 0);
         
         const start = typeof transit.startDate === 'string' ? new Date(transit.startDate) : transit.startDate;
         const end = typeof transit.endDate === 'string' ? new Date(transit.endDate) : transit.endDate;
-        
-        start.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
         
         return start <= now && end >= now;
     };

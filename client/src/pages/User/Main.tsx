@@ -10,24 +10,35 @@ import user from "../../assets/user.png"
 import mainVideo from "../../assets/mainVideo.png"
 import mainPractice from "../../assets/mainPractice.png"
 import mainMeditation from "../../assets/mainMeditation.png"
-import main1 from "../../assets/main1.png"
-import main2 from "../../assets/main2.png"
-import main3 from "../../assets/main3.png"
-import main4 from "../../assets/main4.png"
+// import main1 from "../../assets/main1.png"
+// import main2 from "../../assets/main2.png"
+// import main3 from "../../assets/main3.png"
+// import main4 from "../../assets/main4.png"
 import redUser from "../../assets/redUser.png"
 
 
-const SmallCard = ({ title, link, img }: { title: string, link: string, img: string }) => {
+// const SmallCard = ({ title, link, img }: { title: string, link: string, img: string }) => {
+//     return (
+//         <Link 
+//             to={link} 
+//             className="min-h-24 flex items-center bg-[#333333] relative rounded-lg p-4 overflow-hidden"
+//             style={{
+//                 backgroundImage: `url(${img})`,
+//                 backgroundSize: 'cover',
+//                 backgroundPosition: 'right',
+//                 backgroundRepeat: 'no-repeat',
+//             }}
+//         >
+//             <p className="text-xl font-medium" dangerouslySetInnerHTML={{ __html: title }}></p>
+//         </Link>
+//     )
+// }
+
+const SmallCard = ({ title, link }: { title: string, link: string }) => {
     return (
         <Link 
             to={link} 
             className="min-h-24 flex items-center bg-[#333333] relative rounded-lg p-4 overflow-hidden"
-            style={{
-                backgroundImage: `url(${img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'right',
-                backgroundRepeat: 'no-repeat',
-            }}
         >
             <p className="text-xl font-medium" dangerouslySetInnerHTML={{ __html: title }}></p>
         </Link>
@@ -391,10 +402,10 @@ export const Main = () => {
                 </div>
                 <h1 className="mt-1 text-2xl font-bold">Добро пожаловать, {userName ? userName : ""}!</h1>
                 <div className="grid grid-cols-2 gap-4 mt-5">
-                    <SmallCard title="Дневник" link="/client/diary" img={main1}/>
-                    <SmallCard title="Расписание" link="/client/schedule" img={main2}/>
-                    <SmallCard title={`Транзиты`} link="/client/transit" img={main3}/>
-                    <SmallCard title={`Гороскоп`} link="/client/horoscope" img={main4}/>
+                    <SmallCard title="Дневник" link="/client/diary" />
+                    <SmallCard title="Расписание" link="/client/schedule" />
+                    <SmallCard title={`Транзиты`} link="/client/transit" />
+                    <SmallCard title={`Гороскоп`} link="/client/horoscope" />
                 </div>
                 <div className="mt-4 space-y-3">
                     <LargeCard 

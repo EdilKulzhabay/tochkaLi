@@ -47,7 +47,6 @@ const TransitSchema = new mongoose.Schema(
 // Статический метод для получения текущего транзита
 TransitSchema.statics.getCurrent = async function() {
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
   
   return await this.findOne({
     startDate: { $lte: now },

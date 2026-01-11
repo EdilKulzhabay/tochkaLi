@@ -753,6 +753,18 @@ export const updateUser = async (req, res) => {
         delete updateData.refreshToken;
         // bonus теперь можно обновлять
 
+        const candidate = await User.findById(id)
+
+        if ('bonus' in updateData && updateData.bonus !== candidate.bonus) {
+            const notification = {
+                modalTitle: "Вам начислены Звёзды",
+                modalDescription: `Администратор отправил: ${updateData.bonus} шт.`,
+                modalButtonText: "Принимаю с благодарностью",
+                modalButtonLink: undefined,
+            };
+            await User.findByIdAndUpdate(candidate._id, { $push: { modalNotifications: notification } });
+        }
+
         const user = await User.findByIdAndUpdate(
             id,
             updateData,

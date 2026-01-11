@@ -15,7 +15,9 @@ interface Line {
 
 interface FormData {
     startDate: string;
+    startTime: string;
     endDate: string;
+    endTime: string;
     title: string;
     subtitle: string;
     lines: Line[];
@@ -28,7 +30,9 @@ export const TransitForm = () => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<FormData>({
         startDate: '',
+        startTime: '00:00',
         endDate: '',
+        endTime: '23:59',
         title: '',
         subtitle: '',
         lines: [],
@@ -45,9 +49,21 @@ export const TransitForm = () => {
         try {
             const response = await api.get(`/api/transit/${id}`);
             const data = response.data.data;
+            const startDate = data.startDate ? new Date(data.startDate) : null;
+            const endDate = data.endDate ? new Date(data.endDate) : null;
+            
+            // Извлекаем время в формате HH:mm
+            const formatTime = (date: Date) => {
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+            };
+            
             setFormData({
-                startDate: data.startDate ? new Date(data.startDate).toISOString().split('T')[0] : '',
-                endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : '',
+                startDate: startDate ? startDate.toISOString().split('T')[0] : '',
+                startTime: startDate ? formatTime(startDate) : '00:00',
+                endDate: endDate ? endDate.toISOString().split('T')[0] : '',
+                endTime: endDate ? formatTime(endDate) : '23:59',
                 title: data.title || '',
                 subtitle: data.subtitle || '',
                 lines: data.lines || [],
@@ -90,11 +106,30 @@ export const TransitForm = () => {
         setLoading(true);
 
         try {
+            // Объединяем дату и время
+            const combineDateTime = (date: string, time: string) => {
+                if (!date) return null;
+                const [hours, minutes] = time.split(':');
+                const dateTime = new Date(date);
+                dateTime.setHours(parseInt(hours || '0', 10));
+                dateTime.setMinutes(parseInt(minutes || '0', 10));
+                dateTime.setSeconds(0);
+                dateTime.setMilliseconds(0);
+                return dateTime.toISOString();
+            };
+
+            const { startTime, endTime, ...restFormData } = formData;
+            const submitData = {
+                ...restFormData,
+                startDate: combineDateTime(formData.startDate, formData.startTime),
+                endDate: combineDateTime(formData.endDate, formData.endTime),
+            };
+
             if (id) {
-                await api.put(`/api/transit/${id}`, formData);
+                await api.put(`/api/transit/${id}`, submitData);
                 toast.success('Транзит обновлен');
             } else {
-                await api.post('/api/transit', formData);
+                await api.post('/api/transit', submitData);
                 toast.success('Транзит создан');
             }
             navigate('/admin/transit');
@@ -128,20 +163,38 @@ export const TransitForm = () => {
                         <h2 className="text-xl font-semibold text-gray-900">Настройки</h2>
                         
                         <div className="grid grid-cols-2 gap-4">
-                            <MyInput
-                                label="Начальная дата"
-                                type="date"
-                                value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                placeholder="Выберите начальную дату"
-                            />
-                            <MyInput
-                                label="Конечная дата"
-                                type="date"
-                                value={formData.endDate}
-                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                placeholder="Выберите конечную дату"
-                            />
+                            <div>
+                                <MyInput
+                                    label="Начальная дата"
+                                    type="date"
+                                    value={formData.startDate}
+                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    placeholder="Выберите начальную дату"
+                                />
+                                <div className="mt-2"></div>
+                                <MyInput
+                                    label="Начальное время"
+                                    type="time"
+                                    value={formData.startTime}
+                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <MyInput
+                                    label="Конечная дата"
+                                    type="date"
+                                    value={formData.endDate}
+                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                    placeholder="Выберите конечную дату"
+                                />
+                                <div className="mt-2"></div>
+                                <MyInput
+                                    label="Конечное время"
+                                    type="time"
+                                    value={formData.endTime}
+                                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                />
+                            </div>
                         </div>
                     </div>
 
