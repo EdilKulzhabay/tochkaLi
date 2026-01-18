@@ -165,6 +165,14 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    scheduleSubscriptions: [
+        {
+            scheduleId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Schedule',
+            },
+        },
+    ],
 }, {
     timestamps: true
 });

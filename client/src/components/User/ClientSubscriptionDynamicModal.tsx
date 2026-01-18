@@ -38,7 +38,7 @@ export const ClientSubscriptionDynamicModal = ({
                         <X size={24} />
                     </button>
                     <div 
-                        className="mt-4 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_div]:mb-2 [&_span]:font-bold" 
+                        className="[&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_div]:mb-2 [&_span]:font-bold" 
                         dangerouslySetInnerHTML={{ __html: content }} 
                     />
                     {accessType === "subscription" && (

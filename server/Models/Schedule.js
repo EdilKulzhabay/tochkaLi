@@ -29,6 +29,10 @@ const ScheduleSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    priority: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

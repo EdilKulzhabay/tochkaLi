@@ -5,7 +5,7 @@ interface DateRangeCalendarProps {
     onDateRangeSelect?: (startDate: Date | null, endDate: Date | null) => void;
     selectedStartDate?: Date | null;
     selectedEndDate?: Date | null;
-    eventDates?: Date[]; // Массив дат с событиями для отображения красных точек
+    eventDateColors?: Record<string, string>; // Цвета обводки/точек по датам (YYYY-MM-DD)
 }
 
 const MONTHS = [
@@ -19,7 +19,7 @@ export const DateRangeCalendar = ({
     onDateRangeSelect, 
     selectedStartDate, 
     selectedEndDate,
-    eventDates = []
+    eventDateColors = {}
 }: DateRangeCalendarProps) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [startDate, setStartDate] = useState<Date | null>(selectedStartDate || null);
@@ -142,7 +142,7 @@ export const DateRangeCalendar = ({
     };
 
     // Проверка, есть ли событие в указанную дату
-    const hasEvent = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false): boolean => {
+    const getEventColor = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false): string | null => {
         let checkDate: Date;
         if (isPrevMonth) {
             checkDate = new Date(year, month - 1, day);
@@ -152,12 +152,8 @@ export const DateRangeCalendar = ({
             checkDate = new Date(year, month, day);
         }
         checkDate.setHours(0, 0, 0, 0);
-
-        return eventDates.some(eventDate => {
-            const event = new Date(eventDate);
-            event.setHours(0, 0, 0, 0);
-            return event.getTime() === checkDate.getTime();
-        });
+        const key = checkDate.toISOString().split('T')[0];
+        return eventDateColors[key] || null;
     };
 
     const handleMouseEnter = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false) => {
@@ -226,7 +222,7 @@ export const DateRangeCalendar = ({
                 {prevMonthDays.map((day) => {
                     const inRange = isDateInRange(day, true);
                     const selected = isDateSelected(day, true);
-                    const event = hasEvent(day, true);
+                    const eventColor = getEventColor(day, true);
                     return (
                         <button
                             key={`prev-${day}`}
@@ -234,15 +230,20 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day, true)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
+                                aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
+                                ${eventColor ? 'border' : ''}
                                 hover:bg-white/10
                             `}
+                            style={eventColor ? { borderColor: eventColor } : undefined}
                         >
                             <span>{day}</span>
-                            {event && (
-                                <span className="absolute bottom-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                            {eventColor && (
+                                <span
+                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: eventColor }}
+                                />
                             )}
                         </button>
                     );
@@ -253,7 +254,7 @@ export const DateRangeCalendar = ({
                     const inRange = isDateInRange(day);
                     const selected = isDateSelected(day);
                     const today = isToday(day);
-                    const event = hasEvent(day);
+                    const eventColor = getEventColor(day);
                     return (
                         <button
                             key={day}
@@ -261,16 +262,21 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
+                                aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : ''}
-                                ${today && !selected ? 'border-2 border-[#FFC293]' : ''}
+                                ${eventColor ? 'border' : ''}
+                                ${today && !selected && !eventColor ? 'border border-[#FFC293]' : ''}
                                 ${!selected && !today ? 'hover:bg-white/10' : ''}
                             `}
+                            style={eventColor ? { borderColor: eventColor } : undefined}
                         >
                             <span>{day}</span>
-                            {event && (
-                                <span className="absolute bottom-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                            {eventColor && (
+                                <span
+                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: eventColor }}
+                                />
                             )}
                         </button>
                     );
@@ -280,7 +286,7 @@ export const DateRangeCalendar = ({
                 {nextMonthDays.map((day) => {
                     const inRange = isDateInRange(day, false, true);
                     const selected = isDateSelected(day, false, true);
-                    const event = hasEvent(day, false, true);
+                    const eventColor = getEventColor(day, false, true);
                     return (
                         <button
                             key={`next-${day}`}
@@ -288,15 +294,20 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day, false, true)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded text-sm transition-colors relative flex flex-col items-center justify-center
+                                aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
+                                ${eventColor ? 'border' : ''}
                                 hover:bg-white/10
                             `}
+                            style={eventColor ? { borderColor: eventColor } : undefined}
                         >
                             <span>{day}</span>
-                            {event && (
-                                <span className="absolute bottom-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                            {eventColor && (
+                                <span
+                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: eventColor }}
+                                />
                             )}
                         </button>
                     );

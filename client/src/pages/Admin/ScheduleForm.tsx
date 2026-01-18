@@ -22,6 +22,7 @@ export const ScheduleForm = () => {
         googleCalendarLink: '',
         appleCalendarLink: '',
         description: '',
+        priority: false,
     });
 
     // Функция для конвертации UTC времени в локальное время Asia/Almaty (UTC+6) для отображения
@@ -63,6 +64,7 @@ export const ScheduleForm = () => {
                 googleCalendarLink: schedule.googleCalendarLink || '',
                 appleCalendarLink: schedule.appleCalendarLink || '',
                 description: schedule.description,
+                priority: schedule.priority || false,
             });
         } catch (error: any) {
             toast.error('Ошибка загрузки события');
@@ -120,6 +122,19 @@ export const ScheduleForm = () => {
                             onChange={(e) => setFormData({ ...formData, eventTitle: e.target.value })}
                             placeholder="Введите название"
                         />
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="priority"
+                                checked={formData.priority}
+                                onChange={(e) => setFormData({ ...formData, priority: e.target.checked })}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="priority" className="text-sm font-medium text-gray-700">
+                                Приоритетное событие
+                            </label>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <MyInput

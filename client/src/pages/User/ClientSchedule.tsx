@@ -5,16 +5,36 @@ import { useEffect, useState } from "react";
 import api from "../../api";
 import { Switch } from "../../components/User/Switch";
 import { X } from 'lucide-react';
+import copyLink from '../../assets/copyLink.png';
+import { toast } from "react-toastify";
+import { RedButton } from "../../components/User/RedButton";
 
 export const ClientSchedule = () => {
+    const [userData, setUserData] = useState<any>(null);
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [schedules, setSchedules] = useState<any>([]);
-    const [eventDates, setEventDates] = useState<Date[]>([]);
+    const [calendarSchedules, setCalendarSchedules] = useState<any[]>([]);
+    const [eventDateColors, setEventDateColors] = useState<Record<string, string>>({});
     const [showAllEvents, setShowAllEvents] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    const fetchUserData = async (id: string) => {
+        const response = await api.get(`/api/user/${id}`);
+        if (response.data.success) {
+            setUserData(response.data.data);
+        }
+    }
+
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const id = JSON.parse(userStr)._id;
+            fetchUserData(id);
+        }
+    }, []);
     
     const formatDate = (date: Date | null) => {
         if (!date) return '';
@@ -67,33 +87,7 @@ export const ClientSchedule = () => {
             
             const response = await api.get(`/api/schedule?startDate=${formattedStart}&endDate=${formattedEnd}`);
             if (response.data && response.data.success && Array.isArray(response.data.data)) {
-                // Извлекаем все даты событий для календаря (все дни от startDate до endDate)
-                const dates: Date[] = [];
-                response.data.data.forEach((schedule: any) => {
-                    if (schedule.startDate && schedule.endDate) {
-                        const startDate = new Date(schedule.startDate);
-                        const endDate = new Date(schedule.endDate);
-                        startDate.setHours(0, 0, 0, 0);
-                        endDate.setHours(0, 0, 0, 0);
-                        
-                        // Добавляем все дни между startDate и endDate включительно
-                        const datesInRange = getDatesBetween(startDate, endDate);
-                        dates.push(...datesInRange);
-                    } else if (schedule.startDate) {
-                        // Если есть только startDate, добавляем только его
-                        const startDate = new Date(schedule.startDate);
-                        startDate.setHours(0, 0, 0, 0);
-                        dates.push(startDate);
-                    } else if (schedule.endDate) {
-                        // Если есть только endDate, добавляем только его
-                        const endDate = new Date(schedule.endDate);
-                        endDate.setHours(0, 0, 0, 0);
-                        dates.push(endDate);
-                    }
-                });
-                // Убираем дубликаты дат
-                const uniqueDates = Array.from(new Set(dates.map(date => date.getTime()))).map(time => new Date(time));
-                setEventDates(uniqueDates);
+                setCalendarSchedules(response.data.data);
             }
         } catch (error) {
             console.error('Ошибка загрузки всех событий:', error);
@@ -101,6 +95,48 @@ export const ClientSchedule = () => {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        if (!calendarSchedules.length) {
+            setEventDateColors({});
+            return;
+        }
+
+        const subscribedIds = new Set(
+            userData?.scheduleSubscriptions?.map((subscription: any) => subscription.scheduleId) || []
+        );
+
+        const colorMap: Record<string, string> = {};
+
+        const markDate = (date: Date, color: string) => {
+            const key = date.toISOString().split('T')[0];
+            if (colorMap[key] === '#EC1313') return;
+            colorMap[key] = color;
+        };
+
+        calendarSchedules.forEach((schedule: any) => {
+            const isHighlighted = schedule.priority || subscribedIds.has(schedule._id);
+            const color = isHighlighted ? '#EC1313' : '#FFC293';
+
+            if (schedule.startDate && schedule.endDate) {
+                const start = new Date(schedule.startDate);
+                const end = new Date(schedule.endDate);
+                start.setHours(0, 0, 0, 0);
+                end.setHours(0, 0, 0, 0);
+                getDatesBetween(start, end).forEach((date) => markDate(date, color));
+            } else if (schedule.startDate) {
+                const start = new Date(schedule.startDate);
+                start.setHours(0, 0, 0, 0);
+                markDate(start, color);
+            } else if (schedule.endDate) {
+                const end = new Date(schedule.endDate);
+                end.setHours(0, 0, 0, 0);
+                markDate(end, color);
+            }
+        });
+
+        setEventDateColors(colorMap);
+    }, [calendarSchedules, userData]);
     useEffect(() => {
         if (showAllEvents) {
             const today = new Date();
@@ -177,6 +213,29 @@ export const ClientSchedule = () => {
         setSelectedSchedule(null);
     };
 
+    const copyEventLink = () => {
+        navigator.clipboard.writeText(selectedSchedule?.eventLink || '');
+        toast.success('Ссылка на событие скопирована!');
+    }
+
+    const handleParticipatingChange = async () => {
+        if (userData) {
+            const scheduleId = selectedSchedule._id;
+            let scheduleSubscriptions = userData.scheduleSubscriptions;
+            if (scheduleSubscriptions.some((subscription: any) => subscription.scheduleId === scheduleId)) {
+                scheduleSubscriptions = scheduleSubscriptions.filter((subscription: any) => subscription.scheduleId !== scheduleId);
+            } else {
+                scheduleSubscriptions.push({ scheduleId });
+            }
+            const response = await api.put(`/api/user/${userData._id}`, {
+                scheduleSubscriptions: scheduleSubscriptions,
+            });
+            if (response.data.success) {
+                setUserData(response.data.data);
+            }
+        }
+    }
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-[#161616]">
@@ -194,7 +253,7 @@ export const ClientSchedule = () => {
                         onDateRangeSelect={handleDateRangeSelect}
                         selectedStartDate={null}
                         selectedEndDate={null}
-                        eventDates={eventDates}
+                        eventDateColors={eventDateColors}
                     />
                 </div>
                 <div className="lg:basis-2/3">
@@ -217,7 +276,8 @@ export const ClientSchedule = () => {
                             >
                                 <div onClick={() => {}} className="flex items-center justify-between">
                                     <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
-                                    <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />
+                                    {schedule.priority && <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />}
+                                    {schedule.priority && <div className="w-1.5 h-1.5 bg-[#FFC293] rounded-full" />}
                                 </div>
                                 <p className="">{schedule?.description}</p>
                             </div>
@@ -227,111 +287,199 @@ export const ClientSchedule = () => {
 
                 {/* Модальное окно для добавления в календарь */}
                 {isModalOpen && selectedSchedule && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50">
-                        <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-                            {/* Overlay с прозрачным фоном */}
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        {/* Мобильная версия: модальное окно снизу */}
+                        <div className="flex items-end justify-center min-h-screen sm:hidden">
+                            {/* Overlay */}
                             <div 
-                                className="fixed inset-0 bg-transparent transition-opacity"
+                                className="fixed inset-0 bg-black/60 transition-opacity z-20"
                                 onClick={closeModal}
                             />
 
-                            {/* Modal */}
+                            {/* Modal - снизу на мобильных */}
                             <div 
-                                className="relative inline-block align-bottom bg-[#858585] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
-                                style={{ maxWidth: '500px', width: '100%' }}
+                                className="relative z-50 px-4 pt-6 pb-8 inline-block w-full bg-[#333333] rounded-t-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="bg-[#858585] px-6 py-4">
+                                <button
+                                    onClick={closeModal}
+                                    className="absolute top-6 right-5 cursor-pointer"
+                                >
+                                    <X size={24} />
+                                </button>
+                                <div 
+                                    className="[&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_div]:mb-2 [&_span]:font-bold" 
+                                    dangerouslySetInnerHTML={{ __html: selectedSchedule.eventTitle || 'Добавить в календарь' }} 
+                                />
+                                <div className="mt-4">
+                                    {selectedSchedule.description && (
+                                        <p className="mb-2">{selectedSchedule.description}</p>
+                                    )}
+                                    {selectedSchedule.startDate && (
+                                        <p className="text-sm text-white/60">
+                                            Дата начала: {new Date(selectedSchedule.startDate).toLocaleString('ru-RU', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    )}
+                                    {selectedSchedule.endDate && (
+                                        <p className="text-sm text-white/60">
+                                            Дата окончания: {new Date(selectedSchedule.endDate).toLocaleString('ru-RU', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    )}
+                                </div>
+                                <button onClick={copyEventLink} className="bg-white/10 block w-full mt-4 rounded-lg py-3 px-4 text-sm">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-xl font-semibold text-white">
-                                            {selectedSchedule.eventTitle || 'Добавить в календарь'}
-                                        </h3>
-                                        <button
-                                            onClick={closeModal}
-                                            className="text-gray-400 hover:text-gray-300"
-                                        >
-                                            <X size={24} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="bg-[#858585] px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-                                    <div className="space-y-4">
-                                        <div className="text-white/80">
-                                            <p className="mb-4 text-lg font-medium">Добавить событие в календарь?</p>
-                                            {selectedSchedule.description && (
-                                                <p className="mb-2">{selectedSchedule.description}</p>
-                                            )}
-                                            {selectedSchedule.startDate && (
-                                                <p className="text-sm text-white/60">
-                                                    Дата начала: {new Date(selectedSchedule.startDate).toLocaleString('ru-RU', {
-                                                        day: '2-digit',
-                                                        month: 'long',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
-                                                </p>
-                                            )}
-                                            {selectedSchedule.endDate && (
-                                                <p className="text-sm text-white/60">
-                                                    Дата окончания: {new Date(selectedSchedule.endDate).toLocaleString('ru-RU', {
-                                                        day: '2-digit',
-                                                        month: 'long',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {selectedSchedule?.eventLink && (
-                                            <div className="mt-4">
-                                                <div>Ссылка на событие:</div>
-                                                <a href={selectedSchedule?.eventLink} target="_blank" rel="noopener noreferrer" className="mt-2 text-[#EC1313] hover:text-red-600">
-                                                    {selectedSchedule?.eventLink}
-                                                </a>
-                                            </div>
-                                        )}
-
-                                        <div className="pt-4 border-t border-gray-600 flex gap-3">
-                                            <button
-                                                onClick={() => {
-                                                    if (selectedSchedule.googleCalendarLink) {
-                                                        // Открываем ссылку во внешнем браузере через Telegram WebApp API
-                                                        if (window.Telegram?.WebApp?.openLink) {
-                                                            window.Telegram.WebApp.openLink(selectedSchedule.googleCalendarLink);
-                                                        } else {
-                                                            // Fallback для обычного браузера
-                                                            window.open(selectedSchedule.googleCalendarLink, '_blank');
-                                                        }
-                                                        closeModal();
-                                                    }
-                                                }}
-                                                className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                Добавить в календарь Google
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    if (selectedSchedule.appleCalendarLink) {
-                                                        // Открываем ссылку во внешнем браузере через Telegram WebApp API
-                                                        if (window.Telegram?.WebApp?.openLink) {
-                                                            window.Telegram.WebApp.openLink(selectedSchedule.appleCalendarLink);
-                                                        } else {
-                                                            // Fallback для обычного браузера
-                                                            window.open(selectedSchedule.appleCalendarLink, '_blank');
-                                                        }
-                                                        closeModal();
-                                                    }
-                                                }}
-                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#EC1313] hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                Добавить в календарь iOS
-                                            </button>
+                                        <div>Ссылка на событие:</div>
+                                        <div>
+                                            <img src={copyLink} alt="copy" className="w-5 h-5 object-cover" />
                                         </div>
                                     </div>
+                                    <div className="mt-1 text-left">{selectedSchedule?.eventLink}</div>
+                                </button>
+                                <div className="mt-4 flex items-center justify-between">
+                                    <div>Участвую</div>
+                                    <Switch checked={userData?.scheduleSubscriptions?.some((subscription: any) => subscription.scheduleId === selectedSchedule._id)} onChange={handleParticipatingChange} />
                                 </div>
+                                <button
+                                    onClick={() => {
+                                        if (selectedSchedule.googleCalendarLink) {
+                                            // Открываем ссылку во внешнем браузере через Telegram WebApp API
+                                            if (window.Telegram?.WebApp?.openLink) {
+                                                window.Telegram.WebApp.openLink(selectedSchedule.googleCalendarLink);
+                                            } else {
+                                                // Fallback для обычного браузера
+                                                window.open(selectedSchedule.googleCalendarLink, '_blank');
+                                            }
+                                            closeModal();
+                                        }
+                                    }}
+                                    className="mt-4 w-full block border px-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full">
+                                    Добавить в календарь Google
+                                </button>
+                                <RedButton 
+                                    text="Добавить в календарь iOS" 
+                                    onClick={() => {
+                                        if (selectedSchedule.appleCalendarLink) {
+                                            // Открываем ссылку во внешнем браузере через Telegram WebApp API
+                                            if (window.Telegram?.WebApp?.openLink) {
+                                                window.Telegram.WebApp.openLink(selectedSchedule.appleCalendarLink);
+                                            } else {
+                                                // Fallback для обычного браузера
+                                                window.open(selectedSchedule.appleCalendarLink, '_blank');
+                                            }
+                                            closeModal();
+                                        }
+                                    }} 
+                                    className="w-full mt-4"
+                                />
+                            </div>
+                        </div>
+                        {/* Десктопная версия: модальное окно по центру */}
+                        <div className="hidden sm:flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                            {/* Overlay */}
+                            <div 
+                                className="fixed inset-0 bg-black/60 transition-opacity z-20"
+                                onClick={closeModal}
+                            />
+
+                            {/* Modal - снизу на мобильных */}
+                            <div 
+                                className="relative z-50 w-1/3 px-4 pt-6 pb-8 inline-block  bg-[#333333] rounded-[24px] text-left text-white overflow-hidden shadow-xl transform transition-all"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    onClick={closeModal}
+                                    className="absolute top-6 right-5 cursor-pointer"
+                                >
+                                    <X size={24} />
+                                </button>
+                                <div 
+                                    className="[&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_div]:mb-2 [&_span]:font-bold" 
+                                    dangerouslySetInnerHTML={{ __html: selectedSchedule.eventTitle || 'Добавить в календарь' }} 
+                                />
+                                <div className="mt-4">
+                                    {selectedSchedule.description && (
+                                        <p className="mb-2">{selectedSchedule.description}</p>
+                                    )}
+                                    {selectedSchedule.startDate && (
+                                        <p className="text-sm text-white/60">
+                                            Дата начала: {new Date(selectedSchedule.startDate).toLocaleString('ru-RU', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    )}
+                                    {selectedSchedule.endDate && (
+                                        <p className="text-sm text-white/60">
+                                            Дата окончания: {new Date(selectedSchedule.endDate).toLocaleString('ru-RU', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    )}
+                                </div>
+                                <button onClick={copyEventLink} className="bg-white/10 block w-full mt-4 rounded-lg py-3 px-4 text-sm">
+                                    <div className="flex items-center justify-between">
+                                        <div>Ссылка на событие:</div>
+                                        <div>
+                                            <img src={copyLink} alt="copy" className="w-5 h-5 object-cover" />
+                                        </div>
+                                    </div>
+                                    <div className="mt-1 text-left">{selectedSchedule?.eventLink}</div>
+                                </button>
+                                <div className="mt-4 flex items-center justify-between">
+                                    <div>Участвую</div>
+                                    <Switch checked={userData?.scheduleSubscriptions?.some((subscription: any) => subscription.scheduleId === selectedSchedule._id)} onChange={handleParticipatingChange} />
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (selectedSchedule.googleCalendarLink) {
+                                            // Открываем ссылку во внешнем браузере через Telegram WebApp API
+                                            if (window.Telegram?.WebApp?.openLink) {
+                                                window.Telegram.WebApp.openLink(selectedSchedule.googleCalendarLink);
+                                            } else {
+                                                // Fallback для обычного браузера
+                                                window.open(selectedSchedule.googleCalendarLink, '_blank');
+                                            }
+                                            closeModal();
+                                        }
+                                    }}
+                                    className="mt-4 w-full block border px-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full">
+                                    Добавить в календарь Google
+                                </button>
+                                <RedButton 
+                                    text="Добавить в календарь iOS" 
+                                    onClick={() => {
+                                        if (selectedSchedule.appleCalendarLink) {
+                                            // Открываем ссылку во внешнем браузере через Telegram WebApp API
+                                            if (window.Telegram?.WebApp?.openLink) {
+                                                window.Telegram.WebApp.openLink(selectedSchedule.appleCalendarLink);
+                                            } else {
+                                                // Fallback для обычного браузера
+                                                window.open(selectedSchedule.appleCalendarLink, '_blank');
+                                            }
+                                            closeModal();
+                                        }
+                                    }} 
+                                    className="w-full mt-4"
+                                />
                             </div>
                         </div>
                     </div>
