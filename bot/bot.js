@@ -25,8 +25,8 @@ bot.start(async (ctx) => {
   try {
     await executeUserOperation(async () => {
       return await bot.telegram.setChatMenuButton({
-        chatId,
-        menuButton: { type: "default" }
+      chatId,
+      menuButton: { type: "default" }
       });
     });
   } catch (error) {
@@ -84,20 +84,20 @@ bot.start(async (ctx) => {
   try {
     await executeUserOperation(async () => {
       return await ctx.reply(
-        `Портал .li активирован.\nЖми кнопку запуска👇`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              {
-                text: '🚀 Открыть Портал .li',
-                web_app: {
+    `Портал .li активирован.\nЖми кнопку запуска👇`,
+    {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: '🚀 Открыть Портал .li',
+            web_app: {
                   url: `https://portal.tochkali.com?telegramId=${telegramId}&telegramUserName=${telegramUserName}`
-                }
-              }
-            ]]
+            }
           }
-        }
-      );
+        ]]
+      }
+    }
+  );
     });
   } catch (error) {
     // Обрабатываем ошибку, если пользователь заблокировал бота
@@ -117,7 +117,7 @@ bot.command('removemenu', async (ctx) => {
     // setChatMenuButton и ctx.reply изменяют состояние, поэтому используем очередь
     await executeUserOperation(async () => {
       return await bot.telegram.setChatMenuButton({
-        menuButton: { type: "default" }
+      menuButton: { type: "default" }
       });
     });
     await executeUserOperation(async () => {

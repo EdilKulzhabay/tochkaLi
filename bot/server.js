@@ -134,7 +134,7 @@ const sendInviteLinkToUser = async (chatId, userId) => {
             // createChatInviteLink изменяет состояние, поэтому используем очередь
             inviteLink = await executeUserOperation(async () => {
                 return await bot.telegram.createChatInviteLink(chatId, {
-                    member_limit: 1, // Одноразовая ссылка - может быть использована только одним пользователем
+                member_limit: 1, // Одноразовая ссылка - может быть использована только одним пользователем
                 });
             });
             console.log(`✅ [sendInviteLinkToUser] Создана invite-ссылка для пользователя ${userId}: ${inviteLink.invite_link}`);
@@ -157,21 +157,21 @@ const sendInviteLinkToUser = async (chatId, userId) => {
         try {
             await executeUserOperation(async () => {
                 return await bot.telegram.sendMessage(userId, 
-                    `🎉 Вам открыт доступ к закрытым материалам!\n\n` +
-                    `📌 Присоединяйтесь к нашему сообществу по ссылке ниже:\n\n` +
-                    `${inviteLink.invite_link}\n\n` +
-                    `⏰ Ссылка действует 1 час.`,
-                    {
-                        reply_markup: {
-                            inline_keyboard: [[
-                                {
-                                    text: '🔗 Присоединиться',
-                                    url: inviteLink.invite_link
-                                }
-                            ]]
-                        }
+                `🎉 Вам открыт доступ к закрытым материалам!\n\n` +
+                `📌 Присоединяйтесь к нашему сообществу по ссылке ниже:\n\n` +
+                `${inviteLink.invite_link}\n\n` +
+                `⏰ Ссылка действует 1 час.`,
+                {
+                    reply_markup: {
+                        inline_keyboard: [[
+                            {
+                                text: '🔗 Присоединиться',
+                                url: inviteLink.invite_link
+                            }
+                        ]]
                     }
-                );
+                }
+            );
             });
             
             console.log(`✅ [sendInviteLinkToUser] Invite-ссылка успешно отправлена пользователю ${userId}`);
@@ -272,7 +272,7 @@ const removeUserFromChat = async (chatId, userId) => {
         try {
             await executeUserOperation(async () => {
                 return await bot.telegram.banChatMember(chatId, userId, {
-                    revoke_messages: false // Не удаляем сообщения пользователя
+                revoke_messages: false // Не удаляем сообщения пользователя
                 });
             });
             console.log(`✅ [removeUserFromChat] Пользователь ${userId} забанен (удален) из чата ${chatId}`);
@@ -310,10 +310,10 @@ const removeUserFromChat = async (chatId, userId) => {
         try {
             await executeUserOperation(async () => {
                 return await bot.telegram.sendMessage(userId, 
-                    `⏰ Ваша подписка завершена.\n\n` +
-                    `Вы были удалены из закрытых групп и каналов.\n\n` +
-                    `Для возобновления доступа, пожалуйста, продлите подписку.`
-                );
+                `⏰ Ваша подписка завершена.\n\n` +
+                `Вы были удалены из закрытых групп и каналов.\n\n` +
+                `Для возобновления доступа, пожалуйста, продлите подписку.`
+            );
             });
             console.log(`✅ [removeUserFromChat] Уведомление отправлено пользователю ${userId}`);
         } catch (sendError) {
@@ -547,9 +547,9 @@ app.post('/api/bot/broadcast', async (req, res) => {
                     // sendPhoto изменяет состояние, поэтому используем очередь
                     await executeUserOperation(async () => {
                         return await bot.telegram.sendPhoto(telegramId, fullImageUrl, {
-                            caption: messageText,
-                            parse_mode: finalParseMode,
-                            ...(messageOptions.reply_markup && { reply_markup: messageOptions.reply_markup })
+                        caption: messageText,
+                        parse_mode: finalParseMode,
+                        ...(messageOptions.reply_markup && { reply_markup: messageOptions.reply_markup })
                         });
                     });
                 } else {
@@ -649,7 +649,7 @@ app.post('/api/bot/add-user', async (req, res) => {
                 // Используем очередь для предотвращения конфликтов с polling
                 await executeUserOperation(async () => {
                     return await bot.telegram.unbanChatMember(CHANNEL_ID, telegramId, {
-                        only_if_banned: true
+                    only_if_banned: true
                     });
                 });
             
@@ -666,10 +666,10 @@ app.post('/api/bot/add-user', async (req, res) => {
                         `⚠️ Конфликт 409 при разбане пользователя ${telegramId}. Операция будет повторена.`
                     );
                 } else {
-                    console.warn(
-                        `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
-                        errorMsg
-                    );
+                console.warn(
+                    `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
+                    errorMsg
+                );
                 }
             }
             
@@ -699,7 +699,7 @@ app.post('/api/bot/add-user', async (req, res) => {
                 // Используем очередь для предотвращения конфликтов с polling
                 await executeUserOperation(async () => {
                     return await bot.telegram.unbanChatMember(GROUP_ID, telegramId, {
-                        only_if_banned: true
+                    only_if_banned: true
                     });
                 });
             
@@ -716,10 +716,10 @@ app.post('/api/bot/add-user', async (req, res) => {
                         `⚠️ Конфликт 409 при разбане пользователя ${telegramId}. Операция будет повторена.`
                     );
                 } else {
-                    console.warn(
-                        `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
-                        errorMsg
-                    );
+                console.warn(
+                    `⚠️ Ошибка при попытке разбана пользователя ${telegramId}:`,
+                    errorMsg
+                );
                 }
             }
             

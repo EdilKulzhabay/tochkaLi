@@ -12,6 +12,7 @@ import {
     UserController,
     FAQController,
     HoroscopeController,
+    PurposeEnergyController,
     MeditationController,
     PracticeController,
     VideoLessonController,
@@ -132,6 +133,7 @@ app.patch("/api/users/:telegramId", UserController.updateUserByTelegramId);
 app.post("/api/send-code", UserController.sendMail);
 app.post("/api/user/profile", UserController.getProfile);
 app.get("/api/user/telegram/:telegramId", UserController.getUserByTelegramId);
+app.post("/api/user/invited-users", UserController.getInvitedUsers);
 
 app.get("/api/user/me", authMiddleware, async (req, res) => {
     try {
@@ -190,6 +192,12 @@ app.get("/api/horoscope/fill-energy-corridor", HoroscopeController.fillEnergyCor
 app.get("/api/horoscope/:id", HoroscopeController.getById);
 app.put("/api/horoscope/:id", HoroscopeController.update);
 app.delete("/api/horoscope/:id", HoroscopeController.remove);
+
+app.post("/api/purpose-energy", createContentRateLimit, PurposeEnergyController.create);
+app.get("/api/purpose-energy", PurposeEnergyController.getAll);
+app.get("/api/purpose-energy/:id", PurposeEnergyController.getById);
+app.put("/api/purpose-energy/:id", PurposeEnergyController.update);
+app.delete("/api/purpose-energy/:id", PurposeEnergyController.remove);
 
 // ==================== Meditation маршруты ====================
 app.post("/api/meditation", createContentRateLimit, MeditationController.create);
@@ -349,6 +357,19 @@ cron.schedule('0 12 * * *', async () => {
 });
 
 console.log('Cron задача для проверки подписок настроена: каждый день в 12:00');
+
+// Запуск рассылок по расписанию (каждую минуту)
+cron.schedule('* * * * *', async () => {
+    try {
+        await BroadcastController.processScheduledBroadcasts();
+    } catch (error) {
+        console.error(`[${new Date().toISOString()}] Ошибка обработки запланированных рассылок:`, error);
+    }
+}, {
+    timezone: "Asia/Almaty"
+});
+
+console.log('Cron задача для рассылок настроена: проверка каждую минуту');
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);

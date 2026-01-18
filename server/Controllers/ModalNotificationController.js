@@ -165,15 +165,17 @@ export const removeModalNotification = async (req, res) => {
 // Получить модальные уведомления пользователя
 export const getUserModalNotifications = async (req, res) => {
     try {
-        const { mail } = req.body;
+        const { telegramId } = req.body;
 
-        const user = await User.findOne({ mail }).select('modalNotifications');
+        const user = await User.findOne({ telegramId }).select('modalNotifications');
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "Пользователь не найден",
             });
         }
+
+        await User.findByIdAndUpdate(user._id, { lastActiveDate: new Date() });
 
         res.json({
             success: true,

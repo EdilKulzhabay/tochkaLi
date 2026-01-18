@@ -10,6 +10,8 @@ import { FAQAdmin } from "./pages/Admin/FAQ";
 import { FAQForm } from "./pages/Admin/FAQForm";
 import { HoroscopeAdmin } from "./pages/Admin/Horoscope";
 import { HoroscopeForm } from "./pages/Admin/HoroscopeForm";
+import { PurposeEnergyAdmin } from "./pages/Admin/PurposeEnergy";
+import { PurposeEnergyForm } from "./pages/Admin/PurposeEnergyForm";
 import { MeditationAdmin } from "./pages/Admin/Meditation";
 import { MeditationForm } from "./pages/Admin/MeditationForm";
 import { PracticeAdmin } from "./pages/Admin/Practice";
@@ -32,6 +34,7 @@ import { UsersAdmin } from "./pages/Admin/Users";
 import { UserForm } from "./pages/Admin/UserForm";
 import { ProfileAdmin } from "./pages/Admin/Profile";
 import { BroadcastAdmin } from "./pages/Admin/Broadcast";
+import { BroadcastFormAdmin } from "./pages/Admin/BroadcastForm";
 import { ModalNotificationsAdmin } from "./pages/Admin/ModalNotifications";
 import { AdminsAdmin } from "./pages/Admin/Admins";
 import { AdminForm } from "./pages/Admin/AdminForm";
@@ -64,6 +67,7 @@ import { BlockedUser } from "./pages/User/BlockedUser";
 import { BlockedBrowser } from "./pages/User/BlockedBrowser";
 import { EaseLaunch } from "./pages/User/EaseLaunch";
 import { TelegramGuard } from "./components/TelegramGuard";
+import { ClientInvitedUsers } from "./pages/User/ClientInvitedUsers.tsx";
 
 // Компонент-обертка для всех маршрутов
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -193,6 +197,10 @@ export const routes = createBrowserRouter([
         element: <RootLayout><BlockedBrowser /></RootLayout>,
     },
     {
+        path: "/client/invited-users",
+        element: <RootLayout><ClientInvitedUsers /></RootLayout>,
+    },
+    {
         path: "/admin",
         element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "client_manager", "manager"]}><AdminMain /></ProtectedRoute></RootLayout>,
     },
@@ -219,6 +227,18 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/horoscope/edit/:id",
         element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><HoroscopeForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/purpose-energy",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><PurposeEnergyAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/purpose-energy/create",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><PurposeEnergyForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/purpose-energy/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "content_manager", "manager"]}><PurposeEnergyForm /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/meditation",
@@ -347,6 +367,14 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/broadcast",
         element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><BroadcastAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/broadcast/create",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><BroadcastFormAdmin /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/broadcast/edit/:id",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin", "client_manager", "manager"]}><BroadcastFormAdmin /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/admin/modal-notifications",

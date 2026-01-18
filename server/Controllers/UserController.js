@@ -1650,4 +1650,19 @@ export const payment = async (req, res) => {
         res.status(500).json({ success: false, message: 'Ошибка при получении ссылки оплаты' });
     }
 };
+
+export const getInvitedUsers = async (req, res) => {
+    try {
+        const { telegramId } = req.body;
+        const user = await User.findOne({ telegramId });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+        }
+        const invitedUsers = await User.find({ invitedUser: user._id }).select('telegramId fullName');
+        res.json({ success: true, invitedUsers });
+    } catch (error) {
+        console.error('Ошибка в payment:', error);
+        res.status(500).json({ success: false, message: 'Ошибка при получении списка приглашенных пользователей' });
+    }
+}
   

@@ -16,7 +16,8 @@ import {
     Send,
     Radio,
     Shield,
-    Bell
+    Bell,
+    Zap
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -33,6 +34,7 @@ const menuItems = [
     { path: '', label: '', icon: null, divider: true }, // Разделитель
     { path: '/admin/faq', label: 'FAQ', icon: HelpCircle },
     { path: '/admin/horoscope', label: 'Гороскопы', icon: Star },
+    { path: '/admin/purpose-energy', label: 'Энергия предназначения', icon: Zap },
     { path: '/admin/meditation', label: 'Медитации', icon: Sunset },
     { path: '/admin/practice', label: 'Практики', icon: Dumbbell },
     { path: '/admin/video-lesson', label: 'Видео уроки', icon: Video },

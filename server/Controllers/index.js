@@ -1,6 +1,7 @@
 export * as UserController from "./UserController.js";
 export * as FAQController from "./FAQController.js";
 export * as HoroscopeController from "./HoroscopeController.js";
+export * as PurposeEnergyController from "./PurposeEnergyController.js";
 export * as MeditationController from "./MeditationController.js";
 export * as PracticeController from "./PracticeController.js";
 export * as VideoLessonController from "./VideoLessonController.js";

@@ -76,7 +76,6 @@ export const ClientPerfomance = () => {
 
             if (response.data.success && response.data.data) {
                 // Сохраняем обновленные данные пользователя в localStorage и обновляем контекст
-                console.log("response.data.data = =", response.data.data);
                 localStorage.setItem('user', JSON.stringify(response.data.data));
                 localStorage.setItem('firstName', firstName);
                 localStorage.setItem('lastName', lastName);
@@ -99,7 +98,6 @@ export const ClientPerfomance = () => {
             // window.innerHeight - высота окна браузера в пикселях (это то же самое, что h-screen)
             const height = window.innerHeight;
             setScreenHeight(height);
-            console.log('Высота экрана (h-screen):', height, 'px');
         };
 
         // Получаем высоту при монтировании компонента

@@ -160,7 +160,11 @@ const UserSchema = new mongoose.Schema({
                 type: String,
             },
         }
-    ]
+    ],
+    lastActiveDate: {
+        type: Date,
+        default: null,
+    },
 }, {
     timestamps: true
 });

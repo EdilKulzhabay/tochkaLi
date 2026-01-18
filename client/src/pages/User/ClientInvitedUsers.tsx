@@ -1,24 +1,17 @@
 import { UserLayout } from "../../components/User/UserLayout";
 import { BackNav } from "../../components/User/BackNav";
 import { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import profile from "../../assets/profile.png";
 import profileStar from "../../assets/profileStar.png";
-import copyLink from "../../assets/copyLink.png";
 import edit from "../../assets/edit.png";
-import linkArrow from "../../assets/linkArrow.png";
-import { MyLink } from "../../components/User/MyLink";
-import { Switch } from "../../components/User/Switch";
-import { BonusPolicyModal } from "../../components/User/ClientInsufficientBonusModal";
 import { X } from 'lucide-react';
 import { toast } from "react-toastify";
+import { BonusPolicyModal } from "../../components/User/ClientInsufficientBonusModal";
 
-export const ClientProfile = () => {
+export const ClientInvitedUsers = () => {
     const [userData, setUserData] = useState<any>(null);
-    const [notifications, setNotifications] = useState(true);
-    const [locatedInRussia, setLocatedInRussia] = useState(false);
-    const [linkCopied, setLinkCopied] = useState(false);
     const navigate = useNavigate();
     const [screenHeight, setScreenHeight] = useState(0);
     const [safeAreaTop, setSafeAreaTop] = useState(0);
@@ -32,6 +25,7 @@ export const ClientProfile = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [updatingName, setUpdatingName] = useState(false);
+    const [invitedUsers, setInvitedUsers] = useState<any>([]);
     
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -51,6 +45,26 @@ export const ClientProfile = () => {
         fetchUserData();
     }, [navigate]);
 
+    useEffect(() => {
+        if (userData) {
+            fetchInvitedUsers();
+        }
+    }, [userData]);
+
+    const fetchInvitedUsers = async () => {
+        try {
+            const response = await api.post('/api/user/invited-users', { telegramId: userData.telegramId });
+            if (response.data.success) {
+                setInvitedUsers(response.data.invitedUsers);
+            } else {
+                toast.error(response.data.message || 'Ошибка загрузки списка приглашенных пользователей');
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки списка приглашенных пользователей:', error);
+            toast.error('Ошибка загрузки списка приглашенных пользователей');
+        }
+    }
+
     const fetchUserData = async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -61,8 +75,6 @@ export const ClientProfile = () => {
             });
             if (response.data.success) {
                 setUserData(response.data.user);
-                setNotifications(response.data.user.notifyPermission);
-                setLocatedInRussia(response.data.user.locatedInRussia);
                 
                 // Проверка на блокировку после получения данных с сервера
                 if (response.data.user.isBlocked && response.data.user.role !== 'admin') {
@@ -74,19 +86,6 @@ export const ClientProfile = () => {
             console.error('Ошибка загрузки данных пользователя:', error);
         } finally {
             setLoading(false);
-        }
-    }
-
-    const copyReferralLink = async () => {
-        if (userData?.telegramId) {
-            const referralLink = `t.me/io_tochkali_bot?start=${userData.telegramId}`;
-            try {
-                await navigator.clipboard.writeText(referralLink);
-                setLinkCopied(true);
-                setTimeout(() => setLinkCopied(false), 2000);
-            } catch (error) {
-                console.error('Ошибка копирования ссылки:', error);
-            }
         }
     }
 
@@ -196,7 +195,6 @@ export const ClientProfile = () => {
             // Преобразуем '0px' в число (убираем 'px' и парсим)
             const topValue = parseInt(safeTop.replace('px', '')) || 0;
             const bottomValue = parseInt(safeBottom.replace('px', '')) || 0;
-            console.log(topValue, bottomValue);
             const addPadding = topValue > 0 ? 40 : 0;
             
             setSafeAreaTop(topValue + addPadding);
@@ -220,7 +218,7 @@ export const ClientProfile = () => {
     return (
         <div>
             <UserLayout>
-                <BackNav title="Приглашённые друзья" />
+                <BackNav title="Профиль" />
                 <div 
                     className="px-4 mt-2 pb-10 bg-[#161616] flex flex-col justify-between"
                     style={{ minHeight: `${screenHeight - (64 + safeAreaTop + safeAreaBottom)}px` }}
@@ -280,117 +278,22 @@ export const ClientProfile = () => {
                             </div>
                         </div>
 
-                        <div 
-                            className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2"
-                            onClick={() => {
-                                if (userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date()) {
-                                    console.log('Подписка активна');
-                                } else {
-                                    navigate('/about');
-                                }
-                            }}
-                        >
-                            <div className="text-xl font-medium">Статус подписки на клуб .li</div>
-                            {userData?.hasPaid && userData?.subscriptionEndDate && new Date(userData.subscriptionEndDate) > new Date() ? (
-                                <div>
-                                    Ваша подписка действует до{' '}
-                                    {userData?.subscriptionEndDate ? new Date(userData.subscriptionEndDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
-                                </div>
-                            ) : (
-                                <div>У вас нет подписки на клуб .li</div>
-                            )}
-                        </div>
-
-                        {userData?.invitedUser && (
-                            <div className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2">
-                                <div className="text-xl font-medium">Вас пригласил</div>
-                                <div>
-                                    {userData.invitedUser.telegramUserName 
-                                        ? `@${userData.invitedUser.telegramUserName}`
-                                        : ''
-                                    }
-                                    {userData.invitedUser.fullName 
-                                        ? `, ${userData.invitedUser.fullName}`
-                                        : ''
-                                    }
+                        {invitedUsers.length > 0 && (
+                            <div className="mt-4">
+                                <div className="text-xl font-medium">Приглашенные пользователи</div>
+                                <div className="flex flex-col gap-y-2">
+                                    {invitedUsers.map((user: any) => (
+                                        <div key={user.telegramId}>{user.fullName}</div>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
-                        <div  className="mt-4 bg-[#333333] rounded-lg p-4 space-y-2 cursor-pointer">
-                            <div className="flex items-center justify-between">
-                                <div className="text-xl font-medium">Пригласи друга по ссылке</div>
-                                <div className="text-lg font-medium">
-                                    <Link to="/client/invited-users">{userData?.inviteesCount}</Link>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div 
-                                    className="break-all"
-                                >
-                                    {userData?.telegramId 
-                                        ? `t.me/io_tochkali_bot?start=${userData.telegramId}`
-                                        : 'Загрузка...'
-                                    }
-                                </div>
-                                <button onClick={copyReferralLink}>
-                                    <img src={copyLink} alt="copy" className="w-5 h-5 object-cover" />
-                                </button>
-                            </div>
-                            {linkCopied && (
-                                <div className="text-sm text-[#EC1313] mt-1">Ссылка скопирована!</div>
-                            )}
-                        </div>
-
-                        <div className="mt-4 flex items-center gap-x-2">
-                            <a
-                                href="https://t.me/tochka_li"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="basis-1/2 bg-[#333333] rounded-lg p-4 flex items-center gap-x-2.5"
-                            >
-                                <div className="font-medium text-sm">Телеграм канал проекта .li</div>
-                                <img src={linkArrow} alt="linkArrow" className="w-5 h-5 object-cover shrink-0" />
-                            </a>
-                            <Link
-                                to="/about"
-                                className="basis-1/2 bg-[#333333] rounded-lg p-4 flex items-center gap-x-2.5"
-                            >
-                                <div className="font-medium text-sm">Телеграм канал клуба .li</div>
-                                <img src={linkArrow} alt="linkArrow" className="w-5 h-5 object-cover shrink-0" />
-                            </Link>
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between">
-                            <div>Просмотр видео в РФ без VPN</div>
-                            <Switch checked={locatedInRussia} onChange={() => {
-                                updateUserData('locatedInRussia', !locatedInRussia);
-                                setLocatedInRussia(!locatedInRussia);
-                            }} />
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between">
-                            <div>Разрешить уведомления</div>
-                            <Switch checked={notifications} onChange={() => {
-                                updateUserData('notifyPermission', !notifications);
-                                setNotifications(!notifications);
-                            }} />
-                        </div>
-                    </div>
-                    {!userData?.emailConfirmed && (
-                        <Link 
-                            to="/client/register"
-                            className="w-full block border mt-4 border-[#FFC293] text-[#FFC293] py-2.5 text-center font-medium rounded-full"
-                        >
-                            Пройти регистрацию
-                        </Link>
-                    )}
-                    <div className="mt-3">
-                        <MyLink to="/client/contactus" text="Связаться с нами" className='w-full' color='red'/>
                     </div>
                 </div>
             </UserLayout>
-            <BonusPolicyModal 
+
+            <BonusPolicyModal
                 isOpen={isBonusPolicyModalOpen} 
                 onClose={() => setIsBonusPolicyModalOpen(false)} 
             />

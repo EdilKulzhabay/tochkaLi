@@ -267,7 +267,6 @@ export const ClientMeditation = () => {
                         // Если оригинал - YouTube, и пользователь из России, и есть RuTube URL - используем RuTube
                         const shouldUseRuTube = originalVideoInfo.type === 'youtube' && user?.locatedInRussia && meditation?.ruTubeUrl;
                         const videoUrl = shouldUseRuTube ? meditation.ruTubeUrl : meditation.videoUrl;
-                        console.log(`videoUrl: ${videoUrl}`);
                         const videoInfo = getVideoInfo(videoUrl);
                         
                         // Проверяем, что RuTube URL правильно распарсен

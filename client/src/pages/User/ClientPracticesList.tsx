@@ -6,13 +6,9 @@ import { VideoCard } from "../../components/User/VideoCard";
 import { ClientSubscriptionDynamicModal } from "../../components/User/ClientSubscriptionDynamicModal";
 import { ClientPurchaseConfirmModal } from "../../components/User/ClientPurchaseConfirmModal";
 import { ClientInsufficientBonusModal } from "../../components/User/ClientInsufficientBonusModal";
-import back from "../../assets/back.png";
-import { useNavigate } from "react-router-dom";
-import goldArrowLeft from "../../assets/goldArrowLeft.png";
-import goldArrowRight from "../../assets/goldArrowRight.png";
+import inBothDirections from "../../assets/inBothDirections.png";
 
 export const ClientPracticesList = () => {
-    const navigate = useNavigate();
     const [practices, setPractices] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
@@ -232,45 +228,24 @@ export const ClientPracticesList = () => {
         return false;
     }
 
-    // Функции для скролла контейнера с карточками
-    const scrollLeft = () => {
-        if (cardsContainerRef.current) {
-            const container = cardsContainerRef.current;
-            const scrollAmount = 300; // Шаг скролла в пикселях
-            
-            // Проверяем, не достигли ли мы начала
-            if (container.scrollLeft <= 0) {
-                return; // Уже в начале, не скроллим
-            }
-            
-            // Ограничиваем скролл, чтобы не уйти в минус
-            const newScrollLeft = Math.max(0, container.scrollLeft - scrollAmount);
-            container.scrollTo({
-                left: newScrollLeft,
-                behavior: 'smooth'
-            });
-        }
-    }
-
     const scrollRight = () => {
-        if (cardsContainerRef.current) {
-            const container = cardsContainerRef.current;
-            const scrollAmount = 300; // Шаг скролла в пикселях
-            
-            // Проверяем, не достигли ли мы конца
-            const maxScrollLeft = container.scrollWidth - container.clientWidth;
-            if (container.scrollLeft >= maxScrollLeft) {
-                return; // Уже в конце, не скроллим
-            }
-            
-            // Ограничиваем скролл, чтобы не уйти за пределы
-            const newScrollLeft = Math.min(maxScrollLeft, container.scrollLeft + scrollAmount);
-            container.scrollTo({
-                left: newScrollLeft,
-                behavior: 'smooth'
-            });
-        }
-    }
+        const container = cardsContainerRef.current;
+        if (!container) return;
+
+        const firstCard = container.querySelector('[data-card]') as HTMLElement | null;
+        const styles = window.getComputedStyle(container);
+        const gap = Number.parseFloat(styles.columnGap || styles.gap || '0') || 0;
+        const scrollAmount = (firstCard?.offsetWidth || 300) + gap;
+
+        const maxScrollLeft = container.scrollWidth - container.clientWidth;
+        const isAtEnd = container.scrollLeft >= maxScrollLeft - 1;
+
+        container.scrollTo({
+            left: isAtEnd ? 0 : Math.min(maxScrollLeft, container.scrollLeft + scrollAmount),
+            behavior: 'smooth',
+        });
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-[#161616]">
@@ -284,33 +259,16 @@ export const ClientPracticesList = () => {
             <UserLayout>
             <div className="flex items-center justify-between p-4">
                     <div className="flex items-center">
-                        <button onClick={() => navigate(-1)} className="cursor-pointer">
-                            <img 
-                                src={back}
-                                alt="arrow-left"
-                                className="w-6 h-6"
-                            />
-                        </button>
                         <h1 className="text-2xl font-semibold ml-4">Практики</h1>
                     </div>
-                    <div className="flex md:hidden items-center gap-x-[9px]">
-                        <button 
-                            onClick={scrollLeft}
-                            className="flex items-center justify-center w-8 h-8 border border-[#FFC293] rounded-full cursor-pointer hover:bg-[#FFB070] transition-colors"
-                        >
-                            <img 
-                                src={goldArrowLeft}
-                                alt="goldArrowLeft"
-                                className="w-5 h-5"
-                            />
-                        </button>
+                    <div className="md:hidden">
                         <button 
                             onClick={scrollRight}
                             className="flex items-center justify-center w-8 h-8 border border-[#FFC293] rounded-full cursor-pointer hover:bg-[#FFB070] transition-colors"
                         >
                             <img 
-                                src={goldArrowRight}
-                                alt="goldArrowRight"
+                                src={inBothDirections}
+                                alt="inBothDirections"
                                 className="w-5 h-5"
                             />
                         </button>

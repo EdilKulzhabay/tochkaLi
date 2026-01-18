@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../Models/User.js";
+import AdminActionLog from "../Models/AdminActionLog.js";
 
 export const authMiddleware = async (req, res, next) => {
     try {
@@ -36,6 +37,23 @@ export const authMiddleware = async (req, res, next) => {
 
         req.userId = decoded.userId;
         req.user = user;
+
+        res.on('finish', () => {
+            const adminRoles = ['admin', 'manager', 'content_manager', 'client_manager'];
+            if (!adminRoles.includes(user.role)) return;
+
+            const method = req.method.toUpperCase();
+            if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) return;
+
+            const action = `${method} ${req.originalUrl} → ${res.statusCode}`;
+            AdminActionLog.create({
+                admin: user._id,
+                action,
+            }).catch((error) => {
+                console.log("Ошибка логирования действий админа:", error);
+            });
+        });
+
         console.log("authMiddleware: user установлен, role =", user.role, "status =", user.status);
         next();
     } catch (error) {

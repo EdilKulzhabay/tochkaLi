@@ -50,7 +50,7 @@ export const formatDateRangeReadable = (startDate?: string | Date, endDate?: str
     const startMonthName = MONTHS[startMonth - 1] || "";
     const endMonthName = MONTHS[endMonth - 1] || "";
 
-    return `${startDay} ${startMonthName} - ${endDay} ${endMonthName}`;
+    return `${startDay} ${startMonthName} — ${endDay} ${endMonthName}`;
 };
 
 export const formatDateRangeReadableWithYear = (startDate?: string | Date, endDate?: string | Date) => {

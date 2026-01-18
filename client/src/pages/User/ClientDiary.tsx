@@ -7,6 +7,10 @@ import arrowDown from "../../assets/arrowDown.png";
 import { Switch } from "../../components/User/Switch.tsx";
 import { RedButton } from "../../components/User/RedButton.tsx";
 import { toast } from "react-toastify";
+import calendarLeft from "../../assets/calendarLeft.png";
+import calendarRight from "../../assets/calendarRight.png";
+import goldCheck from "../../assets/goldCheck.png";
+import redCross from "../../assets/redCross.png";
 
 export const ClientDiary = () => {
     const [diary, setDiary] = useState<any>({
@@ -21,7 +25,10 @@ export const ClientDiary = () => {
     const [content, setContent] = useState<any>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    
+    const [weekStart, setWeekStart] = useState<Date | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [savedDiaries, setSavedDiaries] = useState<any>([]);
+
     useEffect(() => {
         // Проверка на блокировку пользователя
         const userStr = localStorage.getItem('user');
@@ -43,6 +50,10 @@ export const ClientDiary = () => {
 
     // Разрешаем копирование и вставку на странице дневника
     useEffect(() => {
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+        setWeekStart(startOfWeek);
         // Функция для проверки, находится ли элемент на странице дневника
         const isDiaryPageElement = (element: HTMLElement | null): boolean => {
             if (!element) return false;
@@ -222,6 +233,20 @@ export const ClientDiary = () => {
         setContent(response.data.data);
     };
 
+    const checkDiaryForDate = (date: Date) => {
+        return diaries.find((diary: any) => diary.createdAt.split('T')[0] === date.toISOString().split('T')[0]);
+    }
+
+    useEffect(() => {
+        if (selectedDate && selectedDate <= new Date() && checkDiaryForDate(selectedDate)) {
+            setSavedDiaries([...diaries]);
+            setDiaries(diaries.filter((diary: any) => diary.createdAt.split('T')[0] === selectedDate.toISOString().split('T')[0]));
+        }
+        if (!selectedDate) {
+            setDiaries(savedDiaries);
+        }
+    }, [selectedDate]);
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-[#161616]">
@@ -247,6 +272,98 @@ export const ClientDiary = () => {
                 >
                     <p className="mt-4" dangerouslySetInnerHTML={{ __html: content?.content }}>
                     </p>
+
+                    <div className="mt-4 bg-[#333333] p-4 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-medium">
+                                {weekStart &&
+                                    (() => {
+                                    const formatted = weekStart.toLocaleDateString('ru-RU', {
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })
+                                    return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+                                    })()
+                                }
+                            </h2>
+                            <div className="flex items-center gap-x-4">
+                                <button
+                                    onClick={() => {
+                                        if (!weekStart) return;
+                                        const newWeekStart = new Date(weekStart);
+                                        newWeekStart.setDate(weekStart.getDate() - 7);
+                                        setWeekStart(newWeekStart);
+                                    }}
+                                    className="w-6 h-6"
+                                >
+                                    <img 
+                                        src={calendarLeft}
+                                        alt="arrow-left"
+                                        className="w-6 h-6"
+                                    />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (!weekStart) return;
+                                        const newWeekStart = new Date(weekStart);
+                                        newWeekStart.setDate(weekStart.getDate() + 7);
+                                        setWeekStart(newWeekStart);
+                                    }}
+                                    className="w-6 h-6"
+                                >
+                                    <img 
+                                        src={calendarRight}
+                                        alt="arrow-right"
+                                        className="w-6 h-6"
+                                    />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="mt-4">
+                            <div className="flex items-center justify-between pr-1">
+                                {['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'].map((day) => {
+                                    return (
+                                        <div key={day} className="flex flex-col items-center justify-center w-6">
+                                            <p className="text-sm">{day}</p>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            <div className="mt-4 flex items-start justify-between pr-1">
+                                {Array.from({ length: 7 }).map((_, index) => {
+                                    if (!weekStart) return null;
+                                    const today = new Date();
+                                    const date = new Date(weekStart);
+                                    date.setDate(weekStart.getDate() + index);
+                                    return (
+                                        <button onClick={() => {
+                                            if (selectedDate?.toISOString().split('T')[0] === date.toISOString().split('T')[0]) {
+                                                setSelectedDate(null);
+                                            } else {
+                                                setSelectedDate(date);
+                                            }
+                                        }} key={index} className="w-6 cursor-pointer">
+                                            {weekStart && (
+                                                <div className={`text-sm text-center w-6 h-6 flex items-center justify-center ${selectedDate?.toISOString().split('T')[0] === date.toISOString().split('T')[0] ? 'bg-white/20 rounded-full' : ''} ${today.toISOString().split('T')[0] === date.toISOString().split('T')[0] ? 'border-1 border-[#FFC293] rounded-full' : ''}`}>
+                                                    <p>{date.getDate()}</p>
+                                                </div>
+                                            )}
+                                            {checkDiaryForDate(date) && (
+                                                <div className="mt-1 flex items-center justify-center">
+                                                    <img src={goldCheck} alt="gold-check" className="w-3 h-3" />
+                                                </div>
+                                            )}
+                                            {!checkDiaryForDate(date) && date <= today && (
+                                                <div className="mt-1 flex items-center justify-center">
+                                                    <img src={redCross} alt="red-cross" className="w-3 h-3" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="mt-4 bg-[#333333] p-4 rounded-lg">
                         <div className="flex items-center justify-between">
