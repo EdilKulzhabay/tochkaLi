@@ -138,14 +138,14 @@ export const ScheduleForm = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <MyInput
-                                label="Дата и время начала"
+                                label="Дата и время начала (по Мск)"
                                 type="datetime-local"
                                 value={formData.startDate}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                             />
 
                             <MyInput
-                                label="Дата и время окончания"
+                                label="Дата и время окончания (по Мск)"
                                 type="datetime-local"
                                 value={formData.endDate}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}

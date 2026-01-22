@@ -18,7 +18,7 @@ interface FormData {
     isBlocked?: boolean;
     paymentLink?: string;
     paymentId?: string;
-    lastActiveDate: string;
+    lastActiveDate?: string;
 }
 
 export const UserForm = () => {
@@ -35,6 +35,9 @@ export const UserForm = () => {
         paymentId: '',
         lastActiveDate: "",
     });
+    const lastActiveDateDisplay = formData.lastActiveDate
+        ? new Date(formData.lastActiveDate).toLocaleString('ru-RU')
+        : '';
 
     useEffect(() => {
         if (id) {
@@ -57,8 +60,7 @@ export const UserForm = () => {
                 isBlocked: data.isBlocked || false,
                 paymentLink: data.paymentLink || '',
                 paymentId: data.paymentId || '',
-                // lastActiveDate: data.lastActiveDate.toISOString("YYYY-MM-DD HH:mm:ss") || "",
-                lastActiveDate: new Date(data.lastActiveDate).toLocaleString('ru-RU') || '',
+                lastActiveDate: data.lastActiveDate ? new Date(data.lastActiveDate).toISOString() : '',
             });
             // Преобразуем subscriptionEndDate из Date в формат DD-MM-YYYY
             if (data.subscriptionEndDate) {
@@ -93,11 +95,16 @@ export const UserForm = () => {
         setLoading(true);
 
         try {
+            const payload: FormData = {
+                ...formData,
+                lastActiveDate: formData.lastActiveDate || undefined,
+            };
+
             if (id) {
-                await api.put(`/api/user/${id}`, formData);
+                await api.put(`/api/user/${id}`, payload);
                 toast.success('Пользователь обновлен');
             } else {
-                await api.post('/api/user/create-by-admin', formData);
+                await api.post('/api/user/create-by-admin', payload);
                 toast.success('Пользователь создан');
             }
             navigate('/admin/users');
@@ -273,7 +280,7 @@ export const UserForm = () => {
                                     <label className="block text-sm font-medium mb-2">Дата последней активности</label>
                                     <input
                                         type="text"
-                                        value={formData.lastActiveDate || ''}
+                                        value={lastActiveDateDisplay}
                                         readOnly
                                         className="w-full p-2 border rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
                                     />

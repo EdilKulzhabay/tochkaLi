@@ -173,7 +173,7 @@ export const TransitForm = () => {
                                 />
                                 <div className="mt-2"></div>
                                 <MyInput
-                                    label="Начальное время"
+                                    label="Начальное время (по Мск)"
                                     type="time"
                                     value={formData.startTime}
                                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
@@ -189,7 +189,7 @@ export const TransitForm = () => {
                                 />
                                 <div className="mt-2"></div>
                                 <MyInput
-                                    label="Конечное время"
+                                    label="Конечное время (по Мск)"
                                     type="time"
                                     value={formData.endTime}
                                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
