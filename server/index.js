@@ -151,6 +151,7 @@ app.get("/api/user/me", authMiddleware, async (req, res) => {
 app.get("/api/user/check-session", authMiddleware, (req, res) => {
     res.json({ success: true, valid: true });
 });
+app.post("/api/user/logout", authMiddleware, UserController.logout);
 
 // Управление пользователями (для client_manager, manager, admin)
 app.post("/api/user/create-by-admin", createUserRateLimit, UserController.createUserByAdmin);

@@ -18,6 +18,7 @@ interface FormData {
     isBlocked?: boolean;
     paymentLink?: string;
     paymentId?: string;
+    lastActiveDate: string;
 }
 
 export const UserForm = () => {
@@ -32,6 +33,7 @@ export const UserForm = () => {
         bonus: 0,
         paymentLink: '',
         paymentId: '',
+        lastActiveDate: "",
     });
 
     useEffect(() => {
@@ -55,6 +57,8 @@ export const UserForm = () => {
                 isBlocked: data.isBlocked || false,
                 paymentLink: data.paymentLink || '',
                 paymentId: data.paymentId || '',
+                // lastActiveDate: data.lastActiveDate.toISOString("YYYY-MM-DD HH:mm:ss") || "",
+                lastActiveDate: new Date(data.lastActiveDate).toLocaleString('ru-RU') || '',
             });
             // Преобразуем subscriptionEndDate из Date в формат DD-MM-YYYY
             if (data.subscriptionEndDate) {
@@ -261,6 +265,15 @@ export const UserForm = () => {
                                     <input
                                         type="text"
                                         value={formData.telegramUserName || ''}
+                                        readOnly
+                                        className="w-full p-2 border rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Дата последней активности</label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastActiveDate || ''}
                                         readOnly
                                         className="w-full p-2 border rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
                                     />

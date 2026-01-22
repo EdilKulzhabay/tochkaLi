@@ -758,6 +758,21 @@ paths:
                     type: boolean
                     example: true
 
+  /user/logout:
+    post:
+      tags: [Client - Auth]
+      summary: Выйти из аккаунта
+      description: Завершает активную сессию и инвалидирует refresh token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Сессия завершена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
   # ============================================================
   # КЛИЕНТСКАЯ ЧАСТЬ - PROFILE
   # ============================================================

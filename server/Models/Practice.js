@@ -46,6 +46,11 @@ const PracticeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    location: {
+      type: String,
+      enum: ['top', 'bottom'],
+      default: 'bottom',
+    }
   },
   {
     timestamps: true,

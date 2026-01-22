@@ -11,10 +11,11 @@ import api from '../../api';
 import { toast } from 'react-toastify';
 
 interface ContentItem {
-    videoUrl: string;
-    ruTubeUrl: string;
-    text: string;
-    image: string;
+    type: 'video' | 'rutube' | 'text' | 'image';
+    videoUrl?: string;
+    ruTubeUrl?: string;
+    text?: string;
+    image?: string;
 }
 
 interface FormData {
@@ -31,6 +32,7 @@ export const PurposeEnergyForm = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
+    const [showTypePicker, setShowTypePicker] = useState(false);
     const [formData, setFormData] = useState<FormData>({
         startDate: '',
         endDate: '',
@@ -51,13 +53,24 @@ export const PurposeEnergyForm = () => {
         try {
             const response = await api.get(`/api/purpose-energy/${id}`);
             const data = response.data.data;
+            const mappedContent: ContentItem[] = (data.content || []).map((item: ContentItem) => {
+                const inferredType = item.type
+                    || (item.videoUrl ? 'video' : item.ruTubeUrl ? 'rutube' : item.image ? 'image' : 'text');
+                return {
+                    type: inferredType,
+                    videoUrl: item.videoUrl || '',
+                    ruTubeUrl: item.ruTubeUrl || '',
+                    text: item.text || '',
+                    image: item.image || '',
+                };
+            });
             setFormData({
                 startDate: data.startDate || '',
                 endDate: data.endDate || '',
                 title: data.title || '',
                 subtitle: data.subtitle || '',
                 image: data.image || '',
-                content: data.content || [],
+                content: mappedContent,
                 accessType: data.accessType || 'subscription',
             });
         } catch (error) {
@@ -77,11 +90,12 @@ export const PurposeEnergyForm = () => {
         });
     };
 
-    const addContentItem = () => {
+    const addContentItem = (type: ContentItem['type']) => {
         setFormData(prev => ({
             ...prev,
-            content: [...prev.content, { videoUrl: '', ruTubeUrl: '', text: '', image: '' }]
+            content: [...prev.content, { type, videoUrl: '', ruTubeUrl: '', text: '', image: '' }]
         }));
+        setShowTypePicker(false);
     };
 
     const removeContentItem = (index: number) => {
@@ -209,37 +223,59 @@ export const PurposeEnergyForm = () => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <MyInput
-                                            label="Видео URL"
-                                            type="text"
-                                            value={item.videoUrl}
-                                            onChange={(e) => handleContentChange(index, 'videoUrl', e.target.value)}
-                                            placeholder="https://..."
-                                        />
-
-                                        <MyInput
-                                            label="RuTube URL"
-                                            type="text"
-                                            value={item.ruTubeUrl}
-                                            onChange={(e) => handleContentChange(index, 'ruTubeUrl', e.target.value)}
-                                            placeholder="https://..."
-                                        />
-
-                                        <ImageUpload
-                                            value={item.image}
-                                            onChange={(url) => handleContentChange(index, 'image', url)}
-                                            label="Изображение элемента"
-                                        />
-
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Текст</label>
-                                            <RichTextEditor
-                                                value={item.text}
-                                                onChange={(value) => handleContentChange(index, 'text', value)}
-                                                placeholder="Введите текст"
-                                                height="200px"
-                                            />
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-sm font-medium">Тип контента</label>
+                                            <select
+                                                value={item.type}
+                                                onChange={(e) => handleContentChange(index, 'type', e.target.value)}
+                                                className="w-full p-2 rounded-md border border-gray-300"
+                                            >
+                                                <option value="video">Видео</option>
+                                                <option value="rutube">RuTube</option>
+                                                <option value="text">Текст</option>
+                                                <option value="image">Изображение</option>
+                                            </select>
                                         </div>
+
+                                        {item.type === 'video' && (
+                                            <MyInput
+                                                label="Ссылка на видео"
+                                                type="text"
+                                                value={item.videoUrl || ''}
+                                                onChange={(e) => handleContentChange(index, 'videoUrl', e.target.value)}
+                                                placeholder="https://..."
+                                            />
+                                        )}
+
+                                        {item.type === 'rutube' && (
+                                            <MyInput
+                                                label="Ссылка на RuTube"
+                                                type="text"
+                                                value={item.ruTubeUrl || ''}
+                                                onChange={(e) => handleContentChange(index, 'ruTubeUrl', e.target.value)}
+                                                placeholder="https://..."
+                                            />
+                                        )}
+
+                                        {item.type === 'image' && (
+                                            <ImageUpload
+                                                value={item.image || ''}
+                                                onChange={(url) => handleContentChange(index, 'image', url)}
+                                                label="Изображение"
+                                            />
+                                        )}
+
+                                        {item.type === 'text' && (
+                                            <div>
+                                                <label className="block text-sm font-medium mb-2">Текст</label>
+                                                <RichTextEditor
+                                                    value={item.text || ''}
+                                                    onChange={(value) => handleContentChange(index, 'text', value)}
+                                                    placeholder="Введите текст"
+                                                    height="200px"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -251,10 +287,42 @@ export const PurposeEnergyForm = () => {
                             )}
                         </div>
 
-                        <div className="flex items-center justify-end">
+                        <div className="flex flex-col items-end gap-3">
+                            {showTypePicker && (
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('video')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Ссылка на видео
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('rutube')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Ссылка на RuTube
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('text')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Текст
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('image')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Изображение
+                                    </button>
+                                </div>
+                            )}
                             <button
                                 type="button"
-                                onClick={addContentItem}
+                                onClick={() => setShowTypePicker((prev) => !prev)}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 <Plus size={16} />

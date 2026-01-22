@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { 
     Bold, 
     Italic, 
@@ -20,12 +20,64 @@ interface RichTextEditorProps {
 
 export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' }: RichTextEditorProps) => {
     const editorRef = useRef<HTMLDivElement>(null);
+    const [selectionFont, setSelectionFont] = useState<string>('—');
+    const [selectionSize, setSelectionSize] = useState<string>('—');
 
     useEffect(() => {
         if (editorRef.current && editorRef.current.innerHTML !== value) {
             editorRef.current.innerHTML = value;
         }
     }, [value]);
+
+    useEffect(() => {
+        const updateSelectionInfo = () => {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+
+            const anchorNode = selection.anchorNode;
+            const root = editorRef.current;
+            if (!anchorNode || !root) return;
+
+            const elementNode = anchorNode.nodeType === Node.ELEMENT_NODE
+                ? (anchorNode as HTMLElement)
+                : (anchorNode.parentElement as HTMLElement | null);
+            if (!elementNode || !root.contains(elementNode)) return;
+
+            const styles = window.getComputedStyle(elementNode);
+            const fontFamily = styles.fontFamily || '—';
+            const fontSize = styles.fontSize || '—';
+
+            const resolveActualFont = (familyList: string, size: string) => {
+                const families = familyList
+                    .split(',')
+                    .map((name) => name.trim().replace(/^["']|["']$/g, ''))
+                    .filter(Boolean);
+
+                if (typeof document !== 'undefined' && (document as any).fonts?.check) {
+                    for (const family of families) {
+                        if ((document as any).fonts.check(`${size} "${family}"`)) {
+                            return family;
+                        }
+                    }
+                }
+
+                return families[0] || '—';
+            };
+
+            setSelectionFont(resolveActualFont(fontFamily, fontSize));
+            setSelectionSize(fontSize);
+        };
+
+        document.addEventListener('selectionchange', updateSelectionInfo);
+        editorRef.current?.addEventListener('keyup', updateSelectionInfo);
+        editorRef.current?.addEventListener('mouseup', updateSelectionInfo);
+
+        return () => {
+            document.removeEventListener('selectionchange', updateSelectionInfo);
+            editorRef.current?.removeEventListener('keyup', updateSelectionInfo);
+            editorRef.current?.removeEventListener('mouseup', updateSelectionInfo);
+        };
+    }, []);
 
     const handleInput = () => {
         if (editorRef.current) {
@@ -160,7 +212,10 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
     return (
         <div className="border rounded-lg overflow-hidden">
             {/* Toolbar */}
-            <div className="flex gap-1 p-2 bg-gray-50 border-b flex-wrap">
+            <div className="flex gap-1 p-2 bg-gray-50 border-b flex-wrap items-center">
+                <div className="px-2 py-1 text-xs text-gray-600 bg-white border rounded">
+                    {selectionFont} • {selectionSize}
+                </div>
                 {toolbarButtons.map((button, index) => {
                     const Icon = button.icon;
                     return (

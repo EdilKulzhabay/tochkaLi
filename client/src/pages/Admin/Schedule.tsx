@@ -45,6 +45,7 @@ export const ScheduleAdmin = () => {
 
     const columns = [
         { key: 'eventTitle', label: 'Название события' },
+        { key: 'priority', label: 'Приоритет', render: (value: boolean) => value ? 'Да' : 'Нет' },
         { 
             key: 'startDate', 
             label: 'Дата начала',

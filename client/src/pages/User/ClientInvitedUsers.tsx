@@ -280,10 +280,17 @@ export const ClientInvitedUsers = () => {
 
                         {invitedUsers.length > 0 && (
                             <div className="mt-4">
-                                <div className="text-xl font-medium">Приглашенные пользователи</div>
                                 <div className="flex flex-col gap-y-2">
                                     {invitedUsers.map((user: any) => (
-                                        <div key={user.telegramId}>{user.fullName}</div>
+                                        <a
+                                            href={`https://t.me/${user.telegramUserName}`}
+                                            target="_blank"
+                                            key={user.telegramId}
+                                            className="block w-full py-2.5 px-3 border border-white/40 rounded-xl text-left text-white font-medium hover:bg-white/10 transition-colors"
+                                        >
+                                            {user.telegramUserName && `@${user.telegramUserName}`}
+                                            {user.fullName && `, ${user.fullName}`}
+                                        </a>
                                     ))}
                                 </div>
                             </div>

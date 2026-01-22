@@ -462,6 +462,34 @@ export const login = async (req, res) => {
     }
 };
 
+export const logout = async (req, res) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Токен не предоставлен",
+            });
+        }
+
+        await User.findByIdAndUpdate(userId, {
+            refreshToken: null,
+            currentToken: null,
+        });
+
+        res.json({
+            success: true,
+            message: "Сессия завершена",
+        });
+    } catch (error) {
+        console.log("Ошибка в logout:", error);
+        res.status(500).json({
+            success: false,
+            message: "Ошибка завершения сессии",
+        });
+    }
+};
+
 // Получить всех пользователей (только для админа)
 export const getAllUsers = async (req, res) => {
     try {
@@ -755,10 +783,10 @@ export const updateUser = async (req, res) => {
 
         const candidate = await User.findById(id)
 
-        if ('bonus' in updateData && updateData.bonus !== candidate.bonus) {
+        if ('bonus' in updateData && updateData.bonus !== candidate.bonus && updateData.bonus > candidate.bonus) {
             const notification = {
                 modalTitle: "Вам начислены Звёзды",
-                modalDescription: `Администратор отправил: ${updateData.bonus} шт.`,
+                modalDescription: `Администратор отправил: ${updateData.bonus - candidate.bonus} шт.`,
                 modalButtonText: "Принимаю с благодарностью",
                 modalButtonLink: undefined,
             };
@@ -1658,7 +1686,7 @@ export const getInvitedUsers = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'Пользователь не найден' });
         }
-        const invitedUsers = await User.find({ invitedUser: user._id }).select('telegramId fullName');
+        const invitedUsers = await User.find({ invitedUser: user._id }).select('telegramId telegramUserName fullName');
         res.json({ success: true, invitedUsers });
     } catch (error) {
         console.error('Ошибка в payment:', error);

@@ -15,7 +15,8 @@ export const ClientSchedule = () => {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [schedules, setSchedules] = useState<any>([]);
     const [calendarSchedules, setCalendarSchedules] = useState<any[]>([]);
-    const [eventDateColors, setEventDateColors] = useState<Record<string, string>>({});
+    const [eventDateBorders, setEventDateBorders] = useState<Record<string, string>>({});
+    const [eventDateDots, setEventDateDots] = useState<Record<string, string>>({});
     const [showAllEvents, setShowAllEvents] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,6 +31,7 @@ export const ClientSchedule = () => {
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
+        console.log(startDate, endDate);
         if (userStr) {
             const id = JSON.parse(userStr)._id;
             fetchUserData(id);
@@ -66,13 +68,6 @@ export const ClientSchedule = () => {
         }
 
         fetchAllSchedulesForCalendar();
-        // Устанавливаем диапазон по умолчанию: сегодня + 90 дней вперед
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const futureDate = new Date(today);
-        futureDate.setDate(futureDate.getDate() + 120);
-        setStartDate(today);
-        setEndDate(futureDate);
     }, []);
 
     const fetchAllSchedulesForCalendar = async () => {
@@ -98,7 +93,8 @@ export const ClientSchedule = () => {
 
     useEffect(() => {
         if (!calendarSchedules.length) {
-            setEventDateColors({});
+            setEventDateBorders({});
+            setEventDateDots({});
             return;
         }
 
@@ -106,72 +102,43 @@ export const ClientSchedule = () => {
             userData?.scheduleSubscriptions?.map((subscription: any) => subscription.scheduleId) || []
         );
 
-        const colorMap: Record<string, string> = {};
+        const borderMap: Record<string, string> = {};
+        const dotMap: Record<string, string> = {};
 
-        const markDate = (date: Date, color: string) => {
+        const markDate = (date: Date, borderColor: string | null, dotColor: string) => {
             const key = date.toISOString().split('T')[0];
-            if (colorMap[key] === '#EC1313') return;
-            colorMap[key] = color;
+            if (borderColor) {
+                borderMap[key] = borderColor;
+            }
+            if (dotMap[key] !== '#EC1313') {
+                dotMap[key] = dotColor;
+            }
         };
 
         calendarSchedules.forEach((schedule: any) => {
-            const isHighlighted = schedule.priority || subscribedIds.has(schedule._id);
-            const color = isHighlighted ? '#EC1313' : '#FFC293';
+            const borderColor = subscribedIds.has(schedule._id) ? '#EC1313' : null;
+            const dotColor = schedule.priority ? '#EC1313' : '#FFC293';
 
             if (schedule.startDate && schedule.endDate) {
                 const start = new Date(schedule.startDate);
                 const end = new Date(schedule.endDate);
                 start.setHours(0, 0, 0, 0);
                 end.setHours(0, 0, 0, 0);
-                getDatesBetween(start, end).forEach((date) => markDate(date, color));
+                getDatesBetween(start, end).forEach((date) => markDate(date, borderColor, dotColor));
             } else if (schedule.startDate) {
                 const start = new Date(schedule.startDate);
                 start.setHours(0, 0, 0, 0);
-                markDate(start, color);
+                markDate(start, borderColor, dotColor);
             } else if (schedule.endDate) {
                 const end = new Date(schedule.endDate);
                 end.setHours(0, 0, 0, 0);
-                markDate(end, color);
+                markDate(end, borderColor, dotColor);
             }
         });
 
-        setEventDateColors(colorMap);
+        setEventDateBorders(borderMap);
+        setEventDateDots(dotMap);
     }, [calendarSchedules, userData]);
-    useEffect(() => {
-        if (showAllEvents) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getFullYear() + 100);
-            setStartDate(today);
-            setEndDate(futureDate);
-        } else {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getDate() + 120);
-            setStartDate(today);
-            setEndDate(futureDate);
-        }
-    }, [showAllEvents]);
-
-    // Фильтруем события по выбранному диапазону дат
-    useEffect(() => {
-        if (startDate && endDate) {
-            const formattedStart = formatDate(startDate);
-            const formattedEnd = formatDate(endDate);
-            fetchSchedules(formattedStart, formattedEnd);
-        } else {
-            // Если диапазон не выбран, показываем события на 90 дней вперед
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureDate = new Date(today);
-            futureDate.setDate(futureDate.getDate() + 120);
-            const formattedStart = formatDate(today);
-            const formattedEnd = formatDate(futureDate);
-            fetchSchedules(formattedStart, formattedEnd);
-        }
-    }, [startDate, endDate]);
 
     // Функция для получения всех дат между startDate и endDate
     const getDatesBetween = (start: Date, end: Date): Date[] => {
@@ -189,11 +156,51 @@ export const ClientSchedule = () => {
         return dates;
     };
 
-    const fetchSchedules = async (start: string, end: string) => {
+    useEffect(() => {
+        fetchSchedules();
+    }, [showAllEvents]);
+
+    const fetchSchedules = async () => {
         try {
-            const response = await api.get(`/api/schedule?startDate=${start}&endDate=${end}`);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getFullYear() + 1);
+            const formattedStart = formatDate(today);
+            const formattedEnd = formatDate(futureDate);
+            const response = await api.get(`/api/schedule?startDate=${formattedStart}&endDate=${formattedEnd}`);
             if (response.data && response.data.success && Array.isArray(response.data.data)) {
-                setSchedules(response.data.data);
+                if (showAllEvents) {
+                    setSchedules(response.data.data);
+                } else {
+                    // Получаем все schedule с priority === true
+                    const prioritySchedules = response.data.data.filter((schedule: any) => schedule.priority === true);
+                    // Получаем те, у которых priority === false и дата события не больше недели от today
+                    const oneWeekLater = new Date(today);
+                    oneWeekLater.setDate(today.getDate() + 7);
+
+                    const normalSchedules = response.data.data.filter((schedule: any) => {
+                        if (schedule.priority === true) return false;
+                        
+                        // Проверяем startDate, endDate, eventDate на попадание в диапазон
+                        const datesToCheck: (string | undefined)[] = [schedule.startDate, schedule.endDate, schedule.eventDate];
+                        return datesToCheck.some(dateString => {
+                            if (!dateString) return false;
+                            const d = new Date(dateString);
+                            d.setHours(0,0,0,0);
+                            return d >= today && d <= oneWeekLater;
+                        });
+                    });
+
+                    // Сортируем по дате (startDate)
+                    const allSchedules = [...prioritySchedules, ...normalSchedules];
+                    allSchedules.sort((a: any, b: any) => {
+                        const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+                        const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+                        return dateA - dateB;
+                    });
+                    setSchedules(allSchedules);
+                }
             } else {
                 setSchedules([]);
             }
@@ -253,7 +260,8 @@ export const ClientSchedule = () => {
                         onDateRangeSelect={handleDateRangeSelect}
                         selectedStartDate={null}
                         selectedEndDate={null}
-                        eventDateColors={eventDateColors}
+                        eventDateBorders={eventDateBorders}
+                        eventDateDots={eventDateDots}
                     />
                 </div>
                 <div className="lg:basis-2/3">
@@ -277,7 +285,7 @@ export const ClientSchedule = () => {
                                 <div onClick={() => {}} className="flex items-center justify-between">
                                     <h1 className="text-xl font-medium">{schedule?.eventTitle}</h1>
                                     {schedule.priority && <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />}
-                                    {schedule.priority && <div className="w-1.5 h-1.5 bg-[#FFC293] rounded-full" />}
+                                    {!schedule.priority && <div className="w-1.5 h-1.5 bg-[#FFC293] rounded-full" />}
                                 </div>
                                 <p className="">{schedule?.description}</p>
                             </div>

@@ -5,7 +5,8 @@ interface DateRangeCalendarProps {
     onDateRangeSelect?: (startDate: Date | null, endDate: Date | null) => void;
     selectedStartDate?: Date | null;
     selectedEndDate?: Date | null;
-    eventDateColors?: Record<string, string>; // Цвета обводки/точек по датам (YYYY-MM-DD)
+    eventDateBorders?: Record<string, string>; // Цвет обводки по датам (YYYY-MM-DD)
+    eventDateDots?: Record<string, string>; // Цвет точки по датам (YYYY-MM-DD)
 }
 
 const MONTHS = [
@@ -19,7 +20,8 @@ export const DateRangeCalendar = ({
     onDateRangeSelect, 
     selectedStartDate, 
     selectedEndDate,
-    eventDateColors = {}
+    eventDateBorders = {},
+    eventDateDots = {}
 }: DateRangeCalendarProps) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [startDate, setStartDate] = useState<Date | null>(selectedStartDate || null);
@@ -141,8 +143,7 @@ export const DateRangeCalendar = ({
         );
     };
 
-    // Проверка, есть ли событие в указанную дату
-    const getEventColor = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false): string | null => {
+    const getDateKey = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false) => {
         let checkDate: Date;
         if (isPrevMonth) {
             checkDate = new Date(year, month - 1, day);
@@ -152,8 +153,17 @@ export const DateRangeCalendar = ({
             checkDate = new Date(year, month, day);
         }
         checkDate.setHours(0, 0, 0, 0);
-        const key = checkDate.toISOString().split('T')[0];
-        return eventDateColors[key] || null;
+        return checkDate.toISOString().split('T')[0];
+    };
+
+    const getEventBorderColor = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false): string | null => {
+        const key = getDateKey(day, isPrevMonth, isNextMonth);
+        return eventDateBorders[key] || null;
+    };
+
+    const getEventDotColor = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false): string | null => {
+        const key = getDateKey(day, isPrevMonth, isNextMonth);
+        return eventDateDots[key] || null;
     };
 
     const handleMouseEnter = (day: number, isPrevMonth: boolean = false, isNextMonth: boolean = false) => {
@@ -222,7 +232,8 @@ export const DateRangeCalendar = ({
                 {prevMonthDays.map((day) => {
                     const inRange = isDateInRange(day, true);
                     const selected = isDateSelected(day, true);
-                    const eventColor = getEventColor(day, true);
+                    const borderColor = getEventBorderColor(day, true);
+                    const dotColor = getEventDotColor(day, true);
                     return (
                         <button
                             key={`prev-${day}`}
@@ -233,16 +244,21 @@ export const DateRangeCalendar = ({
                                 aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
-                                ${eventColor ? 'border' : ''}
                                 hover:bg-white/10
                             `}
-                            style={eventColor ? { borderColor: eventColor } : undefined}
                         >
-                            <span>{day}</span>
-                            {eventColor && (
+                            <div className={`
+                                    w-6 h-6  rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
+                                    ${borderColor ? 'border' : ''}
+                                `}
+                                style={borderColor ? { borderColor: borderColor } : undefined}
+                            >
+                                <p>{day}</p>
+                            </div>
+                            {dotColor && (
                                 <span
-                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
-                                    style={{ backgroundColor: eventColor }}
+                                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: dotColor }}
                                 />
                             )}
                         </button>
@@ -254,7 +270,8 @@ export const DateRangeCalendar = ({
                     const inRange = isDateInRange(day);
                     const selected = isDateSelected(day);
                     const today = isToday(day);
-                    const eventColor = getEventColor(day);
+                    const borderColor = getEventBorderColor(day);
+                    const dotColor = getEventDotColor(day);
                     return (
                         <button
                             key={day}
@@ -262,20 +279,25 @@ export const DateRangeCalendar = ({
                             onMouseEnter={() => handleMouseEnter(day)}
                             onMouseLeave={handleMouseLeave}
                             className={`
-                                aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
+                                aspect-square p-2 rounded-full relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : ''}
-                                ${eventColor ? 'border' : ''}
-                                ${today && !selected && !eventColor ? 'border border-[#FFC293]' : ''}
                                 ${!selected && !today ? 'hover:bg-white/10' : ''}
                             `}
-                            style={eventColor ? { borderColor: eventColor } : undefined}
                         >
-                            <span>{day}</span>
-                            {eventColor && (
+                            <div className={`
+                                    w-6 h-6  rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
+                                    ${borderColor ? 'border' : ''}
+                                    ${today && !selected && !borderColor ? 'border border-[#FFC293]' : ''}
+                                `}
+                                style={borderColor ? { borderColor: borderColor } : undefined}
+                            >
+                                <p>{day}</p>
+                            </div>
+                            {dotColor && (
                                 <span
-                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
-                                    style={{ backgroundColor: eventColor }}
+                                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: dotColor }}
                                 />
                             )}
                         </button>
@@ -286,7 +308,8 @@ export const DateRangeCalendar = ({
                 {nextMonthDays.map((day) => {
                     const inRange = isDateInRange(day, false, true);
                     const selected = isDateSelected(day, false, true);
-                    const eventColor = getEventColor(day, false, true);
+                    const borderColor = getEventBorderColor(day, false, true);
+                    const dotColor = getEventDotColor(day, false, true);
                     return (
                         <button
                             key={`next-${day}`}
@@ -297,16 +320,16 @@ export const DateRangeCalendar = ({
                                 aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
-                                ${eventColor ? 'border' : ''}
+                                ${borderColor ? 'border' : ''}
                                 hover:bg-white/10
                             `}
-                            style={eventColor ? { borderColor: eventColor } : undefined}
+                            style={borderColor ? { borderColor: borderColor } : undefined}
                         >
                             <span>{day}</span>
-                            {eventColor && (
+                            {dotColor && (
                                 <span
                                     className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
-                                    style={{ backgroundColor: eventColor }}
+                                    style={{ backgroundColor: dotColor }}
                                 />
                             )}
                         </button>

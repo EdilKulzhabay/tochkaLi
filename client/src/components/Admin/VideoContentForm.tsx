@@ -27,6 +27,7 @@ interface FormData {
     accessType: string;
     starsRequired: number;
     allowRepeatBonus: boolean;
+    location: string;
 }
 
 export const VideoContentForm = ({ contentType, title, listRoute }: VideoContentFormProps) => {
@@ -47,6 +48,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
         accessType: 'free',
         starsRequired: 0,
         allowRepeatBonus: false,
+        location: 'bottom',
     });
 
     useEffect(() => {
@@ -83,6 +85,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
                 order: content.order || 0,
                 starsRequired: content.starsRequired || 0,
                 allowRepeatBonus: content.allowRepeatBonus || false,
+                location: content.location || 'bottom',
             });
         } catch (error) {
             toast.error(`Ошибка загрузки ${title.toLowerCase()}`);
@@ -173,6 +176,18 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
                                     <option value="stars">Звёзды</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">Расположение</label>
+                            <select
+                                value={formData.location}
+                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                className="p-2 border rounded-md"
+                            >
+                                <option value="top">Сверху</option>
+                                <option value="bottom">Снизу</option>
+                            </select>
                         </div>
 
                         {formData.accessType === 'stars' && (

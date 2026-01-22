@@ -100,14 +100,14 @@ export const BroadcastAdmin = () => {
                                 <button
                                             onClick={() => navigate(`/admin/broadcast/edit/${broadcast._id}`)}
                                             className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                        >
+                                >
                                             <Edit size={16} />
                                             Редактировать
                                 </button>
                                         <button
                                             onClick={() => handleDeleteBroadcast(broadcast._id)}
                                             className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                        >
+                                            >
                                             <Trash2 size={16} />
                                             Удалить
                                             </button>

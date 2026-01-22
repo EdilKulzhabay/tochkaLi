@@ -1,6 +1,6 @@
 import { UserLayout } from "../../components/User/UserLayout"
 import { BackNav } from "../../components/User/BackNav"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import arrowDown from "../../assets/arrowDown.png";
@@ -11,6 +11,10 @@ import calendarLeft from "../../assets/calendarLeft.png";
 import calendarRight from "../../assets/calendarRight.png";
 import goldCheck from "../../assets/goldCheck.png";
 import redCross from "../../assets/redCross.png";
+
+const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+const width = window.innerWidth;
+const widthPerDay = (width - 60) / 7;
 
 export const ClientDiary = () => {
     const [diary, setDiary] = useState<any>({
@@ -25,9 +29,11 @@ export const ClientDiary = () => {
     const [content, setContent] = useState<any>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [weekStart, setWeekStart] = useState<Date | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [savedDiaries, setSavedDiaries] = useState<any>([]);
+    const [calendarDates, setCalendarDates] = useState<any[]>([]);
+    const [leftVisibleDate, setLeftVisibleDate] = useState<Date | null>(null);
+    const calendarContainerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -44,16 +50,22 @@ export const ClientDiary = () => {
             }
         }
 
+        const start = new Date(2025, 9, 1); // 01.10.2025
+        start.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dates: Date[] = [];
+        for (const date = new Date(start); date <= today; date.setDate(date.getDate() + 1)) {
+            dates.push(new Date(date));
+        }
+        setCalendarDates(dates);
+
         fetchDiaries();
         fetchContent();
     }, [navigate]);
 
     // Разрешаем копирование и вставку на странице дневника
     useEffect(() => {
-        const today = new Date();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay() + 1);
-        setWeekStart(startOfWeek);
         // Функция для проверки, находится ли элемент на странице дневника
         const isDiaryPageElement = (element: HTMLElement | null): boolean => {
             if (!element) return false;
@@ -233,6 +245,51 @@ export const ClientDiary = () => {
         setContent(response.data.data);
     };
 
+    const updateLeftVisibleDate = () => {
+        const container = calendarContainerRef.current;
+        if (!container || calendarDates.length === 0) return;
+
+        const sampleItem = container.querySelector('[data-calendar-item]') as HTMLElement | null;
+        const styles = window.getComputedStyle(container);
+        const gap = Number.parseFloat(styles.columnGap || styles.gap || '0') || 0;
+        const itemWidth = sampleItem?.offsetWidth || 24;
+        const step = itemWidth + gap;
+        const index = Math.min(
+            calendarDates.length - 1,
+            Math.max(0, Math.floor(container.scrollLeft / step))
+        );
+
+        setLeftVisibleDate(calendarDates[index]);
+    };
+
+    const scrollByDays = (days: number) => {
+        const container = calendarContainerRef.current;
+        if (!container) return;
+        const sampleItem = container.querySelector('[data-calendar-item]') as HTMLElement | null;
+        const styles = window.getComputedStyle(container);
+        const gap = Number.parseFloat(styles.columnGap || styles.gap || '0') || 0;
+        const itemWidth = sampleItem?.offsetWidth || 24;
+        const step = itemWidth + gap;
+        container.scrollBy({ left: days * step, behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        if (loading) return;
+        if (!calendarDates.length) return;
+        const container = calendarContainerRef.current;
+        if (!container) return;
+
+        const scrollToEnd = () => {
+            container.scrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+            updateLeftVisibleDate();
+        };
+
+        // Ждем отрисовку элементов и корректной ширины контейнера
+        requestAnimationFrame(() => {
+            requestAnimationFrame(scrollToEnd);
+        });
+    }, [calendarDates.length, loading]);
+
     const checkDiaryForDate = (date: Date) => {
         return diaries.find((diary: any) => diary.createdAt.split('T')[0] === date.toISOString().split('T')[0]);
     }
@@ -276,23 +333,20 @@ export const ClientDiary = () => {
                     <div className="mt-4 bg-[#333333] p-4 rounded-lg">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-medium">
-                                {weekStart &&
-                                    (() => {
-                                    const formatted = weekStart.toLocaleDateString('ru-RU', {
+                                {(() => {
+                                    const baseDate = leftVisibleDate || calendarDates[0];
+                                    if (!baseDate) return '';
+                                    const formatted = baseDate.toLocaleDateString('ru-RU', {
                                         month: 'long',
                                         year: 'numeric',
-                                    })
-                                    return formatted.charAt(0).toUpperCase() + formatted.slice(1)
-                                    })()
-                                }
+                                    });
+                                    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+                                })()}
                             </h2>
                             <div className="flex items-center gap-x-4">
                                 <button
                                     onClick={() => {
-                                        if (!weekStart) return;
-                                        const newWeekStart = new Date(weekStart);
-                                        newWeekStart.setDate(weekStart.getDate() - 7);
-                                        setWeekStart(newWeekStart);
+                                        scrollByDays(-7);
                                     }}
                                     className="w-6 h-6"
                                 >
@@ -304,10 +358,7 @@ export const ClientDiary = () => {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (!weekStart) return;
-                                        const newWeekStart = new Date(weekStart);
-                                        newWeekStart.setDate(weekStart.getDate() + 7);
-                                        setWeekStart(newWeekStart);
+                                        scrollByDays(7);
                                     }}
                                     className="w-6 h-6"
                                 >
@@ -319,8 +370,46 @@ export const ClientDiary = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="mt-4">
-                            <div className="flex items-center justify-between pr-1">
+                        <div
+                            ref={calendarContainerRef}
+                            onScroll={updateLeftVisibleDate}
+                            className="mt-4 overflow-x-scroll scrollbar-hide flex items-start gap-3 pr-1"
+                        >
+                            {calendarDates.map((date) => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                return (
+                                    <button
+                                        data-calendar-item
+                                        className="shrink-0 cursor-pointer flex flex-col items-center justify-center"
+                                        style={{ width: `${widthPerDay}px`, minWidth: `${widthPerDay}px` }}
+                                        onClick={() => {
+                                            if (selectedDate?.toISOString().split('T')[0] === date.toISOString().split('T')[0]) {
+                                                setSelectedDate(null);
+                                            } else {
+                                                setSelectedDate(date);
+                                            }
+                                        }}
+                                        key={date.toISOString().split('T')[0]}
+                                    >
+                                        <p className="text-sm">{daysOfWeek[date.getDay()]}</p>
+                                        <div className={`mt-2 text-sm w-6 h-6 flex items-center justify-center ${today.toISOString().split('T')[0] === date.toISOString().split('T')[0] ? 'border-1 border-[#FFC293] rounded-full' : ''} ${selectedDate?.toISOString().split('T')[0] === date.toISOString().split('T')[0] ? 'bg-white/20 rounded-full' : ''}`}>
+                                            <p>{date.getDate()}</p>
+                                        </div>
+                                        {checkDiaryForDate(date) && (
+                                            <div className="mt-1 flex items-center justify-center">
+                                                <img src={goldCheck} alt="gold-check" className="w-3 h-3" />
+                                            </div>
+                                        )}
+                                        {!checkDiaryForDate(date) && date < today && (
+                                            <div className="mt-1 flex items-center justify-center">
+                                                <img src={redCross} alt="red-cross" className="w-3 h-3" />
+                                            </div>
+                                        )}
+                                    </button>
+                                )
+                            })}
+                            {/* <div className="flex items-center justify-between pr-1">
                                 {['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'].map((day) => {
                                     return (
                                         <div key={day} className="flex flex-col items-center justify-center w-6">
@@ -361,7 +450,7 @@ export const ClientDiary = () => {
                                         </button>
                                     )
                                 })}
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 

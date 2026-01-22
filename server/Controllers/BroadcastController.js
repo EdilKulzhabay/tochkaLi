@@ -81,19 +81,19 @@ export const getFilteredUsers = async (req, res) => {
 };
 
 const resolveBroadcastContent = async ({ message, imageUrl, buttonText, broadcastId, broadcastTitle }) => {
-    let savedBroadcast = null;
-    if (broadcastId) {
-        savedBroadcast = await Broadcast.findById(broadcastId);
-        if (!savedBroadcast) {
+        let savedBroadcast = null;
+        if (broadcastId) {
+            savedBroadcast = await Broadcast.findById(broadcastId);
+            if (!savedBroadcast) {
             throw new Error("Сохраненная рассылка не найдена");
-        }
-    } else if (broadcastTitle) {
-        savedBroadcast = await Broadcast.findOne({ title: broadcastTitle });
-        if (!savedBroadcast) {
+            }
+        } else if (broadcastTitle) {
+            savedBroadcast = await Broadcast.findOne({ title: broadcastTitle });
+            if (!savedBroadcast) {
             throw new Error("Сохраненная рассылка не найдена");
+            }
         }
-    }
-
+        
     return {
         finalMessage: message || savedBroadcast?.content || '',
         finalImageUrl: imageUrl || savedBroadcast?.imgUrl || undefined,
@@ -112,163 +112,163 @@ const executeBroadcast = async (payload) => {
         broadcastTitle,
     });
 
-    if (!finalMessage) {
+        if (!finalMessage) {
         return {
-            success: false,
+                success: false,
             statusCode: 400,
-            message: "Сообщение обязательно для отправки",
+                message: "Сообщение обязательно для отправки",
         };
-    }
+        }
 
-    if (!TELEGRAM_BOT_TOKEN) {
+        if (!TELEGRAM_BOT_TOKEN) {
         return {
-            success: false,
+                success: false,
             statusCode: 500,
-            message: "Telegram Bot Token не настроен в переменных окружения",
+                message: "Telegram Bot Token не настроен в переменных окружения",
         };
-    }
+        }
 
-    let filter = {};
-    let users;
+        let filter = {};
+        let users;
 
-    if (userIds && Array.isArray(userIds) && userIds.length > 0) {
-        filter._id = { $in: userIds };
-        filter.telegramId = { $exists: true, $ne: null, $ne: '' };
-        filter.isBlocked = { $ne: true };
-        filter.notifyPermission = true;
-        users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked profilePhotoUrl');
-    } else {
-        filter.isBlocked = { $ne: true };
-        filter.notifyPermission = true;
-
-        if (status && status !== 'all') {
-            if (status !== 'blocked') {
-                filter.status = status;
+        if (userIds && Array.isArray(userIds) && userIds.length > 0) {
+            filter._id = { $in: userIds };
+            filter.telegramId = { $exists: true, $ne: null, $ne: '' };
+            filter.isBlocked = { $ne: true };
+            filter.notifyPermission = true;
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked profilePhotoUrl');
+        } else {
+            filter.isBlocked = { $ne: true };
+            filter.notifyPermission = true;
+            
+            if (status && status !== 'all') {
+                if (status !== 'blocked') {
+                    filter.status = status;
+                }
             }
+
+            filter.telegramId = { $exists: true, $ne: null, $ne: '' };
+
+            if (search && search.trim()) {
+                const searchRegex = new RegExp(search.trim(), 'i');
+                filter.$or = [
+                    { telegramUserName: searchRegex },
+                    { userName: searchRegex },
+                    { fullName: searchRegex },
+                    { phone: searchRegex },
+                ];
+            }
+
+            users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked profilePhotoUrl');
         }
 
-        filter.telegramId = { $exists: true, $ne: null, $ne: '' };
-
-        if (search && search.trim()) {
-            const searchRegex = new RegExp(search.trim(), 'i');
-            filter.$or = [
-                { telegramUserName: searchRegex },
-                { userName: searchRegex },
-                { fullName: searchRegex },
-                { phone: searchRegex },
-            ];
-        }
-
-        users = await User.find(filter).select('telegramId telegramUserName userName fullName phone status isBlocked profilePhotoUrl');
-    }
-
-    if (users.length === 0) {
+        if (users.length === 0) {
         return {
-            success: true,
-            message: "Нет пользователей для отправки",
-            sent: 0,
-            failed: 0,
-            total: 0,
+                success: true,
+                message: "Нет пользователей для отправки",
+                sent: 0,
+                failed: 0,
+                total: 0,
         };
-    }
+        }
 
     const telegramIds = users.map(user => user.telegramId).filter(id => id);
-
-    if (telegramIds.length === 0) {
+        
+        if (telegramIds.length === 0) {
         return {
-            success: true,
-            message: "Нет пользователей с telegramId для отправки",
-            sent: 0,
-            failed: 0,
-            total: 0,
+                success: true,
+                message: "Нет пользователей с telegramId для отправки",
+                sent: 0,
+                failed: 0,
+                total: 0,
         };
-    }
+        }
 
-    console.log(`Начинаем рассылку для ${telegramIds.length} пользователей через бот сервер`);
-    console.log(`BOT_SERVER_URL: ${BOT_SERVER_URL}`);
+        console.log(`Начинаем рассылку для ${telegramIds.length} пользователей через бот сервер`);
+        console.log(`BOT_SERVER_URL: ${BOT_SERVER_URL}`);
 
-    if (!BOT_SERVER_URL || BOT_SERVER_URL === 'http://localhost:5011') {
-        console.warn('BOT_SERVER_URL не настроен или использует значение по умолчанию');
-    }
+        if (!BOT_SERVER_URL || BOT_SERVER_URL === 'http://localhost:5011') {
+            console.warn('BOT_SERVER_URL не настроен или использует значение по умолчанию');
+        }
 
-    const usersData = users.map(user => ({
-        telegramId: user.telegramId,
-        telegramUserName: user.telegramUserName || '',
-        profilePhotoUrl: user.profilePhotoUrl || '',
-    }));
+        const usersData = users.map(user => ({
+            telegramId: user.telegramId,
+            telegramUserName: user.telegramUserName || '',
+            profilePhotoUrl: user.profilePhotoUrl || '',
+        }));
 
-    try {
-        const response = await axios.post(`${BOT_SERVER_URL}/api/bot/broadcast`, {
-            text: finalMessage,
-            telegramIds: telegramIds,
-            imageUrl: finalImageUrl,
-            parseMode: parseMode || 'HTML',
-            buttonText: finalButtonText,
-            buttonUrl: buttonUrl || undefined,
+        try {
+            const response = await axios.post(`${BOT_SERVER_URL}/api/bot/broadcast`, {
+                text: finalMessage,
+                telegramIds: telegramIds,
+                imageUrl: finalImageUrl,
+                parseMode: parseMode || 'HTML',
+                buttonText: finalButtonText,
+                buttonUrl: buttonUrl || undefined,
             usersData: usersData,
-        }, {
-            headers: {
-                "Content-Type": "application/json",
-            },
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
             timeout: 300000,
-        });
+            });
 
-        if (!response.data || !response.data.results) {
-            console.error('Неожиданная структура ответа от бот сервера:', response.data);
+            if (!response.data || !response.data.results) {
+                console.error('Неожиданная структура ответа от бот сервера:', response.data);
             return {
-                success: false,
+                    success: false,
                 statusCode: 500,
-                message: "Неожиданный формат ответа от бот сервера",
-                error: response.data,
+                    message: "Неожиданный формат ответа от бот сервера",
+                    error: response.data,
             };
-        }
+            }
 
-        const { results } = response.data;
-        const totalSent = results.success?.length || 0;
-        const totalFailed = results.failed?.length || 0;
+            const { results } = response.data;
+            const totalSent = results.success?.length || 0;
+            const totalFailed = results.failed?.length || 0;
 
-        console.log(`Рассылка завершена. Отправлено: ${totalSent}, Ошибок: ${totalFailed}`);
+            console.log(`Рассылка завершена. Отправлено: ${totalSent}, Ошибок: ${totalFailed}`);
 
         return {
-            success: true,
-            message: "Рассылка завершена",
-            sent: totalSent,
-            failed: totalFailed,
-            total: telegramIds.length,
-            failedUsers: results.failed || [],
+                success: true,
+                message: "Рассылка завершена",
+                sent: totalSent,
+                failed: totalFailed,
+                total: telegramIds.length,
+                failedUsers: results.failed || [],
         };
-    } catch (error) {
-        console.error('Ошибка при отправке запроса на бот сервер:', {
-            message: error.message,
-            code: error.code,
-            response: error.response?.data,
-            status: error.response?.status,
-            url: `${BOT_SERVER_URL}/api/bot/broadcast`
-        });
-
-        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+        } catch (error) {
+            console.error('Ошибка при отправке запроса на бот сервер:', {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+                status: error.response?.status,
+                url: `${BOT_SERVER_URL}/api/bot/broadcast`
+            });
+            
+            if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
             return {
-                success: false,
+                    success: false,
                 statusCode: 500,
-                message: `Бот сервер недоступен по адресу ${BOT_SERVER_URL}. Проверьте, что бот сервер запущен и доступен.`,
-                error: error.message,
+                    message: `Бот сервер недоступен по адресу ${BOT_SERVER_URL}. Проверьте, что бот сервер запущен и доступен.`,
+                    error: error.message,
             };
-        }
-
-        if (error.response) {
+            }
+            
+            if (error.response) {
             return {
-                success: false,
+                    success: false,
                 statusCode: error.response.status || 500,
-                message: "Ошибка при отправке рассылки на бот сервер",
-                error: error.response.data || error.message,
+                    message: "Ошибка при отправке рассылки на бот сервер",
+                    error: error.response.data || error.message,
             };
-        }
-
+            }
+            
         return {
-            success: false,
+                success: false,
             statusCode: 500,
-            message: "Ошибка при отправке рассылки на бот сервер",
-            error: error.message,
+                message: "Ошибка при отправке рассылки на бот сервер",
+                error: error.message,
         };
     }
 };
