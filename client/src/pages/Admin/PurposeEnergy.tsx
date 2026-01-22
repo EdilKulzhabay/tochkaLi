@@ -5,7 +5,6 @@ import { AdminTable } from '../../components/Admin/AdminTable';
 import { Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../api';
-import { formatDateRangeReadable } from '../../components/User/dateUtils';
 
 export const PurposeEnergyAdmin = () => {
     const navigate = useNavigate();
@@ -45,18 +44,29 @@ export const PurposeEnergyAdmin = () => {
     };
 
     const columns = [
-        { 
-            key: 'startDate', 
-            label: 'Даты',
-            render: (_value: string, row: any) => formatDateRangeReadable(row.startDate, row.endDate)
-        },
         { key: 'title', label: 'Заголовок' },
+        { 
+            key: 'shortDescription', 
+            label: 'Описание',
+            render: (value: string) => value || '—'
+        },
         { 
             key: 'content', 
             label: 'Элементов',
             render: (value: any[]) => value ? `${value.length}` : '0'
         },
         { key: 'accessType', label: 'Доступ' },
+        { key: 'location', label: 'Позиция' },
+        { 
+            key: 'order', 
+            label: 'Порядок',
+            render: (value: number) => value ?? 0
+        },
+        { 
+            key: 'allowRepeatBonus', 
+            label: 'Повторный бонус',
+            render: (value: boolean) => (value ? 'Да' : 'Нет')
+        },
     ];
 
     return (

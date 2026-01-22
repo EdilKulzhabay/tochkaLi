@@ -116,7 +116,8 @@ export const ClientSchedule = () => {
         };
 
         calendarSchedules.forEach((schedule: any) => {
-            const borderColor = subscribedIds.has(schedule._id) ? '#EC1313' : null;
+            const isSubscribed = subscribedIds.has(schedule._id);
+            const borderColor = isSubscribed ? (schedule.priority ? '#EC1313' : '#FFC293') : null;
             const dotColor = schedule.priority ? '#EC1313' : '#FFC293';
 
             if (schedule.startDate && schedule.endDate) {

@@ -36,6 +36,7 @@ export const UsersAdmin = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [lastActiveFilter, setLastActiveFilter] = useState<string>('all');
     const [sortField, setSortField] = useState<string>('');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [currentPage, setCurrentPage] = useState(1);
@@ -46,13 +47,13 @@ export const UsersAdmin = () => {
     // Сбрасываем страницу при изменении фильтров/сортировки
     useEffect(() => {
         setCurrentPage(1);
-    }, [statusFilter, sortField, sortDirection, searchQuery]);
+    }, [statusFilter, lastActiveFilter, sortField, sortDirection, searchQuery]);
 
     // Загружаем данные при изменении страницы или параметров
     useEffect(() => {
         fetchUsers(currentPage);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, statusFilter, sortField, sortDirection, searchQuery]);
+    }, [currentPage, statusFilter, lastActiveFilter, sortField, sortDirection, searchQuery]);
 
     const fetchUsers = async (page: number = 1) => {
         setLoading(true);
@@ -65,6 +66,9 @@ export const UsersAdmin = () => {
             // Добавляем параметры фильтрации
             if (statusFilter !== 'all') {
                 params.statusFilter = statusFilter;
+            }
+            if (lastActiveFilter !== 'all') {
+                params.lastActiveFilter = lastActiveFilter;
             }
 
             // Добавляем параметры поиска
@@ -341,6 +345,22 @@ export const UsersAdmin = () => {
                             </select>
                         </div>
 
+                        {/* Фильтр по активности */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Активность
+                            </label>
+                            <select
+                                value={lastActiveFilter}
+                                onChange={(e) => setLastActiveFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="all">Все</option>
+                                <option value="active">Есть активность</option>
+                                <option value="inactive">Нет активности</option>
+                            </select>
+                        </div>
+
                         {/* Фильтр по роли */}
                         {/* <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -399,7 +419,19 @@ export const UsersAdmin = () => {
                             Рефералы
                             {sortField === 'inviteesCount' && (sortDirection === 'asc' ? ' ↑' : ' ↓')}
                         </button>
-                        {(sortField === 'bonus' || sortField === 'subscriptionEndDate' || sortField === 'inviteesCount') && (
+                        <button
+                            onClick={() => handleSort('lastActiveDate')}
+                            className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm transition-colors ${
+                                sortField === 'lastActiveDate' 
+                                    ? 'bg-blue-100 text-blue-700' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <ArrowUpDown size={16} />
+                            Активность
+                            {sortField === 'lastActiveDate' && (sortDirection === 'asc' ? ' ↑' : ' ↓')}
+                        </button>
+                        {(sortField === 'bonus' || sortField === 'subscriptionEndDate' || sortField === 'inviteesCount' || sortField === 'lastActiveDate') && (
                             <button
                                 onClick={() => {
                                     setSortField('');

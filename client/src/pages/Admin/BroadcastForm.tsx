@@ -41,6 +41,7 @@ export const BroadcastFormAdmin = () => {
     const [scheduledAt, setScheduledAt] = useState('');
 
     const [status, setStatus] = useState('all');
+    const [lastActiveFilter, setLastActiveFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
     const [searchLoading, setSearchLoading] = useState(false);
@@ -63,7 +64,7 @@ export const BroadcastFormAdmin = () => {
         setSelectedUsers(new Set());
         setSelectedUsersData(new Map());
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status]);
+    }, [status, lastActiveFilter]);
 
     useEffect(() => {
         if (!id) return;
@@ -92,6 +93,7 @@ export const BroadcastFormAdmin = () => {
         try {
             const response = await api.post('/api/broadcast/users', {
                 status: status,
+                lastActiveFilter: lastActiveFilter,
                 search: ""
             });
             setUserCount(response.data.count);
@@ -110,7 +112,8 @@ export const BroadcastFormAdmin = () => {
         try {
             const response = await api.post('/api/broadcast/users', {
                 status: status,
-                search: search 
+                lastActiveFilter: lastActiveFilter,
+                search: search
             });
             setFoundUsers(response.data.data || []);
             if (response.data.data.length === 0) {
@@ -285,6 +288,7 @@ export const BroadcastFormAdmin = () => {
             const response = await api.post('/api/broadcast/send', { 
                 message: finalMessage || undefined,
                 status: status === 'all' ? undefined : status,
+                lastActiveFilter: lastActiveFilter === 'all' ? undefined : lastActiveFilter,
                 imageUrl: imageUrl || undefined,
                 parseMode: parseMode,
                 buttonText: buttonText || undefined,
@@ -514,6 +518,21 @@ export const BroadcastFormAdmin = () => {
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-medium mb-2">
+                            Активность пользователей
+                        </label>
+                        <select
+                            value={lastActiveFilter}
+                            onChange={(e) => setLastActiveFilter(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="all">Все</option>
+                            <option value="active">Есть активность</option>
+                            <option value="inactive">Нет активности</option>
+                        </select>
                     </div>
 
                     <div>

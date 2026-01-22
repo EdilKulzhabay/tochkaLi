@@ -25,15 +25,33 @@ export const ClientDiary = () => {
     });
     const [todayDiaryId, setTodayDiaryId] = useState<string | null>(null);
     const [diaries, setDiaries] = useState<any>([]);
+    const [allDiaries, setAllDiaries] = useState<any[]>([]);
     const [isOpenToday, setIsOpenToday] = useState(true);
     const [content, setContent] = useState<any>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [savedDiaries, setSavedDiaries] = useState<any>([]);
     const [calendarDates, setCalendarDates] = useState<any[]>([]);
     const [leftVisibleDate, setLeftVisibleDate] = useState<Date | null>(null);
     const calendarContainerRef = useRef<HTMLDivElement | null>(null);
+
+    const toLocalDateKey = (value: Date | string) => {
+        const date = typeof value === 'string' ? new Date(value) : value;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const buildDiaryList = (source: any[]) => {
+        const todayKey = toLocalDateKey(new Date());
+        return source
+            .filter((item) => toLocalDateKey(item.createdAt) !== todayKey)
+            .map((item) => ({
+                ...item,
+                isOpen: false,
+            }));
+    };
 
     useEffect(() => {
         // Проверка на блокировку пользователя
@@ -161,8 +179,9 @@ export const ClientDiary = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            const today = new Date().toISOString().split('T')[0];
-            const todayDiary = response.data.data.find((diary: any) => diary.createdAt.split('T')[0] === today);
+            const todayKey = toLocalDateKey(new Date());
+            setAllDiaries(response.data.data || []);
+            const todayDiary = response.data.data.find((item: any) => toLocalDateKey(item.createdAt) === todayKey);
             
             // Если есть запись за сегодня, загружаем её данные в форму
             if (todayDiary) {
@@ -184,12 +203,7 @@ export const ClientDiary = () => {
             }
             
             // Исключаем сегодняшнюю запись из списка старых записей
-            setDiaries(response.data.data
-                .filter((diary: any) => diary.createdAt.split('T')[0] !== today)
-                .map((diary: any) => ({
-                    ...diary,
-                    isOpen: false,
-                })));
+            setDiaries(buildDiaryList(response.data.data || []));
         } catch (error) {
             console.error('Ошибка загрузки дневника:', error);
         } finally {
@@ -291,18 +305,26 @@ export const ClientDiary = () => {
     }, [calendarDates.length, loading]);
 
     const checkDiaryForDate = (date: Date) => {
-        return diaries.find((diary: any) => diary.createdAt.split('T')[0] === date.toISOString().split('T')[0]);
+        const selectedKey = toLocalDateKey(date);
+        return allDiaries.find((item: any) => toLocalDateKey(item.createdAt) === selectedKey);
     }
 
     useEffect(() => {
-        if (selectedDate && selectedDate <= new Date() && checkDiaryForDate(selectedDate)) {
-            setSavedDiaries([...diaries]);
-            setDiaries(diaries.filter((diary: any) => diary.createdAt.split('T')[0] === selectedDate.toISOString().split('T')[0]));
-        }
         if (!selectedDate) {
-            setDiaries(savedDiaries);
+            setDiaries(buildDiaryList(allDiaries));
+            return;
         }
-    }, [selectedDate]);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate <= today && checkDiaryForDate(selectedDate)) {
+            const selectedKey = toLocalDateKey(selectedDate);
+            const filtered = allDiaries.filter((item: any) => toLocalDateKey(item.createdAt) === selectedKey);
+            setDiaries(buildDiaryList(filtered));
+        } else {
+            setDiaries(buildDiaryList(allDiaries));
+        }
+    }, [selectedDate, allDiaries]);
 
     if (loading) {
         return (

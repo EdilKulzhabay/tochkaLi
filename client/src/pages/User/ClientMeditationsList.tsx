@@ -278,7 +278,7 @@ export const ClientMeditationsList = () => {
                 <div className="px-4 mt-2 pb-10 bg-[#161616]">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                         {meditations.length > 0 ? (
-                            meditations.filter((meditation: any) => meditation.accessType === 'subscription').map((meditation: any) => (
+                            meditations.filter((meditation: any) => meditation.location === 'top').sort((a: any, b: any) => a.order - b.order).map((meditation: any) => (
                                 <div 
                                     key={meditation._id} 
                                     data-card
@@ -303,7 +303,7 @@ export const ClientMeditationsList = () => {
                     <div className="mt-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                         { meditations.length > 0 ? (
                             <>
-                            {meditations.filter((meditation: any) => meditation.accessType === 'stars').map((meditation: any) => (
+                            {meditations.filter((meditation: any) => meditation.location === 'bottom').sort((a: any, b: any) => a.order - b.order).map((meditation: any) => (
                                 <VideoCard 
                                     key={meditation._id} 
                                     title={meditation.title} 
@@ -317,7 +317,7 @@ export const ClientMeditationsList = () => {
                                     duration={meditation?.duration || 0}
                                 />
                             ))}
-                            {meditations.filter((meditation: any) => meditation.accessType === 'free').map((meditation: any) => (
+                            {/* {meditations.filter((meditation: any) => meditation.location === 'bottom' && meditation.accessType === 'free').map((meditation: any) => (
                                 <VideoCard 
                                     key={meditation._id} 
                                     title={meditation.title} 
@@ -330,7 +330,7 @@ export const ClientMeditationsList = () => {
                                     starsRequired={meditation?.starsRequired || 0}
                                     duration={meditation?.duration || 0}
                                 />
-                            ))}
+                            ))} */}
                             </>
                         ) : (
                             <p className="text-center text-gray-500 lg:col-span-2">Нет медитаций</p>

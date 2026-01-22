@@ -278,7 +278,7 @@ export const ClientVideoLessonsList = () => {
                 <div className="px-4 mt-2 pb-10 bg-[#161616]">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                         {videoLessons.length > 0 ? (
-                            videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'subscription').map((videoLesson: any) => (
+                            videoLessons.filter((videoLesson: any) => videoLesson.location === 'top').sort((a: any, b: any) => a.order - b.order).map((videoLesson: any) => (
                                 <div 
                                     key={videoLesson._id} 
                                     data-card
@@ -304,7 +304,7 @@ export const ClientVideoLessonsList = () => {
                         { videoLessons.length > 0 ? (
                             <>
                                 {
-                                    videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'stars').map((videoLesson: any) => (
+                                    videoLessons.filter((videoLesson: any) => videoLesson.location === 'bottom').sort((a: any, b: any) => a.order - b.order).map((videoLesson: any) => (
                                         <VideoCard 
                                             key={videoLesson._id} 
                                             title={videoLesson.title} 
@@ -319,7 +319,7 @@ export const ClientVideoLessonsList = () => {
                                         />
                                     ))
                                 }
-                                {
+                                {/* {
                                     videoLessons.filter((videoLesson: any) => videoLesson.accessType === 'free').map((videoLesson: any) => (
                                         <VideoCard 
                                             key={videoLesson._id} 
@@ -334,7 +334,7 @@ export const ClientVideoLessonsList = () => {
                                             duration={videoLesson?.duration || 0}
                                         />
                                     ))
-                                }
+                                } */}
                             </>
                         ) : (
                             <p className="text-center text-gray-500 lg:col-span-2">Нет видео уроков</p>

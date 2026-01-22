@@ -500,6 +500,7 @@ export const getAllUsers = async (req, res) => {
 
         // Параметры фильтрации
         const statusFilter = req.query.statusFilter || 'all';
+        const lastActiveFilter = req.query.lastActiveFilter || 'all';
         const searchQuery = req.query.searchQuery || '';
 
         // Параметры сортировки
@@ -521,6 +522,13 @@ export const getAllUsers = async (req, res) => {
             // Если "all", показываем всех, но исключаем заблокированных если нужно
             // Или показываем всех включая заблокированных
             // Оставляем как есть - показываем всех
+        }
+
+        // Фильтр по активности
+        if (lastActiveFilter === 'active') {
+            filter.lastActiveDate = { $ne: null };
+        } else if (lastActiveFilter === 'inactive') {
+            filter.lastActiveDate = { $eq: null };
         }
 
         // Поиск по полям (если указан)

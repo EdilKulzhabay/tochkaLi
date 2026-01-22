@@ -7,9 +7,13 @@ import crypto from 'crypto';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Пароль для доступа к Swagger (из env файла)
+// Логин/пароль для доступа к Swagger (из env файла)
+const swaggerLogin = process.env.SWAGGER_LOGIN || 'admin';
 const swaggerPassword = process.env.SWAGGER_PASSWORD || 'admin123';
 const swaggerAuthSessions = new Set(); // Простое хранилище сессий в памяти
+const swaggerAuthAttempts = new Map(); // key -> { count, lockedUntil }
+const MAX_SWAGGER_ATTEMPTS = 3;
+const SWAGGER_LOCK_MS = 60 * 1000;
 
 // Middleware для проверки доступа к Swagger
 export const swaggerAuthMiddleware = (req, res, next) => {
@@ -191,8 +195,12 @@ const getSwaggerAuthPage = (redirectPath) => {
             <h1>🔐 Swagger UI</h1>
             <form id="authForm">
                 <div class="form-group">
+                    <label for="login">Логин:</label>
+                    <input type="text" id="login" name="login" required autocomplete="username">
+                </div>
+                <div class="form-group">
                     <label for="password">Пароль:</label>
-                    <input type="password" id="password" name="password" required autofocus>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
                 </div>
                 <div class="error" id="errorMessage">Неверный пароль</div>
                 <div class="loading" id="loading">Проверка...</div>
@@ -203,15 +211,37 @@ const getSwaggerAuthPage = (redirectPath) => {
     
     <script>
         const form = document.getElementById('authForm');
+        const loginInput = document.getElementById('login');
         const passwordInput = document.getElementById('password');
         const errorMessage = document.getElementById('errorMessage');
         const loading = document.getElementById('loading');
         const submitBtn = document.getElementById('submitBtn');
         const modalOverlay = document.getElementById('modalOverlay');
+
+        const setLockedState = (lockedUntilMs) => {
+            const now = Date.now();
+            const remainingMs = Math.max(0, lockedUntilMs - now);
+            const remainingSec = Math.ceil(remainingMs / 1000);
+
+            if (remainingSec > 0) {
+                loginInput.disabled = true;
+                passwordInput.disabled = true;
+                submitBtn.disabled = true;
+                errorMessage.textContent = 'Слишком много попыток. Подождите ' + remainingSec + ' сек.';
+                errorMessage.classList.add('show');
+                return remainingSec;
+            }
+
+            loginInput.disabled = false;
+            passwordInput.disabled = false;
+            submitBtn.disabled = false;
+            return 0;
+        };
         
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const login = loginInput.value;
             const password = passwordInput.value;
             
             // Показываем загрузку
@@ -230,7 +260,7 @@ const getSwaggerAuthPage = (redirectPath) => {
                         'Content-Type': 'application/json',
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ login, password })
                 });
                 
                 const data = await response.json();
@@ -240,7 +270,13 @@ const getSwaggerAuthPage = (redirectPath) => {
                     modalOverlay.style.display = 'none';
                     window.location.reload();
                 } else {
+                    if (data.lockedUntil) {
+                        setLockedState(data.lockedUntil);
+                        return;
+                    }
+
                     // Ошибка авторизации
+                    errorMessage.textContent = data.message || 'Неверный логин или пароль';
                     errorMessage.classList.add('show');
                     passwordInput.value = '';
                     passwordInput.focus();
@@ -256,7 +292,7 @@ const getSwaggerAuthPage = (redirectPath) => {
         });
         
         // Фокус на поле ввода при загрузке
-        passwordInput.focus();
+        loginInput.focus();
     </script>
 </body>
 </html>
@@ -340,12 +376,21 @@ const getSwaggerCustomJs = () => {
 
 // Обработчик проверки пароля
 export const handleSwaggerAuthCheck = (req, res) => {
-    const { password } = req.body;
+    const { login, password } = req.body;
+    const attemptKey = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const attemptState = swaggerAuthAttempts.get(attemptKey) || { count: 0, lockedUntil: 0 };
+    const now = Date.now();
 
-    console.log("handleSwaggerAuthCheck password: ", password);
-    console.log("handleSwaggerAuthCheck swaggerPassword: ", swaggerPassword);
-    console.log("handleSwaggerAuthCheck password === swaggerPassword: ", password === swaggerPassword);
-    if (password === swaggerPassword) {
+    if (attemptState.lockedUntil && attemptState.lockedUntil > now) {
+        return res.status(429).json({
+            success: false,
+            message: 'Слишком много попыток. Попробуйте позже.',
+            lockedUntil: attemptState.lockedUntil,
+        });
+    }
+
+    if (login === swaggerLogin && password === swaggerPassword) {
+        swaggerAuthAttempts.delete(attemptKey);
         // Создаем сессию
         const sessionId = crypto.randomBytes(32).toString('hex');
         swaggerAuthSessions.add(sessionId);
@@ -361,7 +406,20 @@ export const handleSwaggerAuthCheck = (req, res) => {
         
         res.json({ success: true });
     } else {
-        res.status(401).json({ success: false, message: 'Неверный пароль' });
+        const nextCount = attemptState.count + 1;
+        const shouldLock = nextCount >= MAX_SWAGGER_ATTEMPTS;
+        const lockedUntil = shouldLock ? now + SWAGGER_LOCK_MS : 0;
+
+        swaggerAuthAttempts.set(attemptKey, {
+            count: shouldLock ? 0 : nextCount,
+            lockedUntil,
+        });
+
+        res.status(401).json({
+            success: false,
+            message: 'Неверный логин или пароль',
+            lockedUntil: lockedUntil || undefined,
+        });
     }
 };
 

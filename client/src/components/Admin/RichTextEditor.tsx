@@ -20,8 +20,10 @@ interface RichTextEditorProps {
 
 export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' }: RichTextEditorProps) => {
     const editorRef = useRef<HTMLDivElement>(null);
+    const selectionRangeRef = useRef<Range | null>(null);
     const [selectionFont, setSelectionFont] = useState<string>('—');
     const [selectionSize, setSelectionSize] = useState<string>('—');
+    const [currentColor, setCurrentColor] = useState<string>('#000000');
 
     useEffect(() => {
         if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -42,6 +44,8 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
                 ? (anchorNode as HTMLElement)
                 : (anchorNode.parentElement as HTMLElement | null);
             if (!elementNode || !root.contains(elementNode)) return;
+
+            selectionRangeRef.current = selection.getRangeAt(0).cloneRange();
 
             const styles = window.getComputedStyle(elementNode);
             const fontFamily = styles.fontFamily || '—';
@@ -86,7 +90,61 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
     };
 
     const execCommand = (command: string, value?: string) => {
+        // Для корректной работы цвета применяем inline-стили
+        document.execCommand('styleWithCSS', false, 'true');
         document.execCommand(command, false, value);
+        editorRef.current?.focus();
+    };
+
+    const applyTextColor = (color: string) => {
+        setCurrentColor(color);
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+            if (selectionRangeRef.current && selection) {
+                selection.removeAllRanges();
+                selection.addRange(selectionRangeRef.current);
+            } else {
+                execCommand('foreColor', color);
+                return;
+            }
+        }
+
+        const range = selection?.rangeCount ? selection.getRangeAt(0) : selectionRangeRef.current;
+        if (!range) {
+            execCommand('foreColor', color);
+            return;
+        }
+        const span = document.createElement('span');
+        span.style.color = color;
+
+        if (range.collapsed) {
+            // Создаем "карман" нужного цвета, чтобы дальнейший ввод был окрашен
+            const zeroWidthSpace = document.createTextNode('\u200B');
+            span.appendChild(zeroWidthSpace);
+            range.insertNode(span);
+
+            const newRange = document.createRange();
+            newRange.setStart(zeroWidthSpace, 1);
+            newRange.setEnd(zeroWidthSpace, 1);
+            selection?.removeAllRanges();
+            selection?.addRange(newRange);
+            selectionRangeRef.current = newRange.cloneRange();
+            editorRef.current?.focus();
+            return;
+        }
+
+        try {
+            range.surroundContents(span);
+        } catch (error) {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+        }
+
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        selectionRangeRef.current = range.cloneRange();
+        handleInput();
         editorRef.current?.focus();
     };
 
@@ -216,6 +274,16 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
                 <div className="px-2 py-1 text-xs text-gray-600 bg-white border rounded">
                     {selectionFont} • {selectionSize}
                 </div>
+                <label className="flex items-center gap-2 px-2 py-1 text-xs text-gray-600 bg-white border rounded cursor-pointer">
+                    Цвет
+                    <input
+                        type="color"
+                        value={currentColor}
+                        onChange={(e) => applyTextColor(e.target.value)}
+                        className="h-5 w-8 cursor-pointer border-0 bg-transparent p-0"
+                        title="Цвет текста"
+                    />
+                </label>
                 {toolbarButtons.map((button, index) => {
                     const Icon = button.icon;
                     return (
@@ -237,7 +305,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
 
             {/* Info banner */}
             <div className="bg-blue-50 border-b border-blue-200 px-3 py-2 text-xs text-blue-800">
-                💡 <strong>Telegram HTML:</strong> Поддерживает жирный, курсив, подчеркнутый, зачеркнутый, списки, спойлер, цитату и ссылки
+                💡 <strong>Telegram HTML:</strong> Поддерживает жирный, курсив, подчеркнутый, зачеркнутый, списки, спойлер, цитату, ссылки и цвет текста
             </div>
 
             {/* Editor */}

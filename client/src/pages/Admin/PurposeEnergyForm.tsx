@@ -5,13 +5,11 @@ import { RichTextEditor } from '../../components/Admin/RichTextEditor';
 import { MyInput } from '../../components/Admin/MyInput';
 import { MyButton } from '../../components/Admin/MyButton';
 import { ImageUpload } from '../../components/Admin/ImageUpload';
-import { MonthDayInput } from '../../components/Admin/MonthDayInput';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import api from '../../api';
 import { toast } from 'react-toastify';
 
 interface ContentItem {
-    type: 'video' | 'rutube' | 'text' | 'image';
     videoUrl?: string;
     ruTubeUrl?: string;
     text?: string;
@@ -19,28 +17,33 @@ interface ContentItem {
 }
 
 interface FormData {
-    startDate: string;
-    endDate: string;
     title: string;
-    subtitle: string;
-    image: string;
-    content: ContentItem[];
+    shortDescription: string;
+    imageUrl: string;
     accessType: string;
+    starsRequired: number;
+    duration: number;
+    order: number;
+    allowRepeatBonus: boolean;
+    location: 'top' | 'bottom';
+    content: ContentItem[];
 }
 
 export const PurposeEnergyForm = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
-    const [showTypePicker, setShowTypePicker] = useState(false);
     const [formData, setFormData] = useState<FormData>({
-        startDate: '',
-        endDate: '',
         title: '',
-        subtitle: '',
-        image: '',
+        shortDescription: '',
+        imageUrl: '',
+        accessType: 'free',
+        starsRequired: 0,
+        duration: 0,
+        order: 0,
+        allowRepeatBonus: false,
+        location: 'bottom',
         content: [],
-        accessType: 'subscription',
     });
 
     useEffect(() => {
@@ -53,25 +56,23 @@ export const PurposeEnergyForm = () => {
         try {
             const response = await api.get(`/api/purpose-energy/${id}`);
             const data = response.data.data;
-            const mappedContent: ContentItem[] = (data.content || []).map((item: ContentItem) => {
-                const inferredType = item.type
-                    || (item.videoUrl ? 'video' : item.ruTubeUrl ? 'rutube' : item.image ? 'image' : 'text');
-                return {
-                    type: inferredType,
-                    videoUrl: item.videoUrl || '',
-                    ruTubeUrl: item.ruTubeUrl || '',
-                    text: item.text || '',
-                    image: item.image || '',
-                };
-            });
+            const mappedContent: ContentItem[] = (data.content || []).map((item: ContentItem) => ({
+                videoUrl: item.videoUrl || '',
+                ruTubeUrl: item.ruTubeUrl || '',
+                text: item.text || '',
+                image: item.image || '',
+            }));
             setFormData({
-                startDate: data.startDate || '',
-                endDate: data.endDate || '',
                 title: data.title || '',
-                subtitle: data.subtitle || '',
-                image: data.image || '',
+                shortDescription: data.shortDescription || '',
+                imageUrl: data.imageUrl || '',
                 content: mappedContent,
-                accessType: data.accessType || 'subscription',
+                accessType: data.accessType || 'free',
+                starsRequired: data.starsRequired ?? 0,
+                duration: data.duration ?? 0,
+                order: data.order ?? 0,
+                allowRepeatBonus: data.allowRepeatBonus ?? false,
+                location: data.location || 'bottom',
             });
         } catch (error) {
             toast.error('Ошибка загрузки энергии предназначения');
@@ -90,12 +91,11 @@ export const PurposeEnergyForm = () => {
         });
     };
 
-    const addContentItem = (type: ContentItem['type']) => {
+    const addContentItem = () => {
         setFormData(prev => ({
             ...prev,
-            content: [...prev.content, { type, videoUrl: '', ruTubeUrl: '', text: '', image: '' }]
+            content: [...prev.content, { videoUrl: '', ruTubeUrl: '', text: '', image: '' }]
         }));
-        setShowTypePicker(false);
     };
 
     const removeContentItem = (index: number) => {
@@ -145,22 +145,6 @@ export const PurposeEnergyForm = () => {
                     <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
                         <h2 className="text-xl font-semibold text-gray-900">Настройки</h2>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <MonthDayInput
-                                label="Начальная дата"
-                                value={formData.startDate}
-                                onChange={(value) => setFormData({ ...formData, startDate: value })}
-                                placeholder="Выберите начальную дату"
-                            />
-                            <MonthDayInput
-                                label="Конечная дата"
-                                value={formData.endDate}
-                                onChange={(value) => setFormData({ ...formData, endDate: value })}
-                                placeholder="Выберите конечную дату"
-                                min={formData.startDate || undefined}
-                            />
-                        </div>
-
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium">Доступ</label>
                             <select
@@ -171,7 +155,58 @@ export const PurposeEnergyForm = () => {
                                 <option value="free">Бесплатно</option>
                                 <option value="paid">Платно</option>
                                 <option value="subscription">Подписка</option>
+                                <option value="stars">Звезды</option>
                             </select>
+                        </div>
+
+                        {formData.accessType === 'stars' && (
+                            <MyInput
+                                label="Стоимость в звездах"
+                                type="number"
+                                value={String(formData.starsRequired)}
+                                onChange={(e) => setFormData({ ...formData, starsRequired: Number(e.target.value) || 0 })}
+                                min="0"
+                            />
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <MyInput
+                                label="Длительность (мин)"
+                                type="number"
+                                value={String(formData.duration)}
+                                onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) || 0 })}
+                                min="0"
+                            />
+                            <MyInput
+                                label="Порядок"
+                                type="number"
+                                value={String(formData.order)}
+                                onChange={(e) => setFormData({ ...formData, order: Number(e.target.value) || 0 })}
+                                min="0"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-medium">Позиция</label>
+                                <select
+                                    value={formData.location}
+                                    onChange={(e) => setFormData({ ...formData, location: e.target.value as FormData['location'] })}
+                                    className="w-full p-2 rounded-md border border-gray-300"
+                                >
+                                    <option value="top">Верх</option>
+                                    <option value="bottom">Низ</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-3 pt-6">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.allowRepeatBonus}
+                                    onChange={(e) => setFormData({ ...formData, allowRepeatBonus: e.target.checked })}
+                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                />
+                                <span className="text-sm">Разрешить повторный бонус</span>
+                            </div>
                         </div>
                     </div>
 
@@ -187,16 +222,16 @@ export const PurposeEnergyForm = () => {
                         />
 
                         <MyInput
-                            label="Подзаголовок"
+                            label="Краткое описание"
                             type="text"
-                            value={formData.subtitle}
-                            onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                            placeholder="Введите подзаголовок"
+                            value={formData.shortDescription}
+                            onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                            placeholder="Введите краткое описание"
                         />
 
                         <ImageUpload
-                            value={formData.image}
-                            onChange={(url) => setFormData({ ...formData, image: url })}
+                            value={formData.imageUrl}
+                            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                             label="Изображение"
                         />
                     </div>
@@ -223,59 +258,34 @@ export const PurposeEnergyForm = () => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Тип контента</label>
-                                            <select
-                                                value={item.type}
-                                                onChange={(e) => handleContentChange(index, 'type', e.target.value)}
-                                                className="w-full p-2 rounded-md border border-gray-300"
-                                            >
-                                                <option value="video">Видео</option>
-                                                <option value="rutube">RuTube</option>
-                                                <option value="text">Текст</option>
-                                                <option value="image">Изображение</option>
-                                            </select>
+                                        <MyInput
+                                            label="Ссылка на видео"
+                                            type="text"
+                                            value={item.videoUrl || ''}
+                                            onChange={(e) => handleContentChange(index, 'videoUrl', e.target.value)}
+                                            placeholder="https://..."
+                                        />
+                                        <MyInput
+                                            label="Ссылка на RuTube"
+                                            type="text"
+                                            value={item.ruTubeUrl || ''}
+                                            onChange={(e) => handleContentChange(index, 'ruTubeUrl', e.target.value)}
+                                            placeholder="https://..."
+                                        />
+                                        <ImageUpload
+                                            value={item.image || ''}
+                                            onChange={(url) => handleContentChange(index, 'image', url)}
+                                            label="Изображение"
+                                        />
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2">Текст</label>
+                                            <RichTextEditor
+                                                value={item.text || ''}
+                                                onChange={(value) => handleContentChange(index, 'text', value)}
+                                                placeholder="Введите текст"
+                                                height="200px"
+                                            />
                                         </div>
-
-                                        {item.type === 'video' && (
-                                            <MyInput
-                                                label="Ссылка на видео"
-                                                type="text"
-                                                value={item.videoUrl || ''}
-                                                onChange={(e) => handleContentChange(index, 'videoUrl', e.target.value)}
-                                                placeholder="https://..."
-                                            />
-                                        )}
-
-                                        {item.type === 'rutube' && (
-                                            <MyInput
-                                                label="Ссылка на RuTube"
-                                                type="text"
-                                                value={item.ruTubeUrl || ''}
-                                                onChange={(e) => handleContentChange(index, 'ruTubeUrl', e.target.value)}
-                                                placeholder="https://..."
-                                            />
-                                        )}
-
-                                        {item.type === 'image' && (
-                                            <ImageUpload
-                                                value={item.image || ''}
-                                                onChange={(url) => handleContentChange(index, 'image', url)}
-                                                label="Изображение"
-                                            />
-                                        )}
-
-                                        {item.type === 'text' && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-2">Текст</label>
-                                                <RichTextEditor
-                                                    value={item.text || ''}
-                                                    onChange={(value) => handleContentChange(index, 'text', value)}
-                                                    placeholder="Введите текст"
-                                                    height="200px"
-                                                />
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -288,41 +298,9 @@ export const PurposeEnergyForm = () => {
                         </div>
 
                         <div className="flex flex-col items-end gap-3">
-                            {showTypePicker && (
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => addContentItem('video')}
-                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        Ссылка на видео
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => addContentItem('rutube')}
-                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        Ссылка на RuTube
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => addContentItem('text')}
-                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        Текст
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => addContentItem('image')}
-                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        Изображение
-                                    </button>
-                                </div>
-                            )}
                             <button
                                 type="button"
-                                onClick={() => setShowTypePicker((prev) => !prev)}
+                                onClick={addContentItem}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 <Plus size={16} />

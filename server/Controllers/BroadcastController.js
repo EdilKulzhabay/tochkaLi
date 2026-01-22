@@ -26,7 +26,7 @@ const sendTelegramMessage = async (chatId, message) => {
 // Получить пользователей с фильтрацией по статусу и поиску
 export const getFilteredUsers = async (req, res) => {
     try {
-        const { status, search } = req.body;
+        const { status, search, lastActiveFilter } = req.body;
         console.log("status: ", status);
         console.log("search: ", search);
 
@@ -50,6 +50,13 @@ export const getFilteredUsers = async (req, res) => {
 
         // Получаем только пользователей с telegramId (для рассылки)
         filter.telegramId = { $exists: true, $ne: null, $ne: '' };
+
+        // Фильтр по активности
+        if (lastActiveFilter === 'active') {
+            filter.lastActiveDate = { $ne: null };
+        } else if (lastActiveFilter === 'inactive') {
+            filter.lastActiveDate = { $eq: null };
+        }
 
         // Поиск по нескольким полям
         if (search && search.trim()) {
@@ -102,7 +109,7 @@ const resolveBroadcastContent = async ({ message, imageUrl, buttonText, broadcas
 };
 
 const executeBroadcast = async (payload) => {
-    const { message, status, search, userIds, imageUrl, parseMode, buttonText, buttonUrl, broadcastId, broadcastTitle } = payload;
+    const { message, status, search, lastActiveFilter, userIds, imageUrl, parseMode, buttonText, buttonUrl, broadcastId, broadcastTitle } = payload;
 
     const { finalMessage, finalImageUrl, finalButtonText } = await resolveBroadcastContent({
         message,
@@ -148,6 +155,12 @@ const executeBroadcast = async (payload) => {
             }
 
             filter.telegramId = { $exists: true, $ne: null, $ne: '' };
+
+            if (lastActiveFilter === 'active') {
+                filter.lastActiveDate = { $ne: null };
+            } else if (lastActiveFilter === 'inactive') {
+                filter.lastActiveDate = { $eq: null };
+            }
 
             if (search && search.trim()) {
                 const searchRegex = new RegExp(search.trim(), 'i');

@@ -2,38 +2,44 @@ import mongoose from 'mongoose';
 
 const PurposeEnergySchema = new mongoose.Schema(
   {
-    startDate: {
-      type: String,
-      required: [true, 'Начальная дата обязательна'],
-      validate: {
-        validator: function(v) {
-          return /^\d{2}-\d{2}$/.test(v);
-        },
-        message: 'Дата должна быть в формате MM-DD'
-      }
-    },
-    endDate: {
-      type: String,
-      required: [true, 'Конечная дата обязательна'],
-      validate: {
-        validator: function(v) {
-          return /^\d{2}-\d{2}$/.test(v);
-        },
-        message: 'Дата должна быть в формате MM-DD'
-      }
-    },
     title: {
       type: String,
-      required: true,
+      required: [true, 'Название обязательно'],
       trim: true,
     },
-    subtitle: {
+    shortDescription: {
       type: String,
-      trim: true,
+      maxlength: [500, 'Краткое описание не должно превышать 500 символов'],
     },
-    image: {
+    imageUrl: {
       type: String,
-      trim: true,
+    },
+    accessType: {
+      type: String,
+      enum: ['free', 'paid', 'subscription', 'stars'],
+      default: 'free',
+    },
+    starsRequired: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    duration: {
+      type: Number,
+      min: 0,
+    },
+    order: {
+      type: Number,
+      default: 0,
+    },
+    allowRepeatBonus: {
+      type: Boolean,
+      default: false,
+    },
+    location: {
+      type: String,
+      enum: ['top', 'bottom'],
+      default: 'bottom',
     },
     content: [
         {
@@ -54,13 +60,7 @@ const PurposeEnergySchema = new mongoose.Schema(
                 trim: true,
             },
         }
-    ],
-    accessType: {
-      type: String,
-      enum: ['free', 'paid', 'subscription'],
-      default: 'subscription',
-      required: true,
-    },
+    ]
   },
   {
     timestamps: true,

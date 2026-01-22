@@ -278,7 +278,7 @@ export const ClientPracticesList = () => {
                 <div className="px-4 mt-2 pb-10 bg-[#161616]">
                     <div ref={cardsContainerRef} className="flex overflow-x-auto gap-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                         {practices.length > 0 ? (
-                            practices.filter((practice: any) => practice.accessType === 'subscription').map((practice: any) => (
+                            practices.filter((practice: any) => practice.location === 'top').sort((a: any, b: any) => a.order - b.order).map((practice: any) => (
                                 <div 
                                     key={practice._id} 
                                     data-card
@@ -304,7 +304,7 @@ export const ClientPracticesList = () => {
                         { practices.length > 0 ? (
                             <>
                                 {
-                                    practices.filter((practice: any) => practice.accessType === 'stars').map((practice: any) => (
+                                    practices.filter((practice: any) => practice.location === 'bottom').sort((a: any, b: any) => a.order - b.order).map((practice: any) => (
                                         <VideoCard 
                                             key={practice._id} 
                                             title={practice.title} 
@@ -319,8 +319,8 @@ export const ClientPracticesList = () => {
                                         />
                                     ))
                                 }
-                                {
-                                    practices.filter((practice: any) => practice.accessType === 'free').map((practice: any) => (
+                                {/* {
+                                    practices.filter((practice: any) => practice.location === 'bottom' && practice.accessType === 'free').map((practice: any) => (
                                         <VideoCard 
                                             key={practice._id} 
                                             title={practice.title} 
@@ -334,7 +334,7 @@ export const ClientPracticesList = () => {
                                             duration={practice?.duration || 0}
                                         />
                                     ))
-                                }
+                                } */}
                             </>
                         ) : (
                             <p className="text-center text-gray-500 lg:col-span-2">Нет практик</p>
