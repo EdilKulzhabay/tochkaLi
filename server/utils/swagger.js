@@ -31,8 +31,8 @@ export const swaggerAuthMiddleware = (req, res, next) => {
         return next();
     }
     
-    // Если это запрос на проверку пароля, пропускаем
-    if (fullPath.includes('/swagger-auth/check')) {
+    // Если это запрос на проверку/выход, пропускаем
+    if (fullPath.includes('/swagger-auth/check') || fullPath.includes('/swagger-auth/logout')) {
         return next();
     }
     
@@ -263,6 +263,81 @@ const getSwaggerAuthPage = (redirectPath) => {
     `;
 };
 
+const swaggerCustomCss = `
+.swagger-ui .topbar {
+    background: #1a1a1a;
+    border-bottom: 1px solid #2b2b2b;
+}
+.swagger-ui .topbar-wrapper {
+    display: flex;
+    align-items: center;
+    padding-right: 16px;
+}
+.swagger-ui .topbar-wrapper .link {
+    display: none;
+}
+.swagger-ui .swagger-logout-btn {
+    margin-left: auto;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #e74c3c;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+.swagger-ui .swagger-logout-btn:hover {
+    background: #d64538;
+}
+.swagger-ui .swagger-logout-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+`;
+
+const getSwaggerCustomJs = () => {
+    return `
+(() => {
+  const ensureLogoutButton = () => {
+    const topbar = document.querySelector('.swagger-ui .topbar-wrapper');
+    if (!topbar) return false;
+    if (document.getElementById('swaggerLogoutBtn')) return true;
+
+    const button = document.createElement('button');
+    button.id = 'swaggerLogoutBtn';
+    button.className = 'swagger-logout-btn';
+    button.textContent = 'Выйти';
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        // Nginx проксирует /api/ на /, поэтому используем /api/swagger-auth/logout
+        const response = await fetch('/api/swagger-auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          button.disabled = false;
+        }
+      } catch (e) {
+        button.disabled = false;
+      }
+    });
+
+    topbar.appendChild(button);
+    return true;
+  };
+
+  const interval = setInterval(() => {
+    if (ensureLogoutButton()) {
+      clearInterval(interval);
+    }
+  }, 300);
+})();
+`;
+};
+
 // Обработчик проверки пароля
 export const handleSwaggerAuthCheck = (req, res) => {
     const { password } = req.body;
@@ -290,6 +365,29 @@ export const handleSwaggerAuthCheck = (req, res) => {
     }
 };
 
+// Обработчик выхода из Swagger
+export const handleSwaggerAuthLogout = (req, res) => {
+    const sessionId = req.cookies?.swagger_session;
+    if (sessionId) {
+        swaggerAuthSessions.delete(sessionId);
+    }
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.clearCookie('swagger_session', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax'
+    });
+
+    res.json({ success: true });
+};
+
+// Выдаем кастомный JS для кнопки выхода
+export const handleSwaggerCustomJs = (req, res) => {
+    res.set('Content-Type', 'application/javascript');
+    res.send(getSwaggerCustomJs());
+};
+
 // Функция для настройки Swagger UI
 export const setupSwagger = (app) => {
     // Загружаем Swagger документ
@@ -312,7 +410,8 @@ export const setupSwagger = (app) => {
         // Маршрут /docs - для работы через Nginx проксирование /api/ -> /
         // Когда пользователь обращается к /api/docs, Nginx проксирует на /docs
         app.use('/docs', swaggerAuthMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-            customCss: '.swagger-ui .topbar { display: none }',
+            customCss: swaggerCustomCss,
+            customJs: '/api/swagger-ui/custom.js',
             customSiteTitle: "TochkaLi API Documentation",
             swaggerOptions: {
                 persistAuthorization: true,
@@ -322,7 +421,8 @@ export const setupSwagger = (app) => {
         
         // Основной маршрут для Swagger (на случай прямого доступа)
         app.use('/api/docs', swaggerAuthMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-            customCss: '.swagger-ui .topbar { display: none }',
+            customCss: swaggerCustomCss,
+            customJs: '/api/swagger-ui/custom.js',
             customSiteTitle: "TochkaLi API Documentation",
             swaggerOptions: {
                 persistAuthorization: true,
@@ -332,7 +432,8 @@ export const setupSwagger = (app) => {
         
         // Обработка пути /api/api/docs (для совместимости с Nginx проксированием)
         app.use('/api/api/docs', swaggerAuthMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-            customCss: '.swagger-ui .topbar { display: none }',
+            customCss: swaggerCustomCss,
+            customJs: '/api/swagger-ui/custom.js',
             customSiteTitle: "TochkaLi API Documentation",
             swaggerOptions: {
                 persistAuthorization: true,
