@@ -168,16 +168,16 @@ app.get("/api/user/check-session", authMiddleware, (req, res) => {
 app.post("/api/user/logout", authMiddleware, UserController.logout);
 
 // Управление пользователями (для client_manager, manager, admin)
-app.post("/api/user/create-by-admin", createUserRateLimit, UserController.createUserByAdmin);
+app.post("/api/user/create-by-admin", createUserRateLimit, authMiddleware, UserController.createUserByAdmin);
 app.get("/api/user/all", UserController.getAllUsers);
 app.get("/api/user/export/excel", UserController.exportUsersToExcel);
 app.get("/api/user/:id", UserController.getUserById);
-app.put("/api/user/:id", UserController.updateUser);
-app.put("/api/user/:id/activate-subscription", UserController.activateSubscription);
-app.put("/api/user/:id/deactivate-subscription", UserController.deactivateSubscription);
-app.put("/api/user/:id/block", UserController.blockUser);
-app.put("/api/user/:id/unblock", UserController.unblockUser);
-app.delete("/api/user/:id", UserController.deleteUser);
+app.put("/api/user/:id", authMiddleware, UserController.updateUser);
+app.put("/api/user/:id/activate-subscription", authMiddleware, UserController.activateSubscription);
+app.put("/api/user/:id/deactivate-subscription", authMiddleware, UserController.deactivateSubscription);
+app.put("/api/user/:id/block", authMiddleware, UserController.blockUser);
+app.put("/api/user/:id/unblock", authMiddleware, UserController.unblockUser);
+app.delete("/api/user/:id", authMiddleware, UserController.deleteUser);
 
 // Управление администраторами (только для admin)
 app.get("/api/admin/all", authMiddleware, UserController.getAllAdmins);
