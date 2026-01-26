@@ -320,12 +320,17 @@ export const DateRangeCalendar = ({
                                 aspect-square p-2 rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
                                 ${inRange ? 'bg-white/20' : ''}
                                 ${selected ? 'bg-white/40 text-white font-semibold' : 'text-white/40'}
-                                ${borderColor ? 'border' : ''}
                                 hover:bg-white/10
                             `}
-                            style={borderColor ? { borderColor: borderColor } : undefined}
                         >
-                            <span>{day}</span>
+                            <div className={`
+                                    w-6 h-6  rounded-full text-sm transition-colors relative flex flex-col items-center justify-center
+                                    ${borderColor ? 'border' : ''}
+                                `}
+                                style={borderColor ? { borderColor: borderColor } : undefined}
+                            >
+                                <p>{day}</p>
+                            </div>
                             {dotColor && (
                                 <span
                                     className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
