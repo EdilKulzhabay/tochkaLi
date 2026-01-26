@@ -1,8 +1,10 @@
 import AboutClub from "../Models/AboutClub.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новый контент о клубе
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { title, image, content, list } = req.body;
 
         if (!title || !content) {
@@ -20,6 +22,8 @@ export const create = async (req, res) => {
         });
 
         await aboutClub.save();
+
+        await addAdminAction(user._id, `Создал(а) контент о клубе: "${aboutClub.title}"`);
 
         res.status(201).json({
             success: true,
@@ -87,6 +91,7 @@ export const getById = async (req, res) => {
 // Обновить контент о клубе
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -102,6 +107,8 @@ export const update = async (req, res) => {
                 message: "Контент о клубе не найден",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) контент о клубе: "${aboutClub.title}"`);
 
         res.json({
             success: true,
@@ -121,6 +128,7 @@ export const update = async (req, res) => {
 // Удалить контент о клубе
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const aboutClub = await AboutClub.findByIdAndDelete(id);
@@ -131,6 +139,8 @@ export const remove = async (req, res) => {
                 message: "Контент о клубе не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) контент о клубе: "${aboutClub.title}"`);
 
         res.json({
             success: true,

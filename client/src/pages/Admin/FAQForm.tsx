@@ -71,10 +71,10 @@ export const FAQForm = () => {
                         className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
                     >
                         <ArrowLeft size={20} />
-                        Назад к FAQ
+                        Назад к списку
                     </button>
                     <h1 className="text-3xl font-bold text-gray-900">
-                        {isEdit ? 'Редактировать FAQ' : 'Создать FAQ'}
+                        {isEdit ? 'Редактировать вопрос' : 'Добавить вопрос'}
                     </h1>
                 </div>
 

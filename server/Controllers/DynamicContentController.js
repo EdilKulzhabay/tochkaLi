@@ -1,8 +1,10 @@
 import DynamicContent from "../Models/DynamicContent.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новый динамический контент
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { name, content } = req.body;
 
         if (!name || !content) {
@@ -18,6 +20,8 @@ export const create = async (req, res) => {
         });
 
         await dynamicContent.save();
+
+        await addAdminAction(user._id, `Создал(а) динамический контент: "${name}"`);
 
         res.status(201).json({
             success: true,
@@ -122,6 +126,7 @@ export const getBlockedBrowserContent = async (req, res) => {
 // Обновить динамический контент
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -137,6 +142,8 @@ export const update = async (req, res) => {
                 message: "Динамический контент не найден",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) динамический контент: "${dynamicContent.name}"`);
 
         res.json({
             success: true,
@@ -156,6 +163,7 @@ export const update = async (req, res) => {
 // Удалить динамический контент
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const dynamicContent = await DynamicContent.findByIdAndDelete(id);
@@ -166,6 +174,8 @@ export const remove = async (req, res) => {
                 message: "Динамический контент не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) динамический контент: "${dynamicContent.name}"`);
 
         res.json({
             success: true,

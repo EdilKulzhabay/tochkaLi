@@ -1,4 +1,5 @@
 import User from "../Models/User.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Получить пользователей с фильтрацией по статусу и поиску (для выбора получателей)
 export const getFilteredUsers = async (req, res) => {
@@ -53,6 +54,7 @@ export const getFilteredUsers = async (req, res) => {
 // Создать модальное уведомление для пользователей
 export const createModalNotification = async (req, res) => {
     try {
+        const user = req.user;
         const { modalTitle, modalDescription, modalButtonText, modalButtonLink, userIds, status } = req.body;
 
         // Валидация обязательных полей
@@ -103,6 +105,8 @@ export const createModalNotification = async (req, res) => {
             updatedCount = result.modifiedCount;
         }
 
+        await addAdminAction(user._id, `Создал(а) модальное уведомление: "${modalTitle}"`);
+
         res.json({
             success: true,
             message: `Модальное уведомление создано для ${updatedCount} пользователей`,
@@ -120,6 +124,7 @@ export const createModalNotification = async (req, res) => {
 // Удалить модальное уведомление у пользователя (после нажатия на кнопку)
 export const removeModalNotification = async (req, res) => {
     try {
+        const admin = req.user;
         const { notificationIndex, mail } = req.body;
 
         if (notificationIndex === undefined || notificationIndex === null) {
@@ -148,6 +153,7 @@ export const removeModalNotification = async (req, res) => {
         // Удаляем уведомление по индексу
         user.modalNotifications.splice(notificationIndex, 1);
         await user.save();
+        await addAdminAction(admin._id, `Удалил(а) модальное уведомление: "${user.modalNotifications[notificationIndex].modalTitle}"`);
 
         res.json({
             success: true,

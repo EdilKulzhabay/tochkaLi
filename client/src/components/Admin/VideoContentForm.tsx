@@ -35,6 +35,23 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
+
+    const toAccusativeSingle = (word: string) => {
+        if (word.endsWith('ия')) return `${word.slice(0, -2)}ию`;
+        if (word.endsWith('я')) return `${word.slice(0, -1)}ю`;
+        if (word.endsWith('а')) return `${word.slice(0, -1)}у`;
+        return word;
+    };
+
+    const toAccusativePhrase = (phrase: string) => {
+        const normalized = phrase.trim().toLowerCase() === "видео урок" ? "видео" : phrase.trim().toLowerCase();
+        if (!normalized) return normalized;
+        const parts = normalized.split(/\s+/);
+        parts[0] = toAccusativeSingle(parts[0]);
+        return parts.join(' ');
+    };
+
+    const actionTitle = toAccusativePhrase(title);
     
     const [formData, setFormData] = useState<FormData>({
         title: '',
@@ -131,7 +148,7 @@ export const VideoContentForm = ({ contentType, title, listRoute }: VideoContent
                         Назад к списку
                     </button>
                     <h1 className="text-3xl font-bold text-gray-900">
-                        {isEdit ? `Редактировать ${title.toLowerCase()}` : `Создать ${title.toLowerCase()}`}
+                        {isEdit ? `Редактировать ${actionTitle}` : `Добавить ${actionTitle}`}
                     </h1>
                 </div>
 

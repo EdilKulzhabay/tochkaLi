@@ -1,8 +1,10 @@
 import FAQ from "../Models/FAQ.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новый FAQ
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { question, answer, order } = req.body;
 
         if (!question || !answer) {
@@ -24,6 +26,8 @@ export const create = async (req, res) => {
             answer,
             order: orderValue,
         });
+
+        await addAdminAction(user._id, `Создал(а) FAQ: "${faq.question}"`);
 
         await faq.save();
 
@@ -94,7 +98,6 @@ export const getById = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const user = req.user;
-        console.log("user in authMiddleware  = ", user);
         const { id } = req.params;
         const updateData = req.body;
 
@@ -110,6 +113,8 @@ export const update = async (req, res) => {
                 message: "FAQ не найден",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) FAQ: "${faq.question}"`);
 
         res.json({
             success: true,
@@ -129,6 +134,7 @@ export const update = async (req, res) => {
 // Удалить FAQ
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const faq = await FAQ.findByIdAndDelete(id);
@@ -139,6 +145,8 @@ export const remove = async (req, res) => {
                 message: "FAQ не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) FAQ: "${faq.question}"`);
 
         res.json({
             success: true,

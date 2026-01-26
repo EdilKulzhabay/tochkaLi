@@ -13,6 +13,7 @@ import goldCheck from "../../assets/goldCheck.png";
 import redCross from "../../assets/redCross.png";
 
 const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+const getWeekdayLabel = (date: Date) => daysOfWeek[(date.getDay() + 6) % 7];
 const width = window.innerWidth;
 const widthPerDay = (width - 60) / 7;
 
@@ -395,7 +396,7 @@ export const ClientDiary = () => {
                         <div
                             ref={calendarContainerRef}
                             onScroll={updateLeftVisibleDate}
-                            className="mt-4 overflow-x-scroll scrollbar-hide flex items-start gap-3 pr-1"
+                            className="mt-4 overflow-x-scroll scrollbar-hide flex items-start gap-2.5 pr-1"
                         >
                             {calendarDates.map((date) => {
                                 const today = new Date();
@@ -414,7 +415,7 @@ export const ClientDiary = () => {
                                         }}
                                         key={date.toISOString().split('T')[0]}
                                     >
-                                        <p className="text-sm">{daysOfWeek[date.getDay()]}</p>
+                                        <p className="text-sm">{getWeekdayLabel(date)}</p>
                                         <div className={`mt-2 text-sm w-6 h-6 flex items-center justify-center ${today.toISOString().split('T')[0] === date.toISOString().split('T')[0] ? 'border-1 border-[#FFC293] rounded-full' : ''} ${selectedDate?.toISOString().split('T')[0] === date.toISOString().split('T')[0] ? 'bg-white/20 rounded-full' : ''}`}>
                                             <p>{date.getDate()}</p>
                                         </div>

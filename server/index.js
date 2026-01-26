@@ -28,7 +28,8 @@ import {
     DiaryController,
     VideoProgressController,
     SubscriptionController,
-    ModalNotificationController
+    ModalNotificationController,
+    AdminActionLogController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
 import { adminActionLogMiddleware } from "./Middlewares/adminActionLogMiddleware.js";
@@ -186,115 +187,118 @@ app.put("/api/admin/:id", authMiddleware, UserController.updateAdmin);
 app.put("/api/admin/:id/block", authMiddleware, UserController.blockAdmin);
 app.put("/api/admin/:id/unblock", authMiddleware, UserController.unblockAdmin);
 
+// Журнал действий админа (только для admin)
+app.get("/api/admin-action-logs", authMiddleware, AdminActionLogController.getAll);
+
 // Управление профилем (для авторизованных пользователей)
 app.put("/api/user/profile/update", UserController.updateProfile);
 app.post("/api/user/purchase-content", UserController.purchaseContent);
 
 // ==================== FAQ маршруты ====================
-app.post("/api/faq", createContentRateLimit, FAQController.create);
+app.post("/api/faq", createContentRateLimit, authMiddleware, FAQController.create);
 app.get("/api/faq", FAQController.getAll);
 app.get("/api/faq/:id", FAQController.getById);
 app.put("/api/faq/:id", authMiddleware, FAQController.update);
-app.delete("/api/faq/:id", FAQController.remove);
+app.delete("/api/faq/:id", authMiddleware, FAQController.remove);
 
 // ==================== Horoscope маршруты ====================
-app.post("/api/horoscope", createContentRateLimit, HoroscopeController.create);
+app.post("/api/horoscope", createContentRateLimit, authMiddleware, HoroscopeController.create);
 app.get("/api/horoscope", HoroscopeController.getAll);
 app.get("/api/horoscope/current", HoroscopeController.getCurrent);
 app.post("/api/horoscope/correct-dates", HoroscopeController.correctHoroscopeDates);
 app.get("/api/horoscope/fill-energy-corridor", HoroscopeController.fillEnergyCorridor);
 app.get("/api/horoscope/:id", HoroscopeController.getById);
-app.put("/api/horoscope/:id", HoroscopeController.update);
-app.delete("/api/horoscope/:id", HoroscopeController.remove);
+app.put("/api/horoscope/:id", authMiddleware, HoroscopeController.update);
+app.delete("/api/horoscope/:id", authMiddleware, HoroscopeController.remove);
 
-app.post("/api/purpose-energy", createContentRateLimit, PurposeEnergyController.create);
+app.post("/api/purpose-energy", createContentRateLimit, authMiddleware, PurposeEnergyController.create);
 app.get("/api/purpose-energy", PurposeEnergyController.getAll);
 app.get("/api/purpose-energy/:id", PurposeEnergyController.getById);
 app.put("/api/purpose-energy/:id", authMiddleware, PurposeEnergyController.update);
-app.delete("/api/purpose-energy/:id", PurposeEnergyController.remove);
+app.delete("/api/purpose-energy/:id", authMiddleware, PurposeEnergyController.remove);
 
 // ==================== Meditation маршруты ====================
-app.post("/api/meditation", createContentRateLimit, MeditationController.create);
+app.post("/api/meditation", createContentRateLimit, authMiddleware, MeditationController.create);
 app.get("/api/meditation", MeditationController.getAll);
 app.get("/api/meditation/:id", MeditationController.getById);
-app.put("/api/meditation/:id", MeditationController.update);
-app.delete("/api/meditation/:id", MeditationController.remove);
+app.put("/api/meditation/:id", authMiddleware, MeditationController.update);
+app.delete("/api/meditation/:id", authMiddleware, MeditationController.remove);
 
 // ==================== Practice маршруты ====================
-app.post("/api/practice", createContentRateLimit, PracticeController.create);
+app.post("/api/practice", createContentRateLimit, authMiddleware, PracticeController.create);
 app.get("/api/practice", PracticeController.getAll);
 app.get("/api/practice/:id", PracticeController.getById);
-app.put("/api/practice/:id", PracticeController.update);
-app.delete("/api/practice/:id", PracticeController.remove);
+app.put("/api/practice/:id", authMiddleware, PracticeController.update);
+app.delete("/api/practice/:id", authMiddleware, PracticeController.remove);
 
 // ==================== VideoLesson маршруты ====================
-app.post("/api/video-lesson", createContentRateLimit, VideoLessonController.create);
+app.post("/api/video-lesson", createContentRateLimit, authMiddleware, VideoLessonController.create);
 app.get("/api/video-lesson", VideoLessonController.getAll);
 app.get("/api/video-lesson/:id", VideoLessonController.getById);
-app.put("/api/video-lesson/:id", VideoLessonController.update);
-app.delete("/api/video-lesson/:id", VideoLessonController.remove);
+app.put("/api/video-lesson/:id", authMiddleware, VideoLessonController.update);
+app.delete("/api/video-lesson/:id", authMiddleware, VideoLessonController.remove);
 
 // ==================== Schedule маршруты ====================
-app.post("/api/schedule", createContentRateLimit, ScheduleController.create);
+app.post("/api/schedule", createContentRateLimit, authMiddleware, ScheduleController.create);
 app.get("/api/schedule", ScheduleController.getAll);
 app.get("/api/schedule/:id", ScheduleController.getById);
-app.put("/api/schedule/:id", ScheduleController.update);
-app.delete("/api/schedule/:id", ScheduleController.remove);
+app.put("/api/schedule/:id", authMiddleware, ScheduleController.update);
+app.delete("/api/schedule/:id", authMiddleware, ScheduleController.remove);
 
 // ==================== Transit маршруты ====================
-app.post("/api/transit", createContentRateLimit, TransitController.create);
+app.post("/api/transit", createContentRateLimit, authMiddleware, TransitController.create);
 app.get("/api/transit", TransitController.getAll);
 app.get("/api/transit/current", TransitController.getCurrent);
 app.get("/api/transit/:id", TransitController.getById);
-app.put("/api/transit/:id", TransitController.update);
-app.delete("/api/transit/:id", TransitController.remove);
+app.put("/api/transit/:id", authMiddleware, TransitController.update);
+app.delete("/api/transit/:id", authMiddleware, TransitController.remove);
 
 // ==================== DynamicContent маршруты ====================
-app.post("/api/dynamic-content", createContentRateLimit, DynamicContentController.create);
+app.post("/api/dynamic-content", createContentRateLimit, authMiddleware, DynamicContentController.create);
 app.get("/api/dynamic-content", DynamicContentController.getAll);
 app.get("/api/dynamic-content/horoscope-corridor", DynamicContentController.getHoroscopeCorridorContent);
 app.get("/api/dynamic-content/blocked-browser", DynamicContentController.getBlockedBrowserContent);
 app.get("/api/dynamic-content/name/:name", DynamicContentController.getByName);
 app.get("/api/dynamic-content/:id", DynamicContentController.getById);
-app.put("/api/dynamic-content/:id", DynamicContentController.update);
-app.delete("/api/dynamic-content/:id", DynamicContentController.remove);
+app.put("/api/dynamic-content/:id", authMiddleware, DynamicContentController.update);
+app.delete("/api/dynamic-content/:id", authMiddleware, DynamicContentController.remove);
 // ==================== Welcome маршруты ====================
-app.post("/api/welcome", createContentRateLimit, WelcomeController.create);
+app.post("/api/welcome", createContentRateLimit, authMiddleware, WelcomeController.create);
 app.get("/api/welcome", WelcomeController.getAll);
 app.get("/api/welcome/:id", WelcomeController.getById);
-app.put("/api/welcome/:id", WelcomeController.update);
-app.delete("/api/welcome/:id", WelcomeController.remove);
+app.put("/api/welcome/:id", authMiddleware, WelcomeController.update);
+app.delete("/api/welcome/:id", authMiddleware, WelcomeController.remove);
 
 // ==================== AboutClub маршруты ====================
-app.post("/api/about-club", createContentRateLimit, AboutClubController.create);
+app.post("/api/about-club", createContentRateLimit, authMiddleware, AboutClubController.create);
 app.get("/api/about-club", AboutClubController.getAll);
 app.get("/api/about-club/:id", AboutClubController.getById);
-app.put("/api/about-club/:id", AboutClubController.update);
-app.delete("/api/about-club/:id", AboutClubController.remove);
+app.put("/api/about-club/:id", authMiddleware, AboutClubController.update);
+app.delete("/api/about-club/:id", authMiddleware, AboutClubController.remove);
 
 // ==================== Schumann маршруты ====================
-app.post("/api/schumann", createContentRateLimit, SchumannController.create);
+app.post("/api/schumann", createContentRateLimit, authMiddleware, SchumannController.create);
 app.get("/api/schumann", SchumannController.getAll);
 app.get("/api/schumann/:id", SchumannController.getById);
-app.put("/api/schumann/:id", SchumannController.update);
-app.delete("/api/schumann/:id", SchumannController.remove);
+app.put("/api/schumann/:id", authMiddleware, SchumannController.update);
+app.delete("/api/schumann/:id", authMiddleware, SchumannController.remove);
 
 // ==================== Broadcast маршруты ====================
 app.post("/api/broadcast/users", BroadcastController.getFilteredUsers);
 app.post("/api/broadcast/send", BroadcastController.sendBroadcast);
 app.post("/api/broadcast/test", BroadcastController.sendTestMessage);
 // Маршруты для сохраненных рассылок
-app.post("/api/broadcast", createContentRateLimit, BroadcastController.createBroadcast);
+app.post("/api/broadcast", createContentRateLimit, authMiddleware, BroadcastController.createBroadcast);
 app.get("/api/broadcast", BroadcastController.getAllBroadcasts);
 app.get("/api/broadcast/:id", BroadcastController.getBroadcastById);
-app.put("/api/broadcast/:id", BroadcastController.updateBroadcast);
-app.delete("/api/broadcast/:id", BroadcastController.deleteBroadcast);
+app.put("/api/broadcast/:id", authMiddleware, BroadcastController.updateBroadcast);
+app.delete("/api/broadcast/:id", authMiddleware, BroadcastController.deleteBroadcast);
 
 // ==================== Modal Notification маршруты ====================
 app.post("/api/modal-notification/users", ModalNotificationController.getFilteredUsers);
-app.post("/api/modal-notification/create", createContentRateLimit, ModalNotificationController.createModalNotification);
+app.post("/api/modal-notification/create", createContentRateLimit, authMiddleware, ModalNotificationController.createModalNotification);
 app.post("/api/modal-notification/my", ModalNotificationController.getUserModalNotifications);
-app.post("/api/modal-notification/remove", ModalNotificationController.removeModalNotification);
+app.post("/api/modal-notification/remove", authMiddleware, ModalNotificationController.removeModalNotification);
 
 // ==================== Robokassa ====================
 app.post("/api/robres", RobokassaController.handleResult);
@@ -313,8 +317,8 @@ app.all("/robokassa_callback/fail", (req, res) => {
 });
 
 // ==================== Upload маршруты ====================
-app.post("/api/upload/image", UploadController.upload.single('image'), UploadController.uploadImage);
-app.post("/api/upload/delete", UploadController.deleteImage);
+app.post("/api/upload/image", authMiddleware, UploadController.upload.single('image'), UploadController.uploadImage);
+app.post("/api/upload/delete", authMiddleware, UploadController.deleteImage);
 
 // ==================== Diary маршруты ====================
 app.post("/api/diary", createContentRateLimit, DiaryController.create);

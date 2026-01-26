@@ -1,8 +1,10 @@
 import VideoLesson from "../Models/VideoLesson.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новый видео урок
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { title, shortDescription, fullDescription, imageUrl, videoUrl, ruTubeUrl, accessType, duration, order } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
@@ -25,6 +27,8 @@ export const create = async (req, res) => {
         });
 
         await videoLesson.save();
+
+        await addAdminAction(user._id, `Создал(а) видео урок: "${title}"`);
 
         res.status(201).json({
             success: true,
@@ -97,6 +101,7 @@ export const getById = async (req, res) => {
 // Обновить видео урок
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -112,6 +117,8 @@ export const update = async (req, res) => {
                 message: "Видео урок не найден",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) видео урок: "${videoLesson.title}"`);
 
         res.json({
             success: true,
@@ -131,6 +138,7 @@ export const update = async (req, res) => {
 // Удалить видео урок
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const videoLesson = await VideoLesson.findByIdAndDelete(id);
@@ -141,6 +149,8 @@ export const remove = async (req, res) => {
                 message: "Видео урок не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) видео урок: "${videoLesson.title}"`);
 
         res.json({
             success: true,

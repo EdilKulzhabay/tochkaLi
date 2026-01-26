@@ -1,8 +1,10 @@
 import Transit from "../Models/Transit.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новый транзит
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { startDate, endDate, title, subtitle, lines, accessType } = req.body;
 
         if (!startDate || !endDate || !title) {
@@ -22,6 +24,8 @@ export const create = async (req, res) => {
         });
 
         await transit.save();
+
+        await addAdminAction(user._id, `Создал(а) транзит: "${title}"`);
 
         res.status(201).json({
             success: true,
@@ -89,6 +93,7 @@ export const getById = async (req, res) => {
 // Обновить транзит
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = { ...req.body };
 
@@ -113,6 +118,8 @@ export const update = async (req, res) => {
             });
         }
 
+        await addAdminAction(user._id, `Обновил(а) транзит: "${transit.title}"`);
+
         res.json({
             success: true,
             data: transit,
@@ -131,6 +138,7 @@ export const update = async (req, res) => {
 // Удалить транзит
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const transit = await Transit.findByIdAndDelete(id);
@@ -141,6 +149,8 @@ export const remove = async (req, res) => {
                 message: "Транзит не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) транзит: "${transit.title}"`);
 
         res.json({
             success: true,

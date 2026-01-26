@@ -2,6 +2,7 @@ import User from "../Models/User.js";
 import Broadcast from "../Models/Broadcast.js";
 import BroadcastSchedule from "../Models/BroadcastSchedule.js";
 import axios from "axios";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
@@ -408,6 +409,7 @@ export const sendTestMessage = async (req, res) => {
 // Создать сохраненную рассылку
 export const createBroadcast = async (req, res) => {
     try {
+        const user = req.user;
         const { title, imgUrl, content, buttonText } = req.body;
 
         if (!title || !content) {
@@ -434,6 +436,8 @@ export const createBroadcast = async (req, res) => {
         });
 
         await broadcast.save();
+
+        await addAdminAction(user._id, `Создал(а) рассылку: "${broadcast.title}"`);
 
         res.status(201).json({
             success: true,
@@ -506,6 +510,7 @@ export const getBroadcastById = async (req, res) => {
 // Обновить сохраненную рассылку
 export const updateBroadcast = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const { title, imgUrl, content, buttonText } = req.body;
 
@@ -536,6 +541,8 @@ export const updateBroadcast = async (req, res) => {
 
         await broadcast.save();
 
+        await addAdminAction(user._id, `Обновил(а) рассылку: "${broadcast.title}"`);
+
         res.json({
             success: true,
             message: "Рассылка успешно обновлена",
@@ -560,6 +567,7 @@ export const updateBroadcast = async (req, res) => {
 // Удалить сохраненную рассылку
 export const deleteBroadcast = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const broadcast = await Broadcast.findById(id);
@@ -572,6 +580,8 @@ export const deleteBroadcast = async (req, res) => {
         }
 
         await Broadcast.findByIdAndDelete(id);
+
+        await addAdminAction(user._id, `Удалил(а) рассылку: "${broadcast.title}"`);
 
         res.json({
             success: true,

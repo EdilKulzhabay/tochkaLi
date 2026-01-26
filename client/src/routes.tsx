@@ -38,6 +38,7 @@ import { BroadcastFormAdmin } from "./pages/Admin/BroadcastForm";
 import { ModalNotificationsAdmin } from "./pages/Admin/ModalNotifications";
 import { AdminsAdmin } from "./pages/Admin/Admins";
 import { AdminForm } from "./pages/Admin/AdminForm";
+import { AdminActionLogs } from "./pages/Admin/AdminActionLogs";
 import { RobokassaSuccess } from "./pages/Robokassa/Success";
 import { RobokassaFail } from "./pages/Robokassa/Fail";
 import { ClientPerfomance } from "./pages/User/ClientPerfomance";
@@ -391,6 +392,10 @@ export const routes = createBrowserRouter([
     {
         path: "/admin/admins/edit/:id",
         element: <RootLayout><ProtectedRoute requiredRole={["admin"]}><AdminForm /></ProtectedRoute></RootLayout>,
+    },
+    {
+        path: "/admin/action-logs",
+        element: <RootLayout><ProtectedRoute requiredRole={["admin"]}><AdminActionLogs /></ProtectedRoute></RootLayout>,
     },
     {
         path: "/robokassa_callback/success",

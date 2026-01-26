@@ -1,4 +1,5 @@
 import Horoscope from "../Models/Horoscope.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Вспомогательная функция для конвертации даты в формат MM-DD
 const dateToMMDD = (dateString) => {
@@ -12,6 +13,7 @@ const dateToMMDD = (dateString) => {
 // Создать новый гороскоп
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { startDate, endDate, title, subtitle, image, lines, accessType } = req.body;
 
         if (!startDate || !endDate || !title) {
@@ -43,6 +45,8 @@ export const create = async (req, res) => {
         });
 
         await horoscope.save();
+
+        await addAdminAction(user._id, `Создал(а) гороскоп: "${horoscope.title}"`);
 
         res.status(201).json({
             success: true,
@@ -111,6 +115,7 @@ export const getById = async (req, res) => {
 // Обновить гороскоп
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = { ...req.body };
 
@@ -135,6 +140,8 @@ export const update = async (req, res) => {
             });
         }
 
+        await addAdminAction(user._id, `Обновил(а) гороскоп: "${horoscope.title}"`);
+
         res.json({
             success: true,
             data: horoscope,
@@ -153,6 +160,7 @@ export const update = async (req, res) => {
 // Удалить гороскоп
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const horoscope = await Horoscope.findByIdAndDelete(id);
@@ -163,6 +171,8 @@ export const remove = async (req, res) => {
                 message: "Гороскоп не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) гороскоп: "${horoscope.title}"`);
 
         res.json({
             success: true,

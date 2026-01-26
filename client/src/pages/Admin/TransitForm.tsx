@@ -152,7 +152,7 @@ export const TransitForm = () => {
                         <ArrowLeft size={24} />
                     </button>
                     <h1 className="text-3xl font-bold text-gray-900">
-                        {id ? 'Редактировать транзит' : 'Создать транзит'}
+                        {id ? 'Редактировать транзит' : 'Добавить транзит'}
                     </h1>
                 </div>
 

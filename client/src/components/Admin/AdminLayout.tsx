@@ -17,7 +17,8 @@ import {
     Radio,
     Shield,
     Bell,
-    Zap
+    Zap,
+    ClipboardList
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -28,6 +29,7 @@ const menuItems = [
     { path: '/admin', label: 'Главная', icon: Home },
     { path: '/admin/users', label: 'Пользователи', icon: Users },
     { path: '/admin/admins', label: 'Администраторы', icon: Shield },
+    { path: '/admin/action-logs', label: 'Журнал действий', icon: ClipboardList, adminOnly: true },
     { path: '/admin/broadcast', label: 'Рассылка', icon: Send },
     { path: '/admin/modal-notifications', label: 'Модальные уведомления', icon: Bell },
     { path: '/admin/profile', label: 'Профиль', icon: User },
@@ -61,7 +63,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                 
                 <nav className="p-4 flex-1 overflow-y-auto">
                     <ul className="space-y-2">
-                        {menuItems.map((item, index) => {
+                        {menuItems
+                            .filter((item) => !item.adminOnly || user?.role === 'admin')
+                            .map((item, index) => {
                             // Разделитель
                             if (item.divider) {
                                 return <li key={`divider-${index}`} className="my-4 border-t border-gray-200"></li>;

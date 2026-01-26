@@ -1,8 +1,10 @@
 import Practice from "../Models/Practice.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новую практику
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { title, shortDescription, fullDescription, imageUrl, videoUrl, ruTubeUrl, accessType, duration, order } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
@@ -25,6 +27,8 @@ export const create = async (req, res) => {
         });
 
         await practice.save();
+
+        await addAdminAction(user._id, `Создал(а) практику: "${title}"`);
 
         res.status(201).json({
             success: true,
@@ -97,6 +101,7 @@ export const getById = async (req, res) => {
 // Обновить практику
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -112,6 +117,8 @@ export const update = async (req, res) => {
                 message: "Практика не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) практику: "${practice.title}"`);
 
         res.json({
             success: true,
@@ -131,6 +138,7 @@ export const update = async (req, res) => {
 // Удалить практику
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const practice = await Practice.findByIdAndDelete(id);
@@ -141,6 +149,8 @@ export const remove = async (req, res) => {
                 message: "Практика не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) практику: "${practice.title}"`);
 
         res.json({
             success: true,

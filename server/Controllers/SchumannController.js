@@ -1,8 +1,10 @@
 import Schumann from "../Models/Schumann.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новую запись о частоте Шумана
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { date, image } = req.body;
 
         if (!date || !image) {
@@ -18,6 +20,8 @@ export const create = async (req, res) => {
         });
 
         await schumann.save();
+
+        await addAdminAction(user._id, `Создал(а) запись о частоте Шумана: "${schumann.date}"`);
 
         res.status(201).json({
             success: true,
@@ -85,6 +89,7 @@ export const getById = async (req, res) => {
 // Обновить запись о частоте Шумана
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -100,6 +105,8 @@ export const update = async (req, res) => {
                 message: "Запись о частоте Шумана не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) запись о частоте Шумана: "${schumann.date}"`);
 
         res.json({
             success: true,
@@ -119,6 +126,7 @@ export const update = async (req, res) => {
 // Удалить запись о частоте Шумана
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const schumann = await Schumann.findByIdAndDelete(id);
@@ -129,6 +137,8 @@ export const remove = async (req, res) => {
                 message: "Запись о частоте Шумана не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) запись о частоте Шумана: "${schumann.date}"`);
 
         res.json({
             success: true,

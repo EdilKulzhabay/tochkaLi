@@ -109,7 +109,7 @@ export const ScheduleForm = () => {
                         Назад к расписанию
                     </button>
                     <h1 className="text-3xl font-bold text-gray-900">
-                        {isEdit ? 'Редактировать событие' : 'Создать событие'}
+                        {isEdit ? 'Редактировать событие' : 'Добавить событие'}
                     </h1>
                 </div>
 

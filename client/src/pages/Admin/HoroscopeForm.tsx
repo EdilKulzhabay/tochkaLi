@@ -125,7 +125,7 @@ export const HoroscopeForm = () => {
                         <ArrowLeft size={24} />
                     </button>
                     <h1 className="text-3xl font-bold text-gray-900">
-                        {id ? 'Редактировать гороскоп' : 'Создать гороскоп'}
+                        {id ? 'Редактировать гороскоп' : 'Добавить гороскоп'}
                     </h1>
                 </div>
 

@@ -1,8 +1,10 @@
 import Meditation from "../Models/Meditation.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новую медитацию
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { title, shortDescription, fullDescription, imageUrl, videoUrl, ruTubeUrl, accessType, duration, order } = req.body;
 
         // if (!title || !subtitle || !category || !shortDescription || !fullDescription || !imageUrl || !videoUrl) {
@@ -25,6 +27,8 @@ export const create = async (req, res) => {
         });
 
         await meditation.save();
+
+        await addAdminAction(user._id, `Создал(а) медитацию: "${title}"`);
 
         res.status(201).json({
             success: true,
@@ -97,6 +101,7 @@ export const getById = async (req, res) => {
 // Обновить медитацию
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -112,6 +117,8 @@ export const update = async (req, res) => {
                 message: "Медитация не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) медитацию: "${meditation.title}"`);
 
         res.json({
             success: true,
@@ -131,6 +138,7 @@ export const update = async (req, res) => {
 // Удалить медитацию
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const meditation = await Meditation.findByIdAndDelete(id);
@@ -141,6 +149,8 @@ export const remove = async (req, res) => {
                 message: "Медитация не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) медитацию: "${meditation.title}"`);
 
         res.json({
             success: true,

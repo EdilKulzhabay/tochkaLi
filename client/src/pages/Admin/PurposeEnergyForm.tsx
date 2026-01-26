@@ -140,16 +140,16 @@ export const PurposeEnergyForm = () => {
                         <ArrowLeft size={24} />
                     </button>
                     <h1 className="text-3xl font-bold text-gray-900">
-                        {id ? 'Редактировать энергию предназначения' : 'Создать энергию предназначения'}
+                        {id ? 'Редактировать урок' : 'Добавить урок'}
                     </h1>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                        <h2 className="text-xl font-semibold text-gray-900">Настройки</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Основной контент</h2>
 
                         <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium">Доступ</label>
+                            <label className="text-sm font-medium">Тип доступа</label>
                             <select
                                 value={formData.accessType}
                                 onChange={(e) => setFormData({ ...formData, accessType: e.target.value })}
@@ -172,7 +172,7 @@ export const PurposeEnergyForm = () => {
                             />
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <MyInput
                                 label="Длительность (мин)"
                                 type="number"
@@ -187,20 +187,20 @@ export const PurposeEnergyForm = () => {
                                 onChange={(e) => setFormData({ ...formData, order: Number(e.target.value) || 0 })}
                                 min="0"
                             />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col gap-2">
-                                <label className="text-sm font-medium">Позиция</label>
+                                <label className="text-sm font-medium">Расположение</label>
                                 <select
                                     value={formData.location}
                                     onChange={(e) => setFormData({ ...formData, location: e.target.value as FormData['location'] })}
                                     className="w-full p-2 rounded-md border border-gray-300"
                                 >
-                                    <option value="top">Верх</option>
-                                    <option value="bottom">Низ</option>
+                                    <option value="top">Сверху</option>
+                                    <option value="bottom">Снизу</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div className="-mt-2">
                             <div className="flex items-center gap-3 pt-6">
                                 <input
                                     type="checkbox"
@@ -208,20 +208,20 @@ export const PurposeEnergyForm = () => {
                                     onChange={(e) => setFormData({ ...formData, allowRepeatBonus: e.target.checked })}
                                     className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                                 />
-                                <span className="text-sm">Разрешить повторный бонус</span>
+                                <span className="text-sm">Добавление бонусов за повторные просмотры</span>
                             </div>
                         </div>
-                    </div>
+                    {/* </div>
 
                     <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                        <h2 className="text-xl font-semibold text-gray-900">Основной контент</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Основной контент</h2> */}
 
                         <MyInput
-                            label="Заголовок"
+                            label="Название"
                             type="text"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="Введите заголовок"
+                            placeholder="Введите название"
                         />
 
                         <MyInput
@@ -235,7 +235,7 @@ export const PurposeEnergyForm = () => {
                         <ImageUpload
                             value={formData.imageUrl}
                             onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-                            label="Изображение"
+                            label="Обложка"
                         />
                     </div>
 

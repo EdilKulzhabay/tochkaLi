@@ -1,4 +1,5 @@
 import Schedule from "../Models/Schedule.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Функция для конвертации datetime-local (без часового пояса) в Date
 // Интерпретирует время как локальное время в Asia/Almaty (UTC+6) и конвертирует в UTC
@@ -42,6 +43,7 @@ const parseDateTimeLocal = (dateTimeString) => {
 // Создать новое событие
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { eventTitle, startDate, endDate, eventLink, googleCalendarLink, appleCalendarLink, description } = req.body;
 
         // if (!eventTitle || !startDate || !endDate || !description) {
@@ -81,6 +83,8 @@ export const create = async (req, res) => {
         });
 
         await schedule.save();
+
+        await addAdminAction(user._id, `Создал(а) событие: "${eventTitle}"`);
 
         res.status(201).json({
             success: true,
@@ -219,6 +223,7 @@ export const getById = async (req, res) => {
 // Обновить событие
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         
         // Проверяем, существует ли событие
@@ -268,6 +273,8 @@ export const update = async (req, res) => {
             });
         }
 
+        await addAdminAction(user._id, `Обновил(а) событие: "${schedule.eventTitle}"`);
+
         res.json({
             success: true,
             data: schedule,
@@ -286,6 +293,7 @@ export const update = async (req, res) => {
 // Удалить событие
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const schedule = await Schedule.findByIdAndDelete(id);
@@ -296,6 +304,8 @@ export const remove = async (req, res) => {
                 message: "Событие не найдено",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) событие: "${schedule.eventTitle}"`);
 
         res.json({
             success: true,

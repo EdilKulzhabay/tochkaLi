@@ -1,8 +1,10 @@
 import Welcome from "../Models/Welcome.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Создать новый контент приветствия
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { title, image, content } = req.body;
 
         if (!title || !content) {
@@ -19,6 +21,8 @@ export const create = async (req, res) => {
         });
 
         await welcome.save();
+
+        await addAdminAction(user._id, `Создал(а) контент приветствия: "${welcome.title}"`);
 
         res.status(201).json({
             success: true,
@@ -86,6 +90,7 @@ export const getById = async (req, res) => {
 // Обновить контент приветствия
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -101,6 +106,8 @@ export const update = async (req, res) => {
                 message: "Контент приветствия не найден",
             });
         }
+
+        await addAdminAction(user._id, `Обновил(а) контент приветствия: "${welcome.title}"`);
 
         res.json({
             success: true,
@@ -120,6 +127,7 @@ export const update = async (req, res) => {
 // Удалить контент приветствия
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const welcome = await Welcome.findByIdAndDelete(id);
@@ -130,6 +138,8 @@ export const remove = async (req, res) => {
                 message: "Контент приветствия не найден",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) контент приветствия: "${welcome.title}"`);
 
         res.json({
             success: true,

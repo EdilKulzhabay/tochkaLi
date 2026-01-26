@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import XLSX from "xlsx";
 import axios from "axios";
 import crypto from 'crypto';
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -710,6 +711,7 @@ export const getUserById = async (req, res) => {
 // Создать пользователя (для админа и менеджеров)
 export const createUserByAdmin = async (req, res) => {
     try {
+        const admin = req.user;
         const { fullName, mail, phone, password, role, status } = req.body;
 
         if (!fullName || !mail || !phone) {
@@ -753,7 +755,9 @@ export const createUserByAdmin = async (req, res) => {
         });
 
         const user = await doc.save();
-        
+
+        await addAdminAction(admin._id, `Создал(а) пользователя: "${user.fullName}"`);
+
         // Возвращаем сгенерированный пароль только если он был сгенерирован автоматически
         const responseData = {
             success: true,
@@ -780,6 +784,7 @@ export const createUserByAdmin = async (req, res) => {
 // Обновить пользователя (только для админа)
 export const updateUser = async (req, res) => {
     try {
+        const admin = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -814,6 +819,8 @@ export const updateUser = async (req, res) => {
             });
         }
 
+        await addAdminAction(admin._id, `Обновил(а) пользователя: "${user.fullName}"`);
+
         res.json({
             success: true,
             data: user,
@@ -831,6 +838,7 @@ export const updateUser = async (req, res) => {
 // Активировать подписку пользователя
 export const activateSubscription = async (req, res) => {
     try {
+        const admin = req.user;
         const { id } = req.params;
         const { subscriptionEndDate } = req.body;
 
@@ -862,6 +870,8 @@ export const activateSubscription = async (req, res) => {
             },
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
+
+        await addAdminAction(admin._id, `Активировал(а) подписку для пользователя: "${user.fullName}"`);
 
         // // Добавляем пользователя в группу и канал через бота
         // if (user.telegramId) {
@@ -903,6 +913,7 @@ export const activateSubscription = async (req, res) => {
 // Деактивировать подписку пользователя
 export const deactivateSubscription = async (req, res) => {
     try {
+        const admin = req.user;
         const { id } = req.params;
 
         // Сначала находим пользователя, чтобы получить previousStatus
@@ -926,6 +937,8 @@ export const deactivateSubscription = async (req, res) => {
             },
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
+
+        await addAdminAction(admin._id, `Деактивировал(а) подписку для пользователя: "${user.fullName}"`);
 
         // // Удаляем пользователя из группы и канала через бота
         // if (user.telegramId) {
@@ -967,6 +980,7 @@ export const deactivateSubscription = async (req, res) => {
 // Заблокировать пользователя
 export const blockUser = async (req, res) => {
     try {
+        const admin = req.user;
         const { id } = req.params;
 
         const user = await User.findByIdAndUpdate(
@@ -983,6 +997,8 @@ export const blockUser = async (req, res) => {
                 message: "Пользователь не найден",
             });
         }
+
+        await addAdminAction(admin._id, `Заблокировал(а) пользователя: "${user.fullName}"`);
 
         res.json({
             success: true,
@@ -1001,6 +1017,7 @@ export const blockUser = async (req, res) => {
 // Разблокировать пользователя
 export const unblockUser = async (req, res) => {
     try {
+        const admin = req.user;
         const { id } = req.params;
 
         const user = await User.findByIdAndUpdate(
@@ -1017,6 +1034,8 @@ export const unblockUser = async (req, res) => {
                 message: "Пользователь не найден",
             });
         }
+
+        await addAdminAction(admin._id, `Разблокировал(а) пользователя: "${user.fullName}"`);
 
         res.json({
             success: true,
@@ -1035,6 +1054,7 @@ export const unblockUser = async (req, res) => {
 // Удалить пользователя (только для админа)
 export const deleteUser = async (req, res) => {
     try {
+        const admin = req.user;
         const { id } = req.params;
 
         const user = await User.findByIdAndDelete(id);
@@ -1045,6 +1065,8 @@ export const deleteUser = async (req, res) => {
                 message: "Пользователь не найден",
             });
         }
+
+        await addAdminAction(admin._id, `Удалил(а) пользователя: "${user.fullName}"`);
 
         res.json({
             success: true,
@@ -1400,6 +1422,7 @@ export const getAdminById = async (req, res) => {
 // Создать администратора (с любой административной ролью)
 export const createAdmin = async (req, res) => {
     try {
+        const user = req.user;
         const { fullName, mail, phone, role, status, password } = req.body;
 
         if (!fullName || !mail || !phone) {
@@ -1447,6 +1470,8 @@ export const createAdmin = async (req, res) => {
 
         const admin = await doc.save();
 
+        await addAdminAction(user._id, `Создал(а) администратора: "${fullName}"`);
+
         res.status(201).json({
             success: true,
             data: {
@@ -1473,6 +1498,7 @@ export const createAdmin = async (req, res) => {
 // Обновить администратора (поддерживает изменение роли)
 export const updateAdmin = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = req.body;
 
@@ -1519,6 +1545,8 @@ export const updateAdmin = async (req, res) => {
             });
         }
 
+        await addAdminAction(user._id, `Обновил(а) администратора: "${admin.fullName}"`);
+
         res.json({
             success: true,
             data: admin,
@@ -1536,6 +1564,7 @@ export const updateAdmin = async (req, res) => {
 // Заблокировать администратора (любая административная роль)
 export const blockAdmin = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const candidate = await User.findOne({ _id: id });
         if (!candidate) {
@@ -1565,6 +1594,8 @@ export const blockAdmin = async (req, res) => {
             });
         }
 
+        await addAdminAction(user._id, `Заблокировал(а) администратора: "${admin.fullName}"`);
+
         res.json({
             success: true,
             data: admin,
@@ -1582,6 +1613,7 @@ export const blockAdmin = async (req, res) => {
 // Разблокировать администратора (любая административная роль)
 export const unblockAdmin = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const candidate = await User.findOne({ _id: id });
@@ -1610,6 +1642,8 @@ export const unblockAdmin = async (req, res) => {
                 message: "Администратор не найден",
             });
         }
+
+        await addAdminAction(user._id, `Разблокировал(а) администратора: "${admin.fullName}"`);
 
         res.json({
             success: true,

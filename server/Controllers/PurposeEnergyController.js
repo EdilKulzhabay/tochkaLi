@@ -1,4 +1,5 @@
 import PurposeEnergy from "../Models/PurposeEnergy.js";
+import { addAdminAction } from "../utils/addAdminAction.js";
 
 // Вспомогательная функция для конвертации даты в формат MM-DD
 const dateToMMDD = (dateString) => {
@@ -11,6 +12,7 @@ const dateToMMDD = (dateString) => {
 
 export const create = async (req, res) => {
     try {
+        const user = req.user;
         const { startDate, endDate, title, subtitle, image, content, accessType } = req.body;
 
         if (!startDate || !endDate || !title) {
@@ -41,6 +43,8 @@ export const create = async (req, res) => {
         });
 
         await purposeEnergy.save();
+
+        await addAdminAction(user._id, `Создал(а) энергию предназначения: "${title}"`);
 
         res.status(201).json({
             success: true,
@@ -105,6 +109,7 @@ export const getById = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
         const updateData = { ...req.body };
 
@@ -128,6 +133,8 @@ export const update = async (req, res) => {
             });
         }
 
+        await addAdminAction(user._id, `Обновил(а) энергию предназначения: "${item.title}"`);
+
         res.json({
             success: true,
             data: item,
@@ -145,6 +152,7 @@ export const update = async (req, res) => {
 
 export const remove = async (req, res) => {
     try {
+        const user = req.user;
         const { id } = req.params;
 
         const item = await PurposeEnergy.findByIdAndDelete(id);
@@ -155,6 +163,8 @@ export const remove = async (req, res) => {
                 message: "Энергия предназначения не найдена",
             });
         }
+
+        await addAdminAction(user._id, `Удалил(а) энергию предназначения: "${item.title}"`);
 
         res.json({
             success: true,
