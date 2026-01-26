@@ -93,6 +93,8 @@ export const getById = async (req, res) => {
 // Обновить FAQ
 export const update = async (req, res) => {
     try {
+        const user = req.user;
+        console.log("user in authMiddleware  = ", user);
         const { id } = req.params;
         const updateData = req.body;
 

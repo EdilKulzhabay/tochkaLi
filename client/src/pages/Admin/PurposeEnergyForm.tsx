@@ -10,6 +10,7 @@ import api from '../../api';
 import { toast } from 'react-toastify';
 
 interface ContentItem {
+    type: 'video' | 'rutube' | 'text' | 'image';
     videoUrl?: string;
     ruTubeUrl?: string;
     text?: string;
@@ -33,6 +34,7 @@ export const PurposeEnergyForm = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
+    const [showTypePicker, setShowTypePicker] = useState(false);
     const [formData, setFormData] = useState<FormData>({
         title: '',
         shortDescription: '',
@@ -91,11 +93,12 @@ export const PurposeEnergyForm = () => {
         });
     };
 
-    const addContentItem = () => {
+    const addContentItem = (type: ContentItem['type']) => {
         setFormData(prev => ({
             ...prev,
-            content: [...prev.content, { videoUrl: '', ruTubeUrl: '', text: '', image: '' }]
+            content: [...prev.content, { type, videoUrl: '', ruTubeUrl: '', text: '', image: '' }]
         }));
+        setShowTypePicker(false);
     };
 
     const removeContentItem = (index: number) => {
@@ -258,34 +261,59 @@ export const PurposeEnergyForm = () => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <MyInput
-                                            label="Ссылка на видео"
-                                            type="text"
-                                            value={item.videoUrl || ''}
-                                            onChange={(e) => handleContentChange(index, 'videoUrl', e.target.value)}
-                                            placeholder="https://..."
-                                        />
-                                        <MyInput
-                                            label="Ссылка на RuTube"
-                                            type="text"
-                                            value={item.ruTubeUrl || ''}
-                                            onChange={(e) => handleContentChange(index, 'ruTubeUrl', e.target.value)}
-                                            placeholder="https://..."
-                                        />
-                                        <ImageUpload
-                                            value={item.image || ''}
-                                            onChange={(url) => handleContentChange(index, 'image', url)}
-                                            label="Изображение"
-                                        />
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Текст</label>
-                                            <RichTextEditor
-                                                value={item.text || ''}
-                                                onChange={(value) => handleContentChange(index, 'text', value)}
-                                                placeholder="Введите текст"
-                                                height="200px"
-                                            />
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-sm font-medium">Тип контента</label>
+                                            <select
+                                                value={item.type}
+                                                onChange={(e) => handleContentChange(index, 'type', e.target.value)}
+                                                className="w-full p-2 rounded-md border border-gray-300"
+                                            >
+                                                <option value="video">Видео</option>
+                                                <option value="rutube">RuTube</option>
+                                                <option value="text">Текст</option>
+                                                <option value="image">Изображение</option>
+                                            </select>
                                         </div>
+
+                                        {item.type === 'video' && (
+                                            <MyInput
+                                                label="Ссылка на видео"
+                                                type="text"
+                                                value={item.videoUrl || ''}
+                                                onChange={(e) => handleContentChange(index, 'videoUrl', e.target.value)}
+                                                placeholder="https://..."
+                                            />
+                                        )}
+
+                                        {item.type === 'rutube' && (
+                                            <MyInput
+                                                label="Ссылка на RuTube"
+                                                type="text"
+                                                value={item.ruTubeUrl || ''}
+                                                onChange={(e) => handleContentChange(index, 'ruTubeUrl', e.target.value)}
+                                                placeholder="https://..."
+                                            />
+                                        )}
+
+                                        {item.type === 'image' && (
+                                            <ImageUpload
+                                                value={item.image || ''}
+                                                onChange={(url) => handleContentChange(index, 'image', url)}
+                                                label="Изображение"
+                                            />
+                                        )}
+
+                                        {item.type === 'text' && (
+                                            <div>
+                                                <label className="block text-sm font-medium mb-2">Текст</label>
+                                                <RichTextEditor
+                                                    value={item.text || ''}
+                                                    onChange={(value) => handleContentChange(index, 'text', value)}
+                                                    placeholder="Введите текст"
+                                                    height="200px"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -298,9 +326,41 @@ export const PurposeEnergyForm = () => {
                         </div>
 
                         <div className="flex flex-col items-end gap-3">
+                            {showTypePicker && (
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('video')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Ссылка на видео
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('rutube')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Ссылка на RuTube
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('text')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Текст
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => addContentItem('image')}
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Изображение
+                                    </button>
+                                </div>
+                            )}
                             <button
                                 type="button"
-                                onClick={addContentItem}
+                                onClick={() => addContentItem('video')}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 <Plus size={16} />

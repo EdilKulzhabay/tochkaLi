@@ -123,6 +123,7 @@ const getSwaggerAuthPage = (redirectPath) => {
             font-weight: 500;
         }
         
+        input[type="text"],
         input[type="password"] {
             width: 100%;
             padding: 12px;
@@ -132,6 +133,7 @@ const getSwaggerAuthPage = (redirectPath) => {
             transition: border-color 0.3s;
         }
         
+        input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
             border-color: #667eea;
@@ -218,6 +220,8 @@ const getSwaggerAuthPage = (redirectPath) => {
         const submitBtn = document.getElementById('submitBtn');
         const modalOverlay = document.getElementById('modalOverlay');
 
+        let lockTimerId = null;
+
         const setLockedState = (lockedUntilMs) => {
             const now = Date.now();
             const remainingMs = Math.max(0, lockedUntilMs - now);
@@ -229,13 +233,35 @@ const getSwaggerAuthPage = (redirectPath) => {
                 submitBtn.disabled = true;
                 errorMessage.textContent = 'Слишком много попыток. Подождите ' + remainingSec + ' сек.';
                 errorMessage.classList.add('show');
+                try {
+                    localStorage.setItem('swagger_locked_until', String(lockedUntilMs));
+                } catch (_) {}
                 return remainingSec;
             }
 
             loginInput.disabled = false;
             passwordInput.disabled = false;
             submitBtn.disabled = false;
+            errorMessage.classList.remove('show');
+            try {
+                localStorage.removeItem('swagger_locked_until');
+            } catch (_) {}
             return 0;
+        };
+
+        const startLockCountdown = (lockedUntilMs) => {
+            if (lockTimerId) {
+                clearInterval(lockTimerId);
+            }
+
+            setLockedState(lockedUntilMs);
+            lockTimerId = setInterval(() => {
+                const remaining = setLockedState(lockedUntilMs);
+                if (remaining <= 0) {
+                    clearInterval(lockTimerId);
+                    lockTimerId = null;
+                }
+            }, 1000);
         };
         
         form.addEventListener('submit', async (e) => {
@@ -271,7 +297,7 @@ const getSwaggerAuthPage = (redirectPath) => {
                     window.location.reload();
                 } else {
                     if (data.lockedUntil) {
-                        setLockedState(data.lockedUntil);
+                        startLockCountdown(data.lockedUntil);
                         return;
                     }
 
@@ -291,6 +317,14 @@ const getSwaggerAuthPage = (redirectPath) => {
             }
         });
         
+        // Восстанавливаем блокировку после обновления
+        try {
+            const storedLockedUntil = Number(localStorage.getItem('swagger_locked_until'));
+            if (storedLockedUntil && storedLockedUntil > Date.now()) {
+                startLockCountdown(storedLockedUntil);
+            }
+        } catch (_) {}
+
         // Фокус на поле ввода при загрузке
         loginInput.focus();
     </script>

@@ -31,6 +31,7 @@ import {
     ModalNotificationController
 } from "./Controllers/index.js";
 import { authMiddleware } from "./Middlewares/authMiddleware.js";
+import { adminActionLogMiddleware } from "./Middlewares/adminActionLogMiddleware.js";
 import User from "./Models/User.js";
 import { 
     setupSwagger,
@@ -193,7 +194,7 @@ app.post("/api/user/purchase-content", UserController.purchaseContent);
 app.post("/api/faq", createContentRateLimit, FAQController.create);
 app.get("/api/faq", FAQController.getAll);
 app.get("/api/faq/:id", FAQController.getById);
-app.put("/api/faq/:id", FAQController.update);
+app.put("/api/faq/:id", authMiddleware, FAQController.update);
 app.delete("/api/faq/:id", FAQController.remove);
 
 // ==================== Horoscope маршруты ====================
@@ -209,7 +210,7 @@ app.delete("/api/horoscope/:id", HoroscopeController.remove);
 app.post("/api/purpose-energy", createContentRateLimit, PurposeEnergyController.create);
 app.get("/api/purpose-energy", PurposeEnergyController.getAll);
 app.get("/api/purpose-energy/:id", PurposeEnergyController.getById);
-app.put("/api/purpose-energy/:id", PurposeEnergyController.update);
+app.put("/api/purpose-energy/:id", authMiddleware, PurposeEnergyController.update);
 app.delete("/api/purpose-energy/:id", PurposeEnergyController.remove);
 
 // ==================== Meditation маршруты ====================

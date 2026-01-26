@@ -96,29 +96,28 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
         editorRef.current?.focus();
     };
 
+    const restoreSelectionRange = () => {
+        const selection = window.getSelection();
+        if (!selection || !selectionRangeRef.current) return null;
+        selection.removeAllRanges();
+        selection.addRange(selectionRangeRef.current);
+        return selection;
+    };
+
     const applyTextColor = (color: string) => {
         setCurrentColor(color);
-        const selection = window.getSelection();
+        const selection = restoreSelectionRange() || window.getSelection();
         if (!selection || selection.rangeCount === 0) {
-            if (selectionRangeRef.current && selection) {
-                selection.removeAllRanges();
-                selection.addRange(selectionRangeRef.current);
-            } else {
-                execCommand('foreColor', color);
-                return;
-            }
-        }
-
-        const range = selection?.rangeCount ? selection.getRangeAt(0) : selectionRangeRef.current;
-        if (!range) {
             execCommand('foreColor', color);
             return;
         }
+
+        const range = selection.getRangeAt(0);
         const span = document.createElement('span');
         span.style.color = color;
 
         if (range.collapsed) {
-            // Создаем "карман" нужного цвета, чтобы дальнейший ввод был окрашен
+            // Делает поведение как в Word: задаем цвет для дальнейшего ввода
             const zeroWidthSpace = document.createTextNode('\u200B');
             span.appendChild(zeroWidthSpace);
             range.insertNode(span);
@@ -126,8 +125,8 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
             const newRange = document.createRange();
             newRange.setStart(zeroWidthSpace, 1);
             newRange.setEnd(zeroWidthSpace, 1);
-            selection?.removeAllRanges();
-            selection?.addRange(newRange);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
             selectionRangeRef.current = newRange.cloneRange();
             editorRef.current?.focus();
             return;
@@ -141,8 +140,8 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
             range.insertNode(span);
         }
 
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+        selection.removeAllRanges();
+        selection.addRange(range);
         selectionRangeRef.current = range.cloneRange();
         handleInput();
         editorRef.current?.focus();
@@ -279,6 +278,12 @@ export const RichTextEditor = ({ value, onChange, placeholder, height = '200px' 
                     <input
                         type="color"
                         value={currentColor}
+                        onMouseDown={() => {
+                            const selection = window.getSelection();
+                            if (selection && selection.rangeCount > 0) {
+                                selectionRangeRef.current = selection.getRangeAt(0).cloneRange();
+                            }
+                        }}
                         onChange={(e) => applyTextColor(e.target.value)}
                         className="h-5 w-8 cursor-pointer border-0 bg-transparent p-0"
                         title="Цвет текста"
