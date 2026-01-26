@@ -785,6 +785,7 @@ export const createUserByAdmin = async (req, res) => {
 export const updateUser = async (req, res) => {
     try {
         const admin = req.user;
+        console.log(admin);
         const { id } = req.params;
         const updateData = req.body;
 
