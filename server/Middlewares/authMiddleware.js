@@ -6,10 +6,11 @@ export const authMiddleware = async (req, res, next) => {
         const token = req.headers.authorization?.replace("Bearer ", "");
 
         if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Токен не предоставлен",
-            });
+            next();
+            // return res.status(401).json({
+            //     success: false,
+            //     message: "Токен не предоставлен",
+            // });
         }
 
         // Проверяем валидность токена

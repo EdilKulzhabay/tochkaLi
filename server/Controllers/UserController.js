@@ -756,7 +756,9 @@ export const createUserByAdmin = async (req, res) => {
 
         const user = await doc.save();
 
-        await addAdminAction(admin._id, `Создал(а) пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Создал(а) пользователя: "${user.fullName}"`);
+        }
 
         // Возвращаем сгенерированный пароль только если он был сгенерирован автоматически
         const responseData = {
@@ -785,7 +787,7 @@ export const createUserByAdmin = async (req, res) => {
 export const updateUser = async (req, res) => {
     try {
         const admin = req.user;
-        console.log(admin);
+        
         const { id } = req.params;
         const updateData = req.body;
 
@@ -820,7 +822,9 @@ export const updateUser = async (req, res) => {
             });
         }
 
-        await addAdminAction(admin._id, `Обновил(а) пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Обновил(а) пользователя: "${user.fullName}"`);
+        }
 
         res.json({
             success: true,
@@ -872,7 +876,9 @@ export const activateSubscription = async (req, res) => {
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 
-        await addAdminAction(admin._id, `Активировал(а) подписку для пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Активировал(а) подписку для пользователя: "${user.fullName}"`);
+        }
 
         // // Добавляем пользователя в группу и канал через бота
         // if (user.telegramId) {
@@ -939,7 +945,9 @@ export const deactivateSubscription = async (req, res) => {
             { new: true, runValidators: true }
         ).select("-password -currentToken -refreshToken");
 
-        await addAdminAction(admin._id, `Деактивировал(а) подписку для пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Деактивировал(а) подписку для пользователя: "${user.fullName}"`);
+        }
 
         // // Удаляем пользователя из группы и канала через бота
         // if (user.telegramId) {
@@ -999,7 +1007,9 @@ export const blockUser = async (req, res) => {
             });
         }
 
-        await addAdminAction(admin._id, `Заблокировал(а) пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Заблокировал(а) пользователя: "${user.fullName}"`);
+        }
 
         res.json({
             success: true,
@@ -1036,7 +1046,9 @@ export const unblockUser = async (req, res) => {
             });
         }
 
-        await addAdminAction(admin._id, `Разблокировал(а) пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Разблокировал(а) пользователя: "${user.fullName}"`);
+        }
 
         res.json({
             success: true,
@@ -1067,7 +1079,9 @@ export const deleteUser = async (req, res) => {
             });
         }
 
-        await addAdminAction(admin._id, `Удалил(а) пользователя: "${user.fullName}"`);
+        if (admin && admin !== null) {
+            await addAdminAction(admin._id, `Удалил(а) пользователя: "${user.fullName}"`);
+        }
 
         res.json({
             success: true,
@@ -1471,7 +1485,9 @@ export const createAdmin = async (req, res) => {
 
         const admin = await doc.save();
 
-        await addAdminAction(user._id, `Создал(а) администратора: "${fullName}"`);
+        if (user && user !== null) {
+            await addAdminAction(user._id, `Создал(а) администратора: "${fullName}"`);
+        }
 
         res.status(201).json({
             success: true,
@@ -1546,7 +1562,9 @@ export const updateAdmin = async (req, res) => {
             });
         }
 
-        await addAdminAction(user._id, `Обновил(а) администратора: "${admin.fullName}"`);
+        if (user && user !== null) {
+            await addAdminAction(user._id, `Обновил(а) администратора: "${admin.fullName}"`);
+        }
 
         res.json({
             success: true,
@@ -1595,7 +1613,9 @@ export const blockAdmin = async (req, res) => {
             });
         }
 
-        await addAdminAction(user._id, `Заблокировал(а) администратора: "${admin.fullName}"`);
+        if (user && user !== null) {
+            await addAdminAction(user._id, `Заблокировал(а) администратора: "${admin.fullName}"`);
+        }
 
         res.json({
             success: true,
@@ -1644,7 +1664,9 @@ export const unblockAdmin = async (req, res) => {
             });
         }
 
-        await addAdminAction(user._id, `Разблокировал(а) администратора: "${admin.fullName}"`);
+        if (user && user !== null) {
+            await addAdminAction(user._id, `Разблокировал(а) администратора: "${admin.fullName}"`);
+        }
 
         res.json({
             success: true,
