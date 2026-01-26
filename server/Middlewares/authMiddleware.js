@@ -7,6 +7,7 @@ export const authMiddleware = async (req, res, next) => {
 
         if (!token) {
             next();
+            return;
             // return res.status(401).json({
             //     success: false,
             //     message: "Токен не предоставлен",
