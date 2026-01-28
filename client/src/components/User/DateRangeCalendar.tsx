@@ -296,7 +296,7 @@ export const DateRangeCalendar = ({
                             </div>
                             {dotColor && (
                                 <span
-                                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                                    className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full"
                                     style={{ backgroundColor: dotColor }}
                                 />
                             )}
@@ -333,7 +333,7 @@ export const DateRangeCalendar = ({
                             </div>
                             {dotColor && (
                                 <span
-                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
+                                    className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full"
                                     style={{ backgroundColor: dotColor }}
                                 />
                             )}

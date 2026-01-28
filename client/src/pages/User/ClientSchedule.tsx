@@ -288,7 +288,7 @@ export const ClientSchedule = () => {
                                     {schedule.priority && <div className="w-1.5 h-1.5 bg-[#EC1313] rounded-full" />}
                                     {!schedule.priority && <div className="w-1.5 h-1.5 bg-[#FFC293] rounded-full" />}
                                 </div>
-                                <p className="">{schedule?.description}</p>
+                                <p dangerouslySetInnerHTML={{ __html: schedule?.description || '' }}></p>
                             </div>
                         ))}
                     </div>
@@ -322,7 +322,7 @@ export const ClientSchedule = () => {
                                 />
                                 <div className="mt-4">
                                     {selectedSchedule.description && (
-                                        <p className="mb-2">{selectedSchedule.description}</p>
+                                        <p className="mb-2" dangerouslySetInnerHTML={{ __html: selectedSchedule.description || '' }}></p>
                                     )}
                                     {selectedSchedule.startDate && (
                                         <p className="text-sm text-white/60">
@@ -419,7 +419,7 @@ export const ClientSchedule = () => {
                                 />
                                 <div className="mt-4">
                                     {selectedSchedule.description && (
-                                        <p className="mb-2">{selectedSchedule.description}</p>
+                                        <p className="mb-2" dangerouslySetInnerHTML={{ __html: selectedSchedule.description || '' }}></p>
                                     )}
                                     {selectedSchedule.startDate && (
                                         <p className="text-sm text-white/60">

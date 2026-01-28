@@ -136,6 +136,10 @@ export const ScheduleForm = () => {
                             </label>
                         </div>
 
+                        <div className='-mt-5'>
+                            <span className='text-xs text-gray-500'>Неприоритетные события отображаются по умолчанию за 7 дней</span>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <MyInput
                                 label="Дата и время начала (по Мск)"
