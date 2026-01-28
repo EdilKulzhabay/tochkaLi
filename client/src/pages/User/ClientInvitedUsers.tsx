@@ -283,7 +283,7 @@ export const ClientInvitedUsers = () => {
                                 <div className="flex flex-col gap-y-2">
                                     {invitedUsers.map((user: any) => (
                                         <a
-                                            href={`${user.telegramId ? `t.me/io_tochkali_bot?start=${user.telegramId}` : ''}`}
+                                            href={`${user.telegramId ? `https://t.me/user?id=${user.telegramId}` : ''}`}
                                             target="_blank"
                                             key={user.telegramId}
                                             className="block w-full py-2.5 px-3 border border-white/40 rounded-xl text-left text-white font-medium hover:bg-white/10 transition-colors"
